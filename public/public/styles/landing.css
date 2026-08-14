@@ -1,1 +1,398 @@
+/* ============================================================
+   WalkyLo — landing.css
+   Paleta oficial. El verde queda SOLO para "en línea" (activo).
+   ============================================================ */
+:root {
+  /* Color — paleta WalkyLo */
+  --bg: #FAFAFA;          /* fondo */
+  --surface: #FFFFFF;     /* tarjetas */
+  --ink: #18181b;         /* texto principal / negro */
+  --muted: #71717A;       /* texto secundario */
+  --line: #E8E8EB;        /* bordes suaves */
+  --iris: #0164FD;        /* acento principal (azul) */
+  --iris-soft: #E7F0FF;   /* fondo tenue del acento */
+  --active: #34d399;      /* verde: SOLO estado activo/confirmado */
 
+  /* Tipografía */
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: 0 20px 128px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.topbar,
+main,
+.footer { max-width: 960px; margin-inline: auto; }
+
+a { color: inherit; }
+
+:where(a, button, input):focus-visible {
+  outline: 2px solid var(--iris);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Barra superior ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 0;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.wordmark__mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  background: var(--iris);
+  box-shadow: inset 0 0 0 3px var(--bg), 0 0 0 1px var(--iris);
+}
+
+.wordmark__name { font-size: 1.15rem; letter-spacing: -0.01em; }
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.status__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--active);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--active) 22%, transparent);
+}
+
+/* ---------- Hero ---------- */
+.hero { padding: 40px 0 8px; }
+
+.eyebrow {
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--iris);
+}
+
+.hero__title {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 7.5vw, 3.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+}
+
+.hero__lead {
+  margin: 0 0 30px;
+  font-size: clamp(1rem, 2.6vw, 1.18rem);
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+/* ---------- Snippet (el gancho: "una línea") ---------- */
+.embed {
+  background: var(--ink);
+  color: #EDEDF0;
+  border-radius: var(--radius);
+  padding: 18px 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.embed::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--iris), color-mix(in srgb, var(--iris) 68%, #000));
+}
+
+.embed__label {
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9A9AA6;
+}
+
+.embed__code {
+  margin: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.embed__code code {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.embed__note {
+  margin: 14px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* ---------- Cómo funciona ---------- */
+.how { margin-top: 64px; }
+
+.how__title {
+  margin: 0 0 24px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.step {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: var(--iris-soft);
+  color: var(--iris);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+.step__name {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+.step__desc { margin: 0; color: var(--muted); font-size: 0.96rem; }
+
+/* ---------- Footer ---------- */
+.footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.footer__brand { margin: 0 0 4px; font-size: 0.92rem; }
+.footer__note { margin: 0; font-size: 0.86rem; color: var(--muted); }
+
+/* ============================================================
+   Vista previa del widget (esquina inferior derecha)
+   ============================================================ */
+.wl-preview {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  font-family: var(--font-body);
+}
+
+.wl-launcher {
+  width: 56px; height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--iris);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--iris) 60%, #000);
+  margin-left: auto;
+}
+
+.wl-panel {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  width: min(330px, calc(100vw - 40px));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -20px rgba(24, 24, 27, 0.35);
+  overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.wl-preview.is-open .wl-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.wl-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wl-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+.wl-panel__tag {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.wl-panel__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.wl-panel__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--active);
+}
+
+.wl-panel__close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.wl-panel__body {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg);
+}
+
+.wl-msg {
+  max-width: 85%;
+  padding: 10px 13px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.wl-msg--user {
+  align-self: flex-end;
+  background: var(--iris);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+
+.wl-msg--bot {
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 5px;
+}
+
+.wl-chip {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--iris-soft);
+  color: var(--iris);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.wl-panel__foot {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.wl-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+/* ---------- Escritorio ---------- */
+@media (min-width: 720px) {
+  .hero { padding-top: 56px; }
+  .steps { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+}
+
+/* ---------- Menos movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .wl-panel { transition: none; }
+}
