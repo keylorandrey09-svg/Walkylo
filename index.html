@@ -1,1 +1,988 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WalkyUp — Ayuda con IA para tu app, lista en una línea</title>
+  <meta name="description" content="WalkyUp es un asistente de ayuda con IA que sumás a tu app con una línea. Responde dudas, pasa el link correcto y lo configurás desde tu panel con analíticas en tiempo real." />
+  <meta name="theme-color" content="#FFFFFF" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Baloo+2:wght@600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       WalkyUp — Landing
+       Dirección heredada del landing anterior (serio, navy/azul).
+       CSS scoped bajo #landing con variables --lp-. No pisa la app.
+       Verde (--lp-active) SOLO para estados activos/confirmados.
+       ============================================================ */
+    html { scroll-behavior: smooth; }
+
+    #landing {
+      /* — Paleta WalkyUp (colores de marca) — */
+      --lp-white:#FFFFFF;
+      --lp-bg:#FAFAFA;
+      --lp-soft:#F5F6F8;
+      --lp-tint:#F4F8FF;
+      --lp-navy:#18181b;
+      --lp-navy-deep:#18181b;   /* tarjeta de código oscura (near-black de marca) */
+      --lp-bg-dark:#18181b;
+
+      --lp-primary:#0164FD;
+      --lp-primary-h:#0150D4;
+      --lp-primary-soft:#E7F0FF;
+      --lp-primary-line:#CFE0FF;
+
+      --lp-ink:#18181b;
+      --lp-ink-2:#5B6472;
+      --lp-ink-3:#8A9199;
+
+      --lp-on-dark:#ECECEF;
+      --lp-on-dark-2:#B7B9C0;
+      --lp-on-dark-3:#8B8D96;
+
+      --lp-active:#34D399;      /* verde: SOLO activo/confirmado */
+      --lp-active-ink:#15803D;
+      --lp-active-soft:#E7F8F0;
+
+      --lp-line:#ECECEF;
+      --lp-line-2:#F1F1F4;
+      --lp-line-dark:rgba(255,255,255,.10);
+
+      --lp-sh-sm:0 1px 2px rgba(24,24,27,.05);
+      --lp-sh-md:0 10px 28px -10px rgba(24,24,27,.12), 0 2px 6px rgba(24,24,27,.04);
+      --lp-sh-lg:0 30px 70px -24px rgba(24,24,27,.20), 0 6px 18px -8px rgba(24,24,27,.12);
+
+      --lp-r:14px;
+      --lp-r-lg:18px;
+      --lp-r-xl:24px;
+      --lp-sec:clamp(64px, 8vw, 104px);
+
+      --lp-font:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --lp-mono:"Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+      --lp-word:"Baloo 2", "Inter", system-ui, sans-serif;
+      --lp-maxw:1120px;
+
+      font-family: var(--lp-font);
+      color: var(--lp-ink-2);
+      background: var(--lp-bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    #landing *, #landing *::before, #landing *::after { box-sizing: border-box; }
+    #landing h1, #landing h2, #landing h3, #landing h4, #landing p, #landing ul, #landing ol { margin: 0; }
+    #landing ul, #landing ol { list-style: none; padding: 0; }
+    #landing a { color: inherit; text-decoration: none; }
+    #landing :focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(1,100,253,.30); border-radius: 8px; }
+
+    /* ---------- Utilidades ---------- */
+    #landing .lp-wrap { width: 100%; max-width: var(--lp-maxw); margin-inline: auto; padding-inline: 20px; }
+    #landing .lp-sec { padding: var(--lp-sec) 0; }
+    #landing .lp-head { max-width: 640px; margin: 0 auto 44px; text-align: center; }
+    #landing .lp-eyebrow {
+      display: inline-block; font-size: .78rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--lp-primary);
+      margin-bottom: 14px;
+    }
+    #landing .lp-h2 {
+      font-size: clamp(1.75rem, 1rem + 2.6vw, 2.5rem);
+      font-weight: 800; letter-spacing: -0.035em; line-height: 1.07; color: var(--lp-ink);
+    }
+    #landing .lp-subh { margin-top: 14px; font-size: clamp(1rem, 2.2vw, 1.12rem); color: var(--lp-ink-2); }
+    #landing .lp-eg-cap { margin-top: 10px; font: 500 .78rem var(--lp-mono); color: var(--lp-ink-3); }
+
+    /* ---------- Botones ---------- */
+    #landing .lp-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      font: 600 .92rem/1 var(--lp-font); letter-spacing: -0.005em;
+      border-radius: 11px; cursor: pointer; white-space: nowrap;
+      padding: .78rem 1.3rem; border: 1px solid transparent;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
+    }
+    #landing .lp-btn:active { transform: translateY(1px); }
+    #landing .lp-btn-primary {
+      background: var(--lp-primary); color: #fff;
+      box-shadow: 0 1px 2px rgba(20,27,46,.16), inset 0 1px 0 rgba(255,255,255,.16), 0 10px 22px -12px rgba(1,100,253,.6);
+    }
+    #landing .lp-btn-primary:hover { background: var(--lp-primary-h); }
+    #landing .lp-btn-white { background: #fff; color: var(--lp-ink); box-shadow: var(--lp-sh-md); }
+    #landing .lp-btn-white:hover { background: #f3f5fa; }
+    #landing .lp-btn-ghost {
+      background: #fff; color: var(--lp-ink); border-color: #DCE1EC; box-shadow: var(--lp-sh-sm);
+    }
+    #landing .lp-btn-ghost:hover { border-color: #c6cdda; }
+    #landing .lp-btn-link { background: none; border: none; color: var(--lp-ink-2); padding: .6rem .5rem; }
+    #landing .lp-btn-link:hover { color: var(--lp-primary); }
+    #landing .lp-btn-lg { padding: .92rem 1.5rem; font-size: 1rem; border-radius: 12px; }
+    #landing .lp-btn-block { width: 100%; }
+
+    /* ============================================================
+       Wordmark WalkyUp (recreado en el estilo bold redondeado)
+       ============================================================ */
+    #landing .lp-logo { display: inline-flex; align-items: center; gap: .5rem; color: var(--lp-ink); }
+    #landing .lp-word {
+      display: inline-flex; align-items: baseline; gap: .015em;
+      font-family: var(--lp-word); font-weight: 800; letter-spacing: -0.02em;
+      font-size: 1.28rem; line-height: 1; color: currentColor;
+    }
+    #landing .lp-mark { height: .74em; width: auto; margin-bottom: -0.015em; }
+    #landing .lp-word__tx { font-family: var(--lp-word); }
+
+    /* ============================================================
+       Navbar
+       ============================================================ */
+    #landing .lp-nav {
+      position: sticky; top: 0; z-index: 80;
+      background: rgba(255,255,255,.82);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      backdrop-filter: blur(16px) saturate(160%);
+      border-bottom: 1px solid var(--lp-line);
+      transition: box-shadow .2s ease;
+    }
+    #landing .lp-nav.is-scrolled { box-shadow: 0 10px 30px -22px rgba(20,27,46,.5); }
+    #landing .lp-nav-in {
+      position: relative;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      max-width: var(--lp-maxw); margin-inline: auto; padding: 14px 20px;
+    }
+    #landing .lp-nav-in .lp-logo { position: relative; z-index: 1; }
+    #landing .lp-word--sm { font-size: 1.44rem; }
+    #landing .lp-nav-links { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 2px; }
+    #landing .lp-nav-links a {
+      font-size: .92rem; font-weight: 500; color: var(--lp-ink-2);
+      padding: 8px 13px; border-radius: 9px; transition: color .15s ease, background .15s ease;
+    }
+    #landing .lp-nav-links a:hover { color: var(--lp-ink); background: var(--lp-soft); }
+    #landing .lp-nav-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
+    #landing .lp-burger {
+      display: none; margin-left: auto;
+      width: 42px; height: 42px; align-items: center; justify-content: center;
+      background: #fff; border: 1px solid #DCE1EC; border-radius: 11px; cursor: pointer; color: var(--lp-ink);
+    }
+    #landing .lp-burger svg { width: 20px; height: 20px; }
+    #landing .lp-burger .ic-x { display: none; }
+    #landing .lp-burger.is-open .ic-menu { display: none; }
+    #landing .lp-burger.is-open .ic-x { display: block; }
+
+    /* Menú móvil: overlay a pantalla completa */
+    #landing .lp-mnav {
+      position: fixed; inset: 0; z-index: 200;
+      background: #fff;
+      display: flex; flex-direction: column;
+      padding: 14px 20px calc(20px + env(safe-area-inset-bottom));
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+      overflow-y: auto; overscroll-behavior: contain;
+    }
+    #landing .lp-mnav.is-open { opacity: 1; visibility: visible; transform: none; }
+
+    #landing .lp-mnav-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+    #landing .lp-mnav-brand {
+      display: inline-flex; align-items: center;
+      background: var(--lp-primary); color: #fff;
+      border-radius: 14px; padding: 10px 16px;
+    }
+    #landing .lp-mnav-brand .lp-word { font-size: 1.32rem; color: #fff; }
+    #landing .lp-mnav-x {
+      width: 46px; height: 46px; flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--lp-soft); border: 1px solid var(--lp-line);
+      border-radius: 13px; color: var(--lp-ink); cursor: pointer;
+    }
+    #landing .lp-mnav-x svg { width: 20px; height: 20px; }
+
+    #landing .lp-mnav-links { display: block; }
+    #landing .lp-mnav-links a {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 2px; font-size: 1.32rem; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--lp-ink); border-bottom: 1px solid var(--lp-line);
+    }
+    #landing .lp-mnav-chev { color: var(--lp-ink-3); font-size: 1.5rem; line-height: 1; font-weight: 400; }
+
+    #landing .lp-mnav-actions { margin-top: auto; padding-top: 28px; display: grid; gap: 12px; }
+
+    /* ============================================================
+       Hero
+       ============================================================ */
+    #landing .lp-hero {
+      position: relative;
+      padding: 26px 0 50px;
+      background:
+        radial-gradient(60% 46% at 50% -6%, rgba(1,100,253,.10), transparent 70%),
+        linear-gradient(180deg, #FBFCFE 0%, var(--lp-bg) 46%);
+    }
+    #landing .lp-hero-in { max-width: 680px; margin-inline: auto; text-align: center; }
+
+    #landing .lp-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--lp-primary-soft); color: var(--lp-primary);
+      font-size: .82rem; font-weight: 600; padding: 6px 12px 6px 10px; border-radius: 999px;
+    }
+    #landing .lp-pill svg { width: 15px; height: 15px; }
+
+    #landing .lp-h1 {
+      margin-top: 6px;
+      font-size: clamp(1.65rem, 1rem + 2.4vw, 2.55rem);
+      font-weight: 800; letter-spacing: -0.04em; line-height: 1.07; color: var(--lp-ink);
+    }
+    #landing .hl {
+      color: var(--lp-primary);
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M4 7 Q100 2.5 196 6' fill='none' stroke='%230164FD' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center bottom / 100% .30em;
+      padding-bottom: .16em;
+    }
+    #landing .lp-lead { margin: 14px auto 0; font-size: clamp(.95rem, 2vw, 1.05rem); color: var(--lp-ink-2); max-width: 42ch; }
+    #landing .lp-hero-ctas { margin-top: 24px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+
+    /* Tarjeta de instalación (oscura, seria) */
+    #landing .lp-install {
+      margin: 22px auto 0; max-width: 520px; text-align: left;
+      background: var(--lp-navy-deep); border-radius: var(--lp-r-lg);
+      padding: 15px; box-shadow: var(--lp-sh-lg);
+    }
+    #landing .lp-install__label {
+      font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--lp-on-dark-3); margin-bottom: 12px;
+    }
+    #landing .lp-install__row { display: flex; align-items: center; gap: 10px; }
+    #landing .lp-install__code {
+      flex: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      font-family: var(--lp-mono); font-size: .82rem; color: var(--lp-on-dark);
+      white-space: nowrap; padding-bottom: 2px;
+    }
+    #landing .lp-install__code::-webkit-scrollbar { height: 5px; }
+    #landing .lp-install__code::-webkit-scrollbar-thumb { background: #34343c; border-radius: 4px; }
+    #landing .lp-copy {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+      font: 600 .82rem/1 var(--lp-font); color: var(--lp-on-dark);
+      background: #26262c; border: 1px solid #34343c; border-radius: 10px; padding: 9px 12px; cursor: pointer;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    #landing .lp-copy:hover { background: #2e2e36; }
+    #landing .lp-copy svg { width: 15px; height: 15px; }
+    #landing .lp-copy .ic-check { display: none; }
+    #landing .lp-copy.is-copied { color: var(--lp-active); border-color: rgba(52,211,153,.5); background: rgba(52,211,153,.12); }
+    #landing .lp-copy.is-copied .ic-copy { display: none; }
+    #landing .lp-copy.is-copied .ic-check { display: block; }
+
+    #landing .lp-hero-note { margin-top: 12px; font-size: .88rem; color: var(--lp-ink-3); }
+
+    /* Mockup del navegador + widget (ilustrativo) */
+    #landing .lp-browser {
+      position: relative; background: #fff; border: 1px solid var(--lp-line);
+      border-radius: var(--lp-r-xl); box-shadow: var(--lp-sh-lg); overflow: hidden;
+    }
+    #landing .lp-browser__bar {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+      border-bottom: 1px solid var(--lp-line); background: var(--lp-soft);
+    }
+    #landing .lp-dots { display: flex; gap: 6px; }
+    #landing .lp-dots span { width: 10px; height: 10px; border-radius: 50%; background: #d7dae0; }
+    #landing .lp-browser__url {
+      flex: 1; background: #fff; border: 1px solid var(--lp-line); border-radius: 8px;
+      font-size: .74rem; color: var(--lp-ink-3); padding: 5px 12px; text-align: center; font-family: var(--lp-mono);
+    }
+    #landing .lp-browser__screen {
+      position: relative; min-height: 250px; padding: 18px;
+      background: radial-gradient(120% 90% at 100% 0%, var(--lp-tint), transparent 60%), var(--lp-soft);
+    }
+    #landing .lp-glimpse { display: grid; gap: 12px; opacity: .5; }
+    #landing .lp-glimpse__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    #landing .lp-glimpse__card { background: #fff; border: 1px solid var(--lp-line); border-radius: 12px; padding: 12px; }
+    #landing .lp-glimpse__num { height: 18px; width: 44px; border-radius: 5px; background: var(--lp-primary-soft); }
+    #landing .lp-glimpse__bar { height: 7px; border-radius: 4px; background: var(--lp-line-2); }
+    #landing .lp-glimpse__bar.w60 { width: 60%; margin-top: 8px; }
+    #landing .lp-glimpse__bar.w40 { width: 40%; margin-top: 8px; }
+    #landing .lp-glimpse__chart { background: #fff; border: 1px solid var(--lp-line); border-radius: 12px; padding: 14px; height: 116px; display: flex; align-items: flex-end; gap: 8px; }
+    #landing .lp-glimpse__chart i { flex: 1; background: linear-gradient(180deg, var(--lp-primary), #6ba1ff); border-radius: 5px 5px 3px 3px; opacity: .85; }
+
+    #landing .lp-wchat {
+      position: absolute; right: 18px; bottom: 18px; width: min(230px, 70%);
+      background: #fff; border: 1px solid var(--lp-line); border-radius: 16px;
+      box-shadow: var(--lp-sh-lg); overflow: hidden;
+    }
+    #landing .lp-wchat__head { display: flex; align-items: center; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--lp-line); }
+    #landing .lp-wchat__avatar { width: 20px; height: 20px; border-radius: 6px; background: var(--lp-primary); display: grid; place-items: center; color: #fff; }
+    #landing .lp-wchat__avatar svg { width: 12px; height: 12px; }
+    #landing .lp-wchat__title { font-size: .78rem; font-weight: 700; color: var(--lp-ink); }
+    #landing .lp-wchat__status { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: .66rem; color: var(--lp-ink-3); }
+    #landing .lp-wchat__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lp-active); }
+    #landing .lp-wchat__body { padding: 12px; display: grid; gap: 8px; background: var(--lp-soft); }
+    #landing .lp-bubble { font-size: .74rem; line-height: 1.4; padding: 8px 10px; border-radius: 11px; max-width: 88%; }
+    #landing .lp-bubble--user { justify-self: end; background: var(--lp-primary); color: #fff; border-bottom-right-radius: 4px; }
+    #landing .lp-bubble--bot { justify-self: start; background: #fff; border: 1px solid var(--lp-line); color: var(--lp-ink); border-bottom-left-radius: 4px; }
+    #landing .lp-bubble__chip { display: inline-block; margin-top: 7px; font-size: .68rem; font-weight: 600; color: var(--lp-primary); background: var(--lp-primary-soft); border-radius: 999px; padding: 3px 8px; }
+
+    #landing .lp-egbadge {
+      position: absolute; top: 14px; left: 14px; z-index: 3;
+      font-size: .64rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--lp-ink-3); background: rgba(255,255,255,.85); border: 1px solid var(--lp-line);
+      border-radius: 999px; padding: 3px 9px; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    }
+
+    /* ============================================================
+       Atributos (banda de chips)
+       ============================================================ */
+    #landing .lp-attrs { padding: 30px 0; }
+    #landing .lp-attrs__list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    #landing .lp-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #fff; border: 1px solid var(--lp-line); border-radius: 999px;
+      padding: 9px 15px; font-size: .88rem; font-weight: 500; color: var(--lp-ink); box-shadow: var(--lp-sh-sm);
+    }
+    #landing .lp-chip svg { width: 16px; height: 16px; color: var(--lp-primary); }
+
+    /* ============================================================
+       Cómo funciona
+       ============================================================ */
+    #landing .lp-steps { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    #landing .lp-step {
+      position: relative; background: #fff; border: 1px solid var(--lp-line);
+      border-radius: var(--lp-r-lg); padding: 24px; box-shadow: var(--lp-sh-sm);
+    }
+    #landing .lp-step__ic { width: 44px; height: 44px; border-radius: 12px; background: var(--lp-primary-soft); color: var(--lp-primary); display: grid; place-items: center; margin-bottom: 16px; }
+    #landing .lp-step__ic svg { width: 22px; height: 22px; }
+    #landing .lp-step__n { position: absolute; top: 22px; right: 22px; font: 700 .8rem var(--lp-mono); color: var(--lp-ink-3); }
+    #landing .lp-step__t { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; color: var(--lp-ink); margin-bottom: 6px; }
+    #landing .lp-step__d { font-size: .95rem; color: var(--lp-ink-2); }
+
+    /* ============================================================
+       Características
+       ============================================================ */
+    #landing .lp-features { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    #landing .lp-feature {
+      background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-lg);
+      padding: 22px; box-shadow: var(--lp-sh-sm);
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    #landing .lp-feature:hover { border-color: #dfe3ec; box-shadow: var(--lp-sh-md); transform: translateY(-2px); }
+    #landing .lp-feature__ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 15px; background: var(--lp-primary-soft); color: var(--lp-primary); }
+    #landing .lp-feature__ic svg { width: 21px; height: 21px; }
+    #landing .lp-feature__ic.is-green { background: var(--lp-active-soft); color: var(--lp-active-ink); }
+    #landing .lp-feature__t { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; color: var(--lp-ink); margin-bottom: 6px; }
+    #landing .lp-feature__d { font-size: .93rem; color: var(--lp-ink-2); }
+
+    /* ============================================================
+       Vista del panel (fondo suave)
+       ============================================================ */
+    #landing .lp-showcase { background: var(--lp-soft); }
+    #landing .lp-dash { position: relative; margin-top: 8px; background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-xl); box-shadow: var(--lp-sh-lg); overflow: hidden; }
+    #landing .lp-dash__top { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--lp-line); }
+    #landing .lp-dash__brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--lp-ink); font-size: .9rem; }
+    #landing .lp-dash__tabs { display: flex; gap: 4px; margin-left: 8px; }
+    #landing .lp-dash__tab { font-size: .76rem; font-weight: 500; color: var(--lp-ink-3); padding: 6px 10px; border-radius: 8px; }
+    #landing .lp-dash__tab.is-active { color: var(--lp-primary); background: var(--lp-primary-soft); }
+    #landing .lp-dash__live { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 600; color: var(--lp-active-ink); background: var(--lp-active-soft); border-radius: 999px; padding: 4px 10px; }
+    #landing .lp-dash__live i { width: 7px; height: 7px; border-radius: 50%; background: var(--lp-active); }
+    #landing .lp-dash__grid { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 18px; }
+    #landing .lp-stat { background: var(--lp-soft); border: 1px solid var(--lp-line); border-radius: 14px; padding: 14px 16px; }
+    #landing .lp-stat__l { font-size: .78rem; color: var(--lp-ink-3); }
+    #landing .lp-stat__v { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; color: var(--lp-ink); margin-top: 4px; }
+    #landing .lp-stat__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    #landing .lp-card { background: var(--lp-soft); border: 1px solid var(--lp-line); border-radius: 14px; padding: 16px; }
+    #landing .lp-card__h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    #landing .lp-card__t { font-size: .86rem; font-weight: 700; color: var(--lp-ink); }
+    #landing .lp-card__meta { font-size: .72rem; color: var(--lp-ink-3); }
+    #landing .lp-chart { display: flex; align-items: flex-end; gap: 9px; height: 116px; }
+    #landing .lp-chart i { flex: 1; background: linear-gradient(180deg, var(--lp-primary), #7db0ff); border-radius: 6px 6px 3px 3px; }
+    #landing .lp-chart i:last-child { background: linear-gradient(180deg, #7db0ff, #cfe0ff); }
+    #landing .lp-qlist { display: grid; gap: 12px; }
+    #landing .lp-qrow { display: grid; gap: 6px; }
+    #landing .lp-qrow__top { display: flex; justify-content: space-between; font-size: .8rem; }
+    #landing .lp-qrow__q { color: var(--lp-ink); font-weight: 500; }
+    #landing .lp-qrow__n { color: var(--lp-ink-3); }
+    #landing .lp-qrow__track { height: 6px; border-radius: 4px; background: var(--lp-line-2); overflow: hidden; }
+    #landing .lp-qrow__fill { height: 100%; border-radius: 4px; background: var(--lp-primary); }
+
+    /* ============================================================
+       Precios
+       ============================================================ */
+    #landing .lp-pricing { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+    #landing .lp-plan { background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-xl); padding: 26px; box-shadow: var(--lp-sh-sm); display: flex; flex-direction: column; }
+    #landing .lp-plan.is-popular { border-color: var(--lp-primary); box-shadow: 0 20px 50px -22px rgba(1,100,253,.4); position: relative; }
+    #landing .lp-plan__badge { position: absolute; top: -12px; left: 26px; background: var(--lp-primary); color: #fff; font-size: .72rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; box-shadow: 0 8px 18px -8px rgba(1,100,253,.7); }
+    #landing .lp-plan__name { font-size: 1.1rem; font-weight: 700; color: var(--lp-ink); }
+    #landing .lp-plan__for { font-size: .88rem; color: var(--lp-ink-3); margin-top: 4px; }
+    #landing .lp-plan__price { margin: 18px 0 4px; display: flex; align-items: baseline; gap: 4px; }
+    #landing .lp-plan__amount { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; color: var(--lp-ink); }
+    #landing .lp-plan__per { font-size: .9rem; color: var(--lp-ink-3); }
+    #landing .lp-plan__list { display: grid; gap: 11px; margin: 20px 0 24px; }
+    #landing .lp-plan__li { display: flex; align-items: flex-start; gap: 10px; font-size: .92rem; color: var(--lp-ink-2); }
+    #landing .lp-plan__li svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; color: var(--lp-active-ink); }
+    #landing .lp-plan .lp-btn { margin-top: auto; }
+    #landing .lp-pricing__note { margin-top: 16px; text-align: center; font-size: .82rem; color: var(--lp-ink-3); }
+
+    /* ============================================================
+       FAQ
+       ============================================================ */
+    #landing .lp-faq { max-width: 760px; margin-inline: auto; }
+    #landing .lp-faq__item { background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-lg); margin-bottom: 12px; overflow: hidden; transition: border-color .15s ease, box-shadow .15s ease; }
+    #landing .lp-faq__item.is-open { border-color: #dfe3ec; box-shadow: var(--lp-sh-md); }
+    #landing .lp-faq__q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; font: 600 1rem var(--lp-font); color: var(--lp-ink); background: transparent; border: 0; padding: 18px 20px; cursor: pointer; }
+    #landing .lp-faq__q .lp-chev { flex-shrink: 0; width: 20px; height: 20px; color: var(--lp-ink-3); transition: transform .2s ease, color .2s ease; }
+    #landing .lp-faq__item.is-open .lp-chev { transform: rotate(180deg); color: var(--lp-primary); }
+    #landing .lp-faq__a { padding: 0 20px 20px; font-size: .95rem; color: var(--lp-ink-2); animation: lp-fade .2s ease; }
+    @keyframes lp-fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    /* ============================================================
+       CTA final (banda oscura navy — seriedad)
+       ============================================================ */
+    #landing .lp-cta { padding: 24px 0 var(--lp-sec); }
+    #landing .lp-cta__band {
+      position: relative; overflow: hidden; border-radius: var(--lp-r-xl);
+      padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 56px); text-align: center;
+      background:
+        radial-gradient(120% 140% at 100% 0%, rgba(102,163,255,.35), transparent 55%),
+        radial-gradient(120% 140% at 0% 100%, rgba(1,100,253,.30), transparent 55%),
+        linear-gradient(135deg, #E9F1FF, #F4F8FF);
+      border: 1px solid var(--lp-primary-soft);
+    }
+    #landing .lp-cta__t { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; letter-spacing: -0.03em; color: var(--lp-ink); max-width: 22ch; margin: 0 auto 24px; line-height: 1.12; }
+
+    /* ============================================================
+       Footer
+       ============================================================ */
+    #landing .lp-footer { background: var(--lp-soft); border-top: 1px solid var(--lp-line); padding: 52px 0 40px; }
+    #landing .lp-footer__grid { display: grid; grid-template-columns: 1fr; gap: 34px; }
+    #landing .lp-footer__brand { max-width: 320px; }
+    #landing .lp-footer__tag { margin-top: 12px; font-size: .9rem; color: var(--lp-ink-2); }
+    #landing .lp-footer__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    #landing .lp-footer__col h4 { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--lp-ink-3); margin: 0 0 12px; }
+    #landing .lp-footer__col a { display: block; font-size: .92rem; color: var(--lp-ink-2); padding: 5px 0; }
+    #landing .lp-footer__col a:hover { color: var(--lp-primary); }
+    #landing .lp-footer__bottom { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--lp-line); font-size: .85rem; color: var(--lp-ink-3); }
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+    @media (min-width: 620px) {
+      #landing .lp-features { grid-template-columns: repeat(2, 1fr); }
+      #landing .lp-steps { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 880px) {
+      #landing .lp-hero { padding: 42px 0 64px; }
+      #landing .lp-features { grid-template-columns: repeat(3, 1fr); }
+      #landing .lp-pricing { grid-template-columns: repeat(3, 1fr); }
+      #landing .lp-dash__grid { grid-template-columns: 1.4fr 1fr; }
+      #landing .lp-footer__grid { grid-template-columns: 1.2fr 2fr; }
+    }
+    @media (max-width: 879px) {
+      #landing .lp-nav-links, #landing .lp-nav-actions { display: none; }
+      #landing .lp-burger { display: inline-flex; }
+    }
+
+    /* ============================================================
+       Repaso mobile
+       ============================================================ */
+    @media (max-width: 719px) {
+      #landing .lp-wrap { padding-inline: 18px; }
+      #landing .lp-sec { padding: 56px 0; }
+      #landing .lp-head { margin-bottom: 30px; }
+
+      /* Hero */
+      #landing .lp-hero { padding: 20px 0 40px; }
+      #landing .lp-hero-ctas { flex-direction: column; align-items: stretch; gap: 10px; }
+      #landing .lp-hero-ctas .lp-btn { width: 100%; }
+      #landing .lp-install { padding: 13px; border-radius: var(--lp-r); }
+      #landing .lp-install__row { flex-direction: column; align-items: stretch; gap: 10px; }
+      #landing .lp-install__code { font-size: .76rem; }
+      #landing .lp-copy { justify-content: center; width: 100%; padding: 11px 12px; }
+
+      /* Chips de atributos: 2 columnas parejas */
+      #landing .lp-attrs { padding: 22px 0; }
+      #landing .lp-attrs__list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #landing .lp-chip { padding: 10px 12px; font-size: .8rem; gap: 6px; }
+      #landing .lp-chip svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+      /* Tarjetas: menos padding, más aire entre ellas */
+      #landing .lp-step, #landing .lp-feature { padding: 20px; border-radius: var(--lp-r); }
+      #landing .lp-steps, #landing .lp-features { gap: 12px; }
+      #landing .lp-step__ic, #landing .lp-feature__ic { width: 40px; height: 40px; margin-bottom: 13px; }
+      #landing .lp-step__t, #landing .lp-feature__t { font-size: 1.02rem; }
+
+      /* Panel: entra completo y más compacto (sin scroll ni cortes) */
+      #landing .lp-dash-scroll { overflow: visible; margin-inline: 0; padding-inline: 0; }
+      #landing .lp-dash { border-radius: var(--lp-r-lg); }
+      #landing .lp-dash__top { padding: 12px 14px; }
+      #landing .lp-dash__tabs { display: none; }
+      #landing .lp-dash__grid { padding: 12px; gap: 12px; }
+      #landing .lp-stat { padding: 10px 11px; }
+      #landing .lp-stat__l { font-size: .66rem; }
+      #landing .lp-stat__v { font-size: 1.2rem; }
+      #landing .lp-stat__row { gap: 8px; }
+      #landing .lp-card { padding: 13px; }
+      #landing .lp-chart { height: 82px; }
+      #landing .lp-qlist { gap: 10px; }
+
+      /* Precios */
+      #landing .lp-pricing { gap: 14px; }
+      #landing .lp-plan { padding: 22px; border-radius: var(--lp-r-lg); }
+      #landing .lp-plan__amount { font-size: 2.1rem; }
+      #landing .lp-plan.is-popular { margin-top: 8px; }
+
+      /* FAQ */
+      #landing .lp-faq__q { padding: 16px; font-size: .95rem; }
+      #landing .lp-faq__a { padding: 0 16px 16px; font-size: .92rem; }
+
+      /* CTA final */
+      #landing .lp-cta { padding: 16px 0 56px; }
+      #landing .lp-cta__band { padding: 36px 22px; border-radius: var(--lp-r-lg); }
+      #landing .lp-cta__band .lp-btn { width: 100%; }
+
+      /* Footer */
+      #landing .lp-footer { padding: 40px 0 32px; }
+      #landing .lp-footer__grid { gap: 28px; }
+      #landing .lp-footer__cols { grid-template-columns: 1fr 1fr; gap: 20px 16px; }
+      #landing .lp-footer__bottom { margin-top: 30px; }
+    }
+
+    @media (max-width: 380px) {
+      #landing .lp-attrs__list { grid-template-columns: 1fr; }
+      #landing .lp-footer__cols { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      #landing * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+<div id="landing">
+
+  <!-- ==================== NAVBAR ==================== -->
+  <header class="lp-nav" id="inicio">
+    <div class="lp-nav-in">
+      <a class="lp-logo" href="#inicio" aria-label="WalkyUp, inicio">
+        <span class="lp-word lp-word--sm" aria-hidden="true">
+          <svg class="lp-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span class="lp-word__tx">alkyUp</span>
+        </span>
+      </a>
+
+      <nav class="lp-nav-links" aria-label="Navegación principal">
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#caracteristicas">Producto</a>
+        <a href="#precios">Precios</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="lp-nav-actions">
+        <a class="lp-btn lp-btn-link" href="#login">Iniciar sesión</a>
+        <a class="lp-btn lp-btn-primary" href="#registro">Empezar</a>
+      </div>
+
+      <button class="lp-burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="lp-mnav">
+        <svg class="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+  </header>
+
+    <div class="lp-mnav" id="lp-mnav" role="dialog" aria-modal="true" aria-label="Menú de navegación" aria-hidden="true">
+      <div class="lp-mnav-top">
+        <span class="lp-mnav-brand">
+          <span class="lp-word"><svg class="lp-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span class="lp-word__tx">alkyUp</span></span>
+        </span>
+        <button class="lp-mnav-x" type="button" aria-label="Cerrar menú">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <nav class="lp-mnav-links" aria-label="Secciones">
+        <a href="#como-funciona">Cómo funciona <span class="lp-mnav-chev" aria-hidden="true">›</span></a>
+        <a href="#caracteristicas">Producto <span class="lp-mnav-chev" aria-hidden="true">›</span></a>
+        <a href="#precios">Precios <span class="lp-mnav-chev" aria-hidden="true">›</span></a>
+        <a href="#faq">FAQ <span class="lp-mnav-chev" aria-hidden="true">›</span></a>
+      </nav>
+
+      <div class="lp-mnav-actions">
+        <a class="lp-btn lp-btn-ghost lp-btn-block lp-btn-lg" href="#login">Iniciar sesión</a>
+        <a class="lp-btn lp-btn-primary lp-btn-block lp-btn-lg" href="#registro">Empezar</a>
+      </div>
+    </div>
+
+  <main>
+    <!-- ==================== HERO ==================== -->
+    <section class="lp-hero">
+      <div class="lp-wrap">
+        <div class="lp-hero-in">
+          <h1 class="lp-h1">Sumá ayuda con IA a tu app<br><span class="hl">en una línea</span></h1>
+
+          <p class="lp-lead">WalkyUp responde las dudas de tus usuarios, les muestra cómo usar tu app y les pasa el link correcto. Lo configurás desde tu panel.</p>
+
+          <div class="lp-hero-ctas">
+            <a class="lp-btn lp-btn-primary lp-btn-lg" href="#registro">Empezar gratis</a>
+            <a class="lp-btn lp-btn-ghost lp-btn-lg" href="#como-funciona">
+              Ver cómo funciona
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+
+          <div class="lp-install">
+            <div class="lp-install__label">Pegalo una vez</div>
+            <div class="lp-install__row">
+              <code class="lp-install__code" id="lp-snippet">&lt;script src="https://walkyup.app/widget.js" data-app="mi-app" defer&gt;&lt;/script&gt;</code>
+              <button class="lp-copy" type="button" aria-label="Copiar el código de instalación">
+                <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                <span class="lp-copy__label">Copiar</span>
+              </button>
+            </div>
+          </div>
+          <p class="lp-hero-note">Sin build ni configuración. Funciona en cualquier sitio.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ATRIBUTOS ==================== -->
+    <section class="lp-attrs">
+      <div class="lp-wrap">
+        <ul class="lp-attrs__list">
+          <li class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2"/></svg>Instalación en 2 minutos</li>
+          <li class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>Sin tarjeta para empezar</li>
+          <li class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.5 6 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-6-3.5-9s1-6.5 3.5-9Z"/></svg>Multi-idioma</li>
+          <li class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 9-12h-6.5L13 2Z"/></svg>Liviano, no traba tu sitio</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ==================== CÓMO FUNCIONA ==================== -->
+    <section class="lp-sec" id="como-funciona">
+      <div class="lp-wrap">
+        <div class="lp-head">
+          <span class="lp-eyebrow">Cómo funciona</span>
+          <h2 class="lp-h2">Tres pasos y estás en vivo.</h2>
+        </div>
+        <ol class="lp-steps">
+          <li class="lp-step">
+            <span class="lp-step__n">01</span>
+            <span class="lp-step__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg></span>
+            <h3 class="lp-step__t">Instalás</h3>
+            <p class="lp-step__d">Pegás una línea en tu app. Sin build ni pasos raros.</p>
+          </li>
+          <li class="lp-step">
+            <span class="lp-step__n">02</span>
+            <span class="lp-step__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg></span>
+            <h3 class="lp-step__t">Configurás</h3>
+            <p class="lp-step__d">Desde tu panel cargás la info de tu app, los links y el tono.</p>
+          </li>
+          <li class="lp-step">
+            <span class="lp-step__n">03</span>
+            <span class="lp-step__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-12 2 7h6"/></svg></span>
+            <h3 class="lp-step__t">Ayuda en vivo</h3>
+            <p class="lp-step__d">Tus usuarios reciben respuestas al instante y vos ves cada conversación en analíticas en tiempo real.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ==================== CARACTERÍSTICAS ==================== -->
+    <section class="lp-sec" id="caracteristicas">
+      <div class="lp-wrap">
+        <div class="lp-head">
+          <span class="lp-eyebrow">Producto</span>
+          <h2 class="lp-h2">Todo lo que necesita tu asistente.</h2>
+        </div>
+        <div class="lp-features">
+          <article class="lp-feature">
+            <span class="lp-feature__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M12 2l.9 2.6L15.5 5l-2.6.9L12 8l-.9-2.1L8.5 5l2.6-.4L12 2Z" fill="currentColor" stroke="none"/></svg></span>
+            <h3 class="lp-feature__t">Respuestas con IA</h3>
+            <p class="lp-feature__d">Entiende la duda y contesta claro, con el contexto de tu app.</p>
+          </article>
+          <article class="lp-feature">
+            <span class="lp-feature__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></span>
+            <h3 class="lp-feature__t">Pasa el link correcto</h3>
+            <p class="lp-feature__d">Lleva al usuario a soporte, políticas, correo o donde toque.</p>
+          </article>
+          <article class="lp-feature">
+            <span class="lp-feature__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3l2 5 4-12 2 7h5"/></svg></span>
+            <h3 class="lp-feature__t">Panel en tiempo real</h3>
+            <p class="lp-feature__d">Conversaciones, dudas frecuentes y actividad al instante.</p>
+          </article>
+          <article class="lp-feature">
+            <span class="lp-feature__ic is-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <h3 class="lp-feature__t">Sin código</h3>
+            <p class="lp-feature__d">Cargás y editás todo desde tu panel.</p>
+          </article>
+          <article class="lp-feature">
+            <span class="lp-feature__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.7 1.8-1.7H16a5 5 0 0 0 5-5c0-3.9-4-7-9-7Z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg></span>
+            <h3 class="lp-feature__t">Tu marca</h3>
+            <p class="lp-feature__d">Colores, posición e idioma a tu gusto.</p>
+          </article>
+          <article class="lp-feature">
+            <span class="lp-feature__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 9-12h-6.5L13 2Z"/></svg></span>
+            <h3 class="lp-feature__t">Liviano y rápido</h3>
+            <p class="lp-feature__d">Carga diferida, no traba tu sitio.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VISTA DEL PANEL ==================== -->
+    <section class="lp-sec lp-showcase">
+      <div class="lp-wrap">
+        <div class="lp-head">
+          <h2 class="lp-h2">Todo lo que pasa, en tu panel.</h2>
+          <p class="lp-subh">Analíticas en tiempo real, conversaciones y configuración en un solo lugar.</p>
+          <p class="lp-eg-cap">Vista de ejemplo · datos ilustrativos</p>
+        </div>
+
+        <div class="lp-dash-scroll">
+        <div class="lp-dash" aria-hidden="true">
+          <div class="lp-dash__top">
+            <span class="lp-dash__brand">
+              <span class="lp-word" style="font-size:.98rem"><svg class="lp-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span class="lp-word__tx">alkyUp</span></span>
+            </span>
+            <span class="lp-dash__tabs">
+              <span class="lp-dash__tab is-active">Resumen</span>
+              <span class="lp-dash__tab">Conversaciones</span>
+              <span class="lp-dash__tab">Configuración</span>
+            </span>
+            <span class="lp-dash__live"><i></i>En vivo</span>
+          </div>
+          <div class="lp-dash__grid">
+            <div>
+              <div class="lp-stat__row">
+                <div class="lp-stat"><div class="lp-stat__l">Conversaciones</div><div class="lp-stat__v">128</div></div>
+                <div class="lp-stat"><div class="lp-stat__l">Resueltas</div><div class="lp-stat__v">112</div></div>
+                <div class="lp-stat"><div class="lp-stat__l">Links enviados</div><div class="lp-stat__v">74</div></div>
+              </div>
+              <div class="lp-card">
+                <div class="lp-card__h"><span class="lp-card__t">Actividad</span><span class="lp-card__meta">Últimos 7 días</span></div>
+                <div class="lp-chart"><i style="height:42%"></i><i style="height:58%"></i><i style="height:48%"></i><i style="height:76%"></i><i style="height:64%"></i><i style="height:88%"></i><i style="height:70%"></i></div>
+              </div>
+            </div>
+            <div class="lp-card">
+              <div class="lp-card__h"><span class="lp-card__t">Dudas frecuentes</span></div>
+              <div class="lp-qlist">
+                <div class="lp-qrow"><div class="lp-qrow__top"><span class="lp-qrow__q">¿Cómo cambio mi contraseña?</span><span class="lp-qrow__n">31</span></div><div class="lp-qrow__track"><div class="lp-qrow__fill" style="width:82%"></div></div></div>
+                <div class="lp-qrow"><div class="lp-qrow__top"><span class="lp-qrow__q">¿Dónde veo mi factura?</span><span class="lp-qrow__n">24</span></div><div class="lp-qrow__track"><div class="lp-qrow__fill" style="width:64%"></div></div></div>
+                <div class="lp-qrow"><div class="lp-qrow__top"><span class="lp-qrow__q">¿Cómo invito a mi equipo?</span><span class="lp-qrow__n">18</span></div><div class="lp-qrow__track"><div class="lp-qrow__fill" style="width:48%"></div></div></div>
+                <div class="lp-qrow"><div class="lp-qrow__top"><span class="lp-qrow__q">¿Cómo cancelo?</span><span class="lp-qrow__n">9</span></div><div class="lp-qrow__track"><div class="lp-qrow__fill" style="width:26%"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PRECIOS ==================== -->
+    <section class="lp-sec" id="precios">
+      <div class="lp-wrap">
+        <div class="lp-head">
+          <span class="lp-eyebrow">Precios</span>
+          <h2 class="lp-h2">Precios simples.</h2>
+          <p class="lp-subh">Empezá gratis. Subís de plan cuando lo necesites.</p>
+        </div>
+        <div class="lp-pricing">
+          <article class="lp-plan">
+            <h3 class="lp-plan__name">Gratis</h3>
+            <p class="lp-plan__for">Para probar.</p>
+            <div class="lp-plan__price"><span class="lp-plan__amount">$0</span><span class="lp-plan__per">/mes</span></div>
+            <ul class="lp-plan__list">
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Panel básico</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>1 app</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Respuestas con IA</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Conversaciones limitadas</li>
+            </ul>
+            <a class="lp-btn lp-btn-ghost lp-btn-block" href="#registro">Empezar gratis</a>
+          </article>
+          <article class="lp-plan is-popular">
+            <span class="lp-plan__badge">Popular</span>
+            <h3 class="lp-plan__name">Pro</h3>
+            <p class="lp-plan__for">Para apps en crecimiento.</p>
+            <div class="lp-plan__price"><span class="lp-plan__amount">$19</span><span class="lp-plan__per">/mes</span></div>
+            <ul class="lp-plan__list">
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Más conversaciones</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Analíticas completas</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Personalización de marca</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Multi-idioma</li>
+            </ul>
+            <a class="lp-btn lp-btn-primary lp-btn-block" href="#registro">Elegir Pro</a>
+          </article>
+          <article class="lp-plan">
+            <h3 class="lp-plan__name">Business</h3>
+            <p class="lp-plan__for">Para equipos.</p>
+            <div class="lp-plan__price"><span class="lp-plan__amount">$49</span><span class="lp-plan__per">/mes</span></div>
+            <ul class="lp-plan__list">
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Conversaciones altas</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Multi-app</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Soporte prioritario</li>
+              <li class="lp-plan__li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Todo lo de Pro</li>
+            </ul>
+            <a class="lp-btn lp-btn-ghost lp-btn-block" href="#registro">Elegir Business</a>
+          </article>
+        </div>
+        <p class="lp-pricing__note">Precios provisionales.</p>
+      </div>
+    </section>
+
+    <!-- ==================== FAQ ==================== -->
+    <section class="lp-sec" id="faq">
+      <div class="lp-wrap">
+        <div class="lp-head" style="text-align:center;margin-inline:auto">
+          <span class="lp-eyebrow">FAQ</span>
+          <h2 class="lp-h2">Preguntas frecuentes.</h2>
+        </div>
+        <div class="lp-faq">
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-1">¿Qué es WalkyUp?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-1" role="region" hidden>Un asistente de ayuda con IA que sumás a tu app o web.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-2">¿Cómo lo instalo?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-2" role="region" hidden>Pegás una línea de script. Sin build ni configuración.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-3">¿Necesito saber programar?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-3" role="region" hidden>No. Se configura todo desde el panel.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-4">¿De dónde saca las respuestas?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-4" role="region" hidden>De la info que vos cargás. No inventa.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-5">¿En qué idiomas responde?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-5" role="region" hidden>Multi-idioma; responde en el idioma del usuario.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-6">¿Puedo personalizarlo?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-6" role="region" hidden>Sí: colores, posición e idioma.</div>
+          </div>
+          <div class="lp-faq__item">
+            <button class="lp-faq__q" type="button" aria-expanded="false" aria-controls="faq-7">¿Cuánto cuesta?<svg class="lp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="lp-faq__a" id="faq-7" role="region" hidden>Empezás gratis; subís de plan cuando lo necesites.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CTA FINAL (oscuro) ==================== -->
+    <section class="lp-cta">
+      <div class="lp-wrap">
+        <div class="lp-cta__band">
+          <h2 class="lp-cta__t">¿Listo para sumar ayuda con IA a tu app?</h2>
+          <a class="lp-btn lp-btn-primary lp-btn-lg" href="#registro">Empezar gratis</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="lp-footer">
+    <div class="lp-wrap">
+      <div class="lp-footer__grid">
+        <div class="lp-footer__brand">
+          <a class="lp-logo" href="#inicio" aria-label="WalkyUp, inicio">
+            <span class="lp-word lp-word--sm" aria-hidden="true"><svg class="lp-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span class="lp-word__tx">alkyUp</span></span>
+          </a>
+          <p class="lp-footer__tag">Ayuda con IA para tu app, en una línea.</p>
+        </div>
+        <div class="lp-footer__cols">
+          <div class="lp-footer__col">
+            <h4>Producto</h4>
+            <a href="#caracteristicas">Producto</a>
+            <a href="#precios">Precios</a>
+            <a href="#faq">FAQ</a>
+          </div>
+          <div class="lp-footer__col">
+            <h4>Cuenta</h4>
+            <a href="#login">Iniciar sesión</a>
+            <a href="#registro">Crear cuenta</a>
+          </div>
+          <div class="lp-footer__col">
+            <h4>Legal</h4>
+            <a href="#terminos">Términos</a>
+            <a href="#privacidad">Privacidad</a>
+          </div>
+        </div>
+      </div>
+      <div class="lp-footer__bottom">© 2026 WalkyUp</div>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+    var root = document.getElementById("landing");
+    if (!root) return;
+
+    var nav = root.querySelector(".lp-nav");
+    function onScroll() { nav.classList.toggle("is-scrolled", window.scrollY > 8); }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    var burger = root.querySelector(".lp-burger");
+    var mnav = document.getElementById("lp-mnav");
+    function setMenu(open) {
+      burger.setAttribute("aria-expanded", open ? "true" : "false");
+      burger.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      burger.classList.toggle("is-open", open);
+      mnav.classList.toggle("is-open", open);
+      mnav.setAttribute("aria-hidden", open ? "false" : "true");
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+    burger.addEventListener("click", function () { setMenu(burger.getAttribute("aria-expanded") !== "true"); });
+    var mnavX = mnav.querySelector(".lp-mnav-x");
+    if (mnavX) mnavX.addEventListener("click", function () { setMenu(false); burger.focus(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && mnav.classList.contains("is-open")) { setMenu(false); burger.focus(); }
+    });
+    mnav.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+
+    var copyBtn = root.querySelector(".lp-copy");
+    var snippet = document.getElementById("lp-snippet");
+    if (copyBtn && snippet) {
+      var label = copyBtn.querySelector(".lp-copy__label");
+      var timer = null;
+      copyBtn.addEventListener("click", function () {
+        var text = snippet.textContent;
+        function done() {
+          copyBtn.classList.add("is-copied");
+          if (label) label.textContent = "Copiado";
+          clearTimeout(timer);
+          timer = setTimeout(function () { copyBtn.classList.remove("is-copied"); if (label) label.textContent = "Copiar"; }, 2000);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function () { fb(text); done(); });
+        } else { fb(text); done(); }
+      });
+    }
+    function fb(text) {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    var qs = Array.prototype.slice.call(root.querySelectorAll(".lp-faq__q"));
+    qs.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var isOpen = btn.getAttribute("aria-expanded") === "true";
+        qs.forEach(function (b) {
+          b.setAttribute("aria-expanded", "false");
+          var p = document.getElementById(b.getAttribute("aria-controls"));
+          if (p) p.hidden = true;
+          b.closest(".lp-faq__item").classList.remove("is-open");
+        });
+        if (!isOpen) {
+          btn.setAttribute("aria-expanded", "true");
+          var panel = document.getElementById(btn.getAttribute("aria-controls"));
+          if (panel) panel.hidden = false;
+          btn.closest(".lp-faq__item").classList.add("is-open");
+        }
+      });
+    });
+  })();
+  </script>
+
+</div>
+</body>
+</html>
