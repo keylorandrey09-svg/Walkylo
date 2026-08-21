@@ -941,6 +941,7 @@
         e.preventDefault();
         setActive(a);
         showView(view, a.getAttribute("data-label"));
+        try { history.replaceState(null, '', location.pathname + '#' + view); } catch(e){ try { location.hash = view; } catch(e2){} }
         setSidebar(false);
       });
     });
@@ -1656,6 +1657,7 @@
       wgEditing = false; wgDraft = null;
       renderWidget();
       toast('Cambios guardados');
+      try { localStorage.setItem('wu-widget', JSON.stringify(appState.widget)); } catch(e){}
       // TODO Supabase: persistir appState.widget. La clave de Claude vive en el sistema (incluida en el plan), no en el front.
       renderConversations(); // refleja apariencia en la bandeja
     }
@@ -1702,6 +1704,25 @@
         var old = copy.textContent; copy.textContent = 'Copiado'; setTimeout(function(){ copy.textContent = old; }, 1600);
       });
     })();
+
+    /* ============================================================
+       Persistencia local (para que recargar NO reinicie la app).
+       Es un puente hasta Supabase, que después será la fuente real.
+       ============================================================ */
+    try {
+      var _pw = localStorage.getItem('wu-widget');
+      if (_pw){ var _p = JSON.parse(_pw); if (_p && typeof _p === 'object'){ Object.keys(_p).forEach(function(k){ appState.widget[k] = _p[k]; }); } }
+    } catch(e){}
+
+    // Restaurar la vista según el hash de la URL (recargar te deja donde estabas).
+    function goToViewFromHash(){
+      var v = (location.hash || '').replace('#','');
+      if (!v) return;
+      var link = nav.querySelector('a[data-view="' + v + '"]');
+      if (link){ setActive(link); showView(v, link.getAttribute('data-label')); }
+    }
+    goToViewFromHash();
+    window.addEventListener('hashchange', goToViewFromHash);
   })();
   </script>
 </body>
