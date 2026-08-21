@@ -4,10 +4,216 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WalkyUp — Iniciar sesión</title>
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --wa-bg:#EEF1F6; --wa-surface:#FFFFFF; --wa-ink:#18181b; --wa-ink-2:#5B6472; --wa-ink-3:#8A9199;
+      --wa-primary:#0164FD; --wa-primary-h:#0150D4; --wa-primary-soft:#E7F0FF;
+      --wa-active:#34D399; --wa-line:#ECECEF; --wa-r:14px;
+      --wa-sh:0 1px 2px rgba(24,24,27,.05); --wa-sh-md:0 12px 32px -12px rgba(24,24,27,.18);
+      --wa-danger:#DC2626; --wa-danger-soft:#FEF2F2;
+      --wa-font:"Inter",system-ui,-apple-system,sans-serif; --wa-word:"Baloo 2",var(--wa-font);
+    }
+    *{box-sizing:border-box;} html,body{margin:0;height:100%;}
+    body{font-family:var(--wa-font);background:var(--wa-bg);color:var(--wa-ink);-webkit-font-smoothing:antialiased;
+      line-height:1.5;-webkit-tap-highlight-color:transparent;}
+    a{color:inherit;text-decoration:none;}
+    :where(button,a,input):focus-visible{outline:none;box-shadow:0 0 0 3px rgba(1,100,253,.3);border-radius:10px;}
+
+    .lg-wrap{min-height:100dvh;display:grid;grid-template-columns:1.05fr 1fr;}
+
+    /* Panel de marca (izquierda, solo laptop) */
+    .lg-aside{background:linear-gradient(155deg,var(--wa-primary),#0150D4 72%);color:#fff;
+      display:flex;flex-direction:column;justify-content:center;padding:56px 56px;position:relative;overflow:hidden;}
+    .lg-aside::after{content:"";position:absolute;width:460px;height:460px;border-radius:50%;
+      background:rgba(255,255,255,.08);top:-150px;right:-160px;}
+    .lg-aside::before{content:"";position:absolute;width:300px;height:300px;border-radius:50%;
+      background:rgba(255,255,255,.06);bottom:-120px;left:-90px;}
+    .lg-aside__in{position:relative;z-index:1;max-width:440px;}
+    .lg-aside .lg-brand{color:#fff;font-size:1.95rem;margin-bottom:34px;}
+    .lg-aside__title{font-size:2.05rem;font-weight:800;letter-spacing:-0.03em;line-height:1.14;margin:0 0 14px;}
+    .lg-aside__text{font-size:1.02rem;color:rgba(255,255,255,.85);margin:0;line-height:1.55;}
+
+    /* Lado del formulario (derecha) */
+    .lg-main{position:relative;display:flex;align-items:center;justify-content:center;padding:28px;}
+    .lg-back{position:absolute;top:20px;right:20px;width:42px;height:42px;display:grid;place-items:center;
+      border-radius:12px;background:var(--wa-surface);border:1px solid var(--wa-line);color:var(--wa-ink);
+      box-shadow:var(--wa-sh);z-index:5;transition:border-color .15s,background .15s;}
+    .lg-back:hover{border-color:#d2d5dc;}
+    .lg-back svg{width:20px;height:20px;pointer-events:none;}
+
+    .lg-card{width:100%;max-width:400px;}
+    .lg-brand{display:inline-flex;align-items:baseline;gap:0;font-family:var(--wa-word);font-weight:800;
+      font-size:1.7rem;letter-spacing:-0.03em;color:var(--wa-ink);margin-bottom:22px;}
+    .lg-mark{height:.74em;width:auto;margin-bottom:-0.015em;margin-right:-0.07em;}
+    .lg-card .lg-brand{display:none;} /* en laptop el logo va en el panel izquierdo */
+    .lg-title{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 4px;}
+    .lg-sub{margin:0 0 24px;color:var(--wa-ink-2);font-size:.95rem;}
+
+    .lg-field{margin-bottom:15px;}
+    .lg-label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--wa-ink);}
+    .lg-input-wrap{position:relative;}
+    .lg-input{width:100%;border:1px solid var(--wa-line);border-radius:11px;padding:12px 13px;font:inherit;font-size:.95rem;
+      background:var(--wa-surface);color:var(--wa-ink);transition:border-color .15s;}
+    .lg-input::placeholder{color:var(--wa-ink-3);}
+    .lg-input:focus{outline:none;border-color:var(--wa-primary);}
+    .lg-input.has-err{border-color:var(--wa-danger);}
+    .lg-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;display:grid;place-items:center;
+      background:none;border:0;color:var(--wa-ink-3);cursor:pointer;border-radius:9px;}
+    .lg-eye svg{width:19px;height:19px;pointer-events:none;}
+    .lg-row{display:flex;align-items:center;justify-content:flex-end;margin:-2px 0 18px;}
+    .lg-forgot{font-size:.85rem;font-weight:600;color:var(--wa-primary);cursor:pointer;}
+
+    .lg-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+      font:600 .98rem var(--wa-font);border-radius:12px;padding:13px 18px;border:1px solid transparent;cursor:pointer;
+      transition:background .15s,border-color .15s,opacity .15s;}
+    .lg-btn-primary{background:var(--wa-primary);color:#fff;}
+    .lg-btn-primary:hover{background:var(--wa-primary-h);}
+    .lg-btn-primary:disabled{opacity:.6;cursor:default;}
+    .lg-btn-ghost{background:var(--wa-surface);color:var(--wa-ink);border-color:var(--wa-line);}
+    .lg-btn-ghost:hover{border-color:#d2d5dc;}
+    .lg-btn-ghost:disabled{opacity:.55;cursor:not-allowed;}
+    .lg-spin{width:17px;height:17px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;
+      animation:lg-rot .7s linear infinite;display:none;}
+    .lg-btn.is-loading .lg-spin{display:block;}
+    @keyframes lg-rot{to{transform:rotate(360deg);}}
+
+    .lg-alert{display:none;align-items:flex-start;gap:8px;background:var(--wa-danger-soft);color:var(--wa-danger);
+      border:1px solid color-mix(in srgb,var(--wa-danger) 30%,transparent);border-radius:11px;padding:10px 12px;font-size:.86rem;margin-bottom:16px;}
+    .lg-alert.is-on{display:flex;}
+    .lg-alert svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+
+    .lg-sep{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--wa-ink-3);font-size:.8rem;}
+    .lg-sep::before,.lg-sep::after{content:"";flex:1;height:1px;background:var(--wa-line);}
+    .lg-soon{font-size:.72rem;font-weight:600;color:var(--wa-ink-3);background:var(--wa-bg);border:1px solid var(--wa-line);
+      border-radius:999px;padding:2px 8px;margin-left:auto;}
+
+    .lg-foot{text-align:center;margin-top:22px;font-size:.9rem;color:var(--wa-ink-2);}
+    .lg-foot a{color:var(--wa-primary);font-weight:600;}
+
+    @media (max-width: 860px){
+      .lg-wrap{grid-template-columns:1fr;}
+      .lg-aside{display:none;}
+      .lg-card .lg-brand{display:inline-flex;}
+      .lg-main{padding:24px;}
+    }
+  </style>
 </head>
 <body>
-  <h1>Login de WalkyUp</h1>
-  <p>Esta es la página de /login (versión de prueba).</p>
-  <p><a href="/">← Volver a la landing</a></p>
+  <div class="lg-wrap">
+    <aside class="lg-aside">
+      <div class="lg-aside__in">
+        <span class="lg-brand"><svg class="lg-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span>alkyUp</span></span>
+        <h2 class="lg-aside__title">Ayuda con IA para tu app, en una línea.</h2>
+        <p class="lg-aside__text">Entrá a tu panel para configurar tu asistente, ver conversaciones y analíticas.</p>
+      </div>
+    </aside>
+
+    <main class="lg-main">
+      <a class="lg-back" href="/" aria-label="Volver a la landing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </a>
+
+      <div class="lg-card">
+        <span class="lg-brand"><svg class="lg-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span>alkyUp</span></span>
+        <h1 class="lg-title">Iniciá sesión</h1>
+        <p class="lg-sub">Entrá a tu panel de WalkyUp.</p>
+
+        <div class="lg-alert" id="lgAlert" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <span id="lgAlertText"></span>
+        </div>
+
+        <form id="lgForm" novalidate>
+          <div class="lg-field">
+            <label class="lg-label" for="lgEmail">Correo</label>
+            <input class="lg-input" id="lgEmail" type="email" inputmode="email" autocomplete="email" placeholder="vos@correo.com" required />
+          </div>
+          <div class="lg-field">
+            <label class="lg-label" for="lgPass">Contraseña</label>
+            <div class="lg-input-wrap">
+              <input class="lg-input" id="lgPass" type="password" autocomplete="current-password" placeholder="Tu contraseña" required style="padding-right:46px" />
+              <button class="lg-eye" id="lgEye" type="button" aria-label="Mostrar contraseña">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="lg-row"><span class="lg-forgot" id="lgForgot">¿Olvidaste tu contraseña?</span></div>
+          <button class="lg-btn lg-btn-primary" id="lgSubmit" type="submit">
+            <span class="lg-btn-tx">Entrar</span><span class="lg-spin" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <div class="lg-sep">o <span class="lg-soon">Google · próximamente</span></div>
+        <button class="lg-btn lg-btn-ghost" id="lgGoogle" type="button" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.3 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C18 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg>
+          <span>Continuar con Google</span>
+        </button>
+
+        <p class="lg-foot">¿No tenés cuenta? <a href="#" id="lgSignup">Creá una</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  (function(){
+    "use strict";
+    /* ============================================================
+       LOGIN (UI). La autenticación REAL va en el chat guía (Supabase Auth).
+       Enganches:
+         - TODO Supabase: signInWithPassword(email, pass) -> si ok, redirigir a /app.
+         - TODO Supabase: proteger /app (sin sesión -> /login).
+         - TODO Supabase: "¿Olvidaste tu contraseña?" -> resetPasswordForEmail.
+         - TODO Supabase: "Creá una" -> registro (signUp).
+         - Google queda para después (botón deshabilitado).
+       ============================================================ */
+    var form = document.getElementById('lgForm');
+    var email = document.getElementById('lgEmail');
+    var pass = document.getElementById('lgPass');
+    var submit = document.getElementById('lgSubmit');
+    var alertBox = document.getElementById('lgAlert');
+    var alertText = document.getElementById('lgAlertText');
+    var eye = document.getElementById('lgEye');
+
+    function showError(msg){ alertText.textContent = msg; alertBox.classList.add('is-on'); }
+    function clearError(){ alertBox.classList.remove('is-on'); email.classList.remove('has-err'); pass.classList.remove('has-err'); }
+    function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+    eye.addEventListener('click', function(){
+      var show = pass.type === 'password';
+      pass.type = show ? 'text' : 'password';
+      eye.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    });
+    email.addEventListener('input', clearError);
+    pass.addEventListener('input', clearError);
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      clearError();
+      var em = email.value.trim(), pw = pass.value;
+      if (!validEmail(em)){ email.classList.add('has-err'); showError('Ingresá un correo válido.'); email.focus(); return; }
+      if (pw.length < 6){ pass.classList.add('has-err'); showError('La contraseña debe tener al menos 6 caracteres.'); pass.focus(); return; }
+      submit.disabled = true; submit.classList.add('is-loading');
+      // TODO Supabase: supabase.auth.signInWithPassword({ email: em, password: pw })
+      //   error -> submit.disabled=false; submit.classList.remove('is-loading'); showError('Correo o contraseña incorrectos.');
+      //   ok    -> window.location.href = '/app';
+      setTimeout(function(){
+        submit.disabled = false; submit.classList.remove('is-loading');
+        showError('El login todavía no está conectado. Se activa cuando enganchemos Supabase.');
+      }, 900);
+    });
+
+    document.getElementById('lgForgot').addEventListener('click', function(){
+      showError('Recuperar contraseña se activa al conectar Supabase.'); // TODO Supabase: resetPasswordForEmail
+    });
+    document.getElementById('lgSignup').addEventListener('click', function(e){
+      e.preventDefault();
+      showError('Crear cuenta se activa al conectar Supabase.'); // TODO Supabase: signUp
+    });
+  })();
+  </script>
 </body>
 </html>
