@@ -387,6 +387,25 @@
     @media (min-width:861px){ .wa-drop{display:none;} }
     @media (prefers-reduced-motion:reduce){ .wa-sidebar,.wa-drop{transition:none;} .wa-check{animation:none;} }
   </style>
+  <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    var d = document.documentElement;
+    d.style.visibility = 'hidden';
+    function reveal(){ d.style.visibility = ''; }
+    function toLogin(){ window.location.replace('/login'); }
+    try {
+      var sb = window.supabase.createClient(window.WSB_URL, window.WSB_ANON);
+      window.wsb = sb;
+      sb.auth.getSession().then(function(res){
+        if (res && res.data && res.data.session){ reveal(); }
+        else { toLogin(); }
+      }).catch(function(){ reveal(); });
+    } catch(e){ reveal(); }
+    setTimeout(reveal, 5000);
+  })();
+  </script>
 </head>
 <body>
   <div class="wa-shell" id="shell">
@@ -428,7 +447,7 @@
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
           Soporte
         </a>
-        <a href="/">
+        <a href="/login" data-action="logout">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
           Cerrar sesión
         </a>
@@ -902,6 +921,9 @@
   <script>
   (function () {
     "use strict";
+    var SB = window.wsb;
+    function currentUserId(){ return (window.__wuUser && window.__wuUser.id) || null; }
+    function wuLogout(){ SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); }); }
     /* ============================================================
        PUNTOS DE ENGANCHE PARA SUPABASE (se cablean en el chat guía):
        1) Notificaciones: leer del backend y marcar como leídas.        -> markRead()
@@ -936,6 +958,7 @@
     navLinks.forEach(function(a){
       a.addEventListener("click", function(e){
         if (a.getAttribute("data-action") === "support"){ e.preventDefault(); openSupport(); setSidebar(false); return; }
+        if (a.getAttribute("data-action") === "logout"){ e.preventDefault(); wuLogout(); return; }
         var view = a.getAttribute("data-view");
         if (!view) return; /* Cerrar sesión: link real */
         e.preventDefault();
@@ -950,15 +973,43 @@
     var bell = document.getElementById("bell");
     var drop = document.getElementById("drop");
     var navNoti = document.getElementById("navNoti");
-    // TODO Supabase: setear hasUnread según lo que devuelva el backend.
-    var hasUnread = true;
+    var wuNotis = [];
+    var hasUnread = false;
     function renderUnread(){
       if (bell) bell.classList.toggle("has-unread", hasUnread);
       if (navNoti) navNoti.classList.toggle("has-unread", hasUnread);
     }
+    function notiHTML(n){
+      var unread = !n.read_at;
+      return '<div class="wa-noti' + (unread ? ' is-unread' : '') + '">' +
+        '<div class="wa-noti__top"><span class="wa-noti__tag">' + cvEsc(n.tag || 'NOVEDAD') + '</span>' +
+        '<span class="wa-noti__time" data-time="' + (n.created_at || '') + '"></span></div>' +
+        '<p class="wa-noti__title">' + cvEsc(n.title || '') + '</p>' +
+        '<p class="wa-noti__body">' + cvEsc(n.body || '') + '</p></div>';
+    }
+    function renderNotis(){
+      hasUnread = wuNotis.some(function(n){ return !n.read_at; });
+      renderUnread();
+      var full = document.querySelector('.wa-view[data-view="notificaciones"]');
+      var dropBody = document.querySelector('#drop .wa-drop__body');
+      if (full){
+        Array.prototype.slice.call(full.querySelectorAll('.wa-noti, .wu-noti-empty')).forEach(function(el){ el.remove(); });
+        if (wuNotis.length) full.insertAdjacentHTML('beforeend', wuNotis.map(notiHTML).join(''));
+        else full.insertAdjacentHTML('beforeend', '<p class="wa-page-sub wu-noti-empty">No tenés notificaciones.</p>');
+      }
+      if (dropBody){
+        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">No tenés notificaciones.</p>';
+      }
+      Array.prototype.slice.call(document.querySelectorAll('.wa-noti__time')).forEach(function(el){
+        var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
+      });
+    }
     function markRead(){
-      hasUnread = false; renderUnread();
-      // TODO Supabase: marcar las notificaciones del usuario como leídas.
+      if (!hasUnread) return;
+      var nowIso = new Date().toISOString();
+      wuNotis.forEach(function(n){ if (!n.read_at) n.read_at = nowIso; });
+      hasUnread = false; renderNotis();
+      SB.from('notifications').update({ read_at: nowIso }).is('read_at', null).then(function(){}, function(){});
     }
     renderUnread();
 
@@ -984,13 +1035,7 @@
       var y = Math.floor(d / 365);
       return "hace " + y + (y === 1 ? " año" : " años");
     }
-    Array.prototype.forEach.call(document.querySelectorAll(".wa-noti__time"), function(el){
-      var t = el.getAttribute("data-time");
-      if (t === null) return;
-      // TODO Supabase: en cada notificación real, poné en data-time el created_at.
-      if (t === "") t = new Date().toISOString(); // placeholder de la bienvenida -> "recién"
-      el.textContent = timeAgo(t);
-    });
+    // Las fechas relativas de notificaciones las pinta renderNotis() con datos reales.
 
     function toggleDrop(open){ drop.classList.toggle("is-open", open); }
     if (bell) bell.addEventListener("click", function(e){ e.stopPropagation(); toggleDrop(!drop.classList.contains("is-open")); });
@@ -1056,27 +1101,40 @@
     }
     function showWarn(msg){ supWarn.textContent = msg; supWarn.classList.add("is-on"); }
 
-    /* Límite: el conteo real lo hace Supabase. Acá solo mostramos el aviso. */
-    function canSubmitSupport(){
-      // TODO Supabase: consultar cuántos envíos hizo el usuario en los últimos 30 min.
-      // Devolver false si ya llegó a 4. Por ahora, siempre permite.
-      return true;
-    }
-    function submitSupport(){
-      // TODO Supabase: 1) subir las fotos (files) a Storage  2) insertar el mensaje (supText.value).
-      // Cuando el backend confirme OK, llamar a onSupportSuccess().
-      onSupportSuccess();
-    }
     function onSupportSuccess(){ support.classList.add("show-success"); }
 
     if (supSend) supSend.addEventListener("click", function(){
       if (supText.value.trim().length === 0) return;
-      if (!canSubmitSupport()){
-        showWarn("Alcanzaste el máximo de 4 mensajes en 30 minutos. Probá de nuevo más tarde.");
-        return;
-      }
-      submitSupport();
+      var uid = currentUserId();
+      if (!uid){ showWarn("Perdimos tu sesión. Recargá la página."); return; }
+      supSend.disabled = true;
+      var since = new Date(Date.now() - 30*60000).toISOString();
+      SB.from('support_messages').select('id', { count: 'exact', head: true }).eq('user_id', uid).gte('created_at', since)
+        .then(function(res){
+          var count = res.count || 0;
+          if (count >= 4){
+            showWarn("Alcanzaste el máximo de 4 mensajes en 30 minutos. Probá de nuevo más tarde.");
+            supSend.disabled = false; return;
+          }
+          submitSupportReal(uid);
+        }, function(){ showWarn("No se pudo enviar. Probá de nuevo."); supSend.disabled = false; });
     });
+
+    function submitSupportReal(uid){
+      var text = supText.value.trim();
+      var uploads = files.map(function(item, i){
+        var ext = (String(item.file.name).split('.').pop() || 'jpg').toLowerCase();
+        var path = uid + '/' + Date.now() + '-' + i + '.' + ext;
+        return SB.storage.from('support').upload(path, item.file, { upsert: false }).then(function(r){ return r.error ? null : path; });
+      });
+      Promise.all(uploads).then(function(paths){
+        var photos = paths.filter(Boolean);
+        return SB.from('support_messages').insert({ user_id: uid, text: text, photos: photos });
+      }).then(function(res){
+        if (res && res.error){ showWarn("No se pudo enviar. Probá de nuevo."); supSend.disabled = false; return; }
+        onSupportSuccess();
+      }, function(){ showWarn("No se pudo enviar. Probá de nuevo."); supSend.disabled = false; });
+    }
 
     /* ============================================================
        ANALÍTICAS — UI + buckets (basado en el .md de WalkyChat).
@@ -1388,12 +1446,21 @@
       var bPlan = document.getElementById('cfgChangePlan');
       var bOut  = document.getElementById('cfgLogout');
       var bDel  = document.getElementById('cfgDelete');
-      // TODO Supabase: cambiar contraseña
-      if(bPass) bPass.addEventListener('click', function(){ toast('Cambio de contraseña: próximamente'); });
-      // TODO Supabase: gestión de plan
+
+      if(bPass) bPass.addEventListener('click', function(){
+        var np = prompt('Nueva contraseña (mínimo 6 caracteres):');
+        if (np === null) return;
+        if (np.length < 6){ toast('La contraseña es muy corta'); return; }
+        SB.auth.updateUser({ password: np }).then(function(res){
+          toast(res && res.error ? 'No se pudo cambiar la contraseña' : 'Contraseña actualizada');
+        }, function(){ toast('No se pudo cambiar la contraseña'); });
+      });
+
+      // Gestión de plan: aún no hay cobro
       if(bPlan) bPlan.addEventListener('click', function(){ toast('Gestión de plan: próximamente'); });
-      // TODO Supabase: cerrar sesión (signOut) y luego redirigir
-      if(bOut)  bOut.addEventListener('click', function(){ window.location.href = '/'; });
+
+      // Cerrar sesión real
+      if(bOut)  bOut.addEventListener('click', function(){ wuLogout(); });
 
       var del = document.getElementById('delAccount');
       function openDel(){ if(del){ del.classList.add('is-open'); document.body.style.overflow='hidden'; } }
@@ -1402,8 +1469,13 @@
       if(del){
         Array.prototype.slice.call(del.querySelectorAll('[data-delclose]')).forEach(function(el){ el.addEventListener('click', closeDel); });
         var go = document.getElementById('delAccountGo');
-        // TODO Supabase: eliminar cuenta de verdad (borrar datos + signOut)
-        if(go) go.addEventListener('click', function(){ closeDel(); toast('Eliminar cuenta: se conectará con Supabase'); });
+        if(go) go.addEventListener('click', function(){
+          go.disabled = true;
+          SB.functions.invoke('delete-account').then(function(res){
+            if (res && res.error){ toast('No se pudo eliminar la cuenta'); go.disabled = false; return; }
+            SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); });
+          }, function(){ toast('No se pudo eliminar la cuenta'); go.disabled = false; });
+        });
         document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && del.classList.contains('is-open')) closeDel(); });
       }
     })();
@@ -1656,10 +1728,43 @@
       appState.widget = wgClone(wgDraft);
       wgEditing = false; wgDraft = null;
       renderWidget();
-      toast('Cambios guardados');
-      try { localStorage.setItem('wu-widget', JSON.stringify(appState.widget)); } catch(e){}
-      // TODO Supabase: persistir appState.widget. La clave de Claude vive en el sistema (incluida en el plan), no en el front.
       renderConversations(); // refleja apariencia en la bandeja
+      wgPersist();
+    }
+    function wgDataUrlToBlob(dataUrl){
+      var parts = dataUrl.split(','), mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/png';
+      var bin = atob(parts[1]), n = bin.length, u8 = new Uint8Array(n);
+      while (n--) u8[n] = bin.charCodeAt(n);
+      return new Blob([u8], { type: mime });
+    }
+    function wgPersist(){
+      var uid = currentUserId(); if (!uid){ toast('Perdimos tu sesión. Recargá.'); return; }
+      var w = appState.widget;
+      function doUpsert(avatarValue){
+        var row = {
+          user_id: uid, name: w.name, accent: w.accent, position: w.position,
+          welcome: w.welcome, tone: w.tone, language: w.language, fallback: w.fallback,
+          knowledge: w.knowledge, avatar: avatarValue, avatar_hidden: !!w.avatarHidden,
+          updated_at: new Date().toISOString()
+        };
+        SB.from('widgets').upsert(row, { onConflict: 'user_id' }).then(function(res){
+          toast(res && res.error ? 'No se pudo guardar' : 'Cambios guardados');
+        }, function(){ toast('No se pudo guardar'); });
+      }
+      if (typeof w.avatar === 'string' && w.avatar.indexOf('data:') === 0){
+        var blob = wgDataUrlToBlob(w.avatar);
+        var ext = (blob.type.split('/')[1] || 'png').replace('jpeg','jpg');
+        var path = uid + '/avatar-' + Date.now() + '.' + ext;
+        SB.storage.from('avatars').upload(path, blob, { upsert: true, contentType: blob.type }).then(function(r){
+          if (r.error){ doUpsert(w.avatar); return; }
+          var pub = SB.storage.from('avatars').getPublicUrl(path);
+          var url = (pub && pub.data && pub.data.publicUrl) ? pub.data.publicUrl : w.avatar;
+          appState.widget.avatar = url;
+          doUpsert(url);
+        }, function(){ doUpsert(w.avatar); });
+      } else {
+        doUpsert(w.avatar);
+      }
     }
 
     (function(){
@@ -1689,7 +1794,7 @@
         reader.onload = function(){ wgReadInputs(); wgDraft.avatar = reader.result; wgDraft.avatarHidden = false; renderWidget(); };
         reader.readAsDataURL(f);
         avFile.value = '';
-        // TODO Supabase: subir la imagen a Storage y guardar la URL (en vez del data URL).
+        // La subida a Storage ocurre al Guardar (wgPersist): el data URL es solo para la vista previa.
       });
       var lang = wgId('wgLang');
       if (lang) lang.addEventListener('change', function(){
@@ -1705,15 +1810,6 @@
       });
     })();
 
-    /* ============================================================
-       Persistencia local (para que recargar NO reinicie la app).
-       Es un puente hasta Supabase, que después será la fuente real.
-       ============================================================ */
-    try {
-      var _pw = localStorage.getItem('wu-widget');
-      if (_pw){ var _p = JSON.parse(_pw); if (_p && typeof _p === 'object'){ Object.keys(_p).forEach(function(k){ appState.widget[k] = _p[k]; }); } }
-    } catch(e){}
-
     // Restaurar la vista según el hash de la URL (recargar te deja donde estabas).
     function goToViewFromHash(){
       var v = (location.hash || '').replace('#','');
@@ -1723,6 +1819,103 @@
     }
     goToViewFromHash();
     window.addEventListener('hashchange', goToViewFromHash);
+
+    /* ============================================================
+       CARGA REAL DESDE SUPABASE (fuente de verdad). Reemplaza al
+       puente localStorage: los datos viven en la base, por usuario.
+       ============================================================ */
+    function wgSetSnippet(id){
+      WG_SNIPPET = '<script src="https://walkyup.app/w.js" data-id="' + id + '" defer></' + 'script>';
+      var code = document.getElementById('wgCode');
+      if (code) code.textContent = WG_SNIPPET;
+    }
+
+    function wuRenderCurrent(){
+      var current = (location.hash || '#resumen').replace('#','') || 'resumen';
+      if (current === 'config') renderConfig();
+      else if (current === 'widget') renderWidget();
+      else if (current === 'conversaciones') renderConversations();
+      else if (current === 'analiticas') renderAnalytics();
+    }
+
+    function wuLoadConversations(uid){
+      return SB.from('conversations').select('*').order('updated_at', { ascending: false }).then(function(cq){
+        var convs = (cq && cq.data) || [];
+        if (!convs.length){ appState.conversations = []; return; }
+        var ids = convs.map(function(c){ return c.id; });
+        return SB.from('messages').select('*').in('conversation_id', ids).order('created_at', { ascending: true }).then(function(mq){
+          var msgs = (mq && mq.data) || [];
+          var byConv = {};
+          msgs.forEach(function(m){ (byConv[m.conversation_id] = byConv[m.conversation_id] || []).push({ from: m.from_role, text: m.text, at: m.created_at }); });
+          appState.conversations = convs.map(function(c){
+            return { id: c.id, name: c.visitor_name, initial: c.initial, status: c.status, updatedAt: c.updated_at, messages: byConv[c.id] || [] };
+          });
+        });
+      });
+    }
+
+    function wuLoadEvents(){
+      return SB.from('events').select('type,created_at').then(function(eq){
+        appState.events = (eq && eq.data) || [];
+      }, function(){ appState.events = []; });
+    }
+
+    function wuInit(){
+      return SB.auth.getSession().then(function(sess){
+        var user = sess && sess.data && sess.data.session ? sess.data.session.user : null;
+        if (!user){ window.location.replace('/login'); return; }
+        window.__wuUser = user;
+
+        // Cuenta
+        return SB.from('profiles').select('plan,status,created_at').eq('id', user.id).maybeSingle().then(function(prof){
+          var p = (prof && prof.data) || {};
+          appState.account.email = user.email || null;
+          appState.account.emailVerified = !!(user.email_confirmed_at || user.confirmed_at);
+          appState.account.lastAccess = user.last_sign_in_at || null;
+          appState.account.memberSince = p.created_at || user.created_at || null;
+          appState.account.plan = p.plan ? (p.plan.charAt(0).toUpperCase() + p.plan.slice(1)) : null;
+          appState.account.price = (p.plan === 'free') ? 'Gratis' : null;
+          appState.account.status = p.status || null;
+
+          // Widget (cargar o crear por defecto)
+          return SB.from('widgets').select('*').eq('user_id', user.id).maybeSingle().then(function(wq){
+            var wrow = wq && wq.data;
+            if (wrow) return wrow;
+            var def = {
+              user_id: user.id, name: appState.widget.name, accent: appState.widget.accent,
+              position: appState.widget.position, welcome: appState.widget.welcome, tone: appState.widget.tone,
+              language: appState.widget.language, fallback: appState.widget.fallback, knowledge: appState.widget.knowledge,
+              avatar: appState.widget.avatar, avatar_hidden: appState.widget.avatarHidden
+            };
+            return SB.from('widgets').insert(def).select('*').maybeSingle().then(function(ins){ return (ins && ins.data) ? ins.data : def; });
+          }).then(function(wrow){
+            if (wrow){
+              appState.widget = {
+                name: wrow.name, accent: wrow.accent, position: wrow.position, welcome: wrow.welcome,
+                tone: wrow.tone, language: wrow.language, fallback: wrow.fallback, knowledge: wrow.knowledge,
+                avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden
+              };
+              if (wrow.id) wgSetSnippet(wrow.id);
+            }
+            // Notificaciones
+            return SB.from('notifications').select('*').order('created_at', { ascending: false }).then(function(nq){
+              wuNotis = (nq && nq.data) || [];
+              renderNotis();
+              return wuLoadConversations(user.id);
+            }).then(function(){ return wuLoadEvents(); }).then(function(){ wuRenderCurrent(); });
+          });
+        });
+      }).catch(function(){ /* el guard ya protege; error silencioso */ });
+    }
+
+    wuInit();
+
+    // Al volver a la pestaña, refrescar eventos si estás en Analíticas
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'visible' && window.__wuUser){
+        wuLoadEvents().then(function(){ if ((location.hash || '').indexOf('analiticas') !== -1) renderAnalytics(); });
+      }
+    });
   })();
   </script>
 </body>
