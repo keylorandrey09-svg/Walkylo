@@ -910,11 +910,11 @@
         <p class="wa-modal__desc">Elegí una nueva contraseña para tu cuenta. Mínimo 6 caracteres.</p>
         <div class="wg-field" style="border-top:0;padding-top:0">
           <label class="wg-field__label" for="pwNew">Nueva contraseña</label>
-          <input class="wg-input" id="pwNew" type="password" autocomplete="new-password" />
+          <input class="wg-input" id="pwNew" type="password" autocomplete="new-password" readonly data-lpignore="true" data-1p-ignore />
         </div>
         <div class="wg-field" style="border-top:0">
           <label class="wg-field__label" for="pwNew2">Repetir contraseña</label>
-          <input class="wg-input" id="pwNew2" type="password" autocomplete="new-password" />
+          <input class="wg-input" id="pwNew2" type="password" autocomplete="new-password" readonly data-lpignore="true" data-1p-ignore />
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--wa-ink-2);margin-top:4px;cursor:pointer">
           <input type="checkbox" id="pwShow" /> Mostrar contraseña
@@ -1484,13 +1484,14 @@
       var pwShow = document.getElementById('pwShow');
       function pwError(m){ if(pwErr){ pwErr.textContent=m; pwErr.style.display='block'; } }
       function pwClearErr(){ if(pwErr){ pwErr.textContent=''; pwErr.style.display='none'; } }
-      function openPw(){ if(!pwm) return; pwNew.value=''; pwNew2.value=''; if(pwShow){ pwShow.checked=false; pwNew.type='password'; pwNew2.type='password'; } pwClearErr(); pwm.classList.add('is-open'); document.body.style.overflow='hidden'; setTimeout(function(){ pwNew.focus(); }, 60); }
+      function pwUnlock(el){ if(el) el.removeAttribute('readonly'); }
+      function openPw(){ if(!pwm) return; pwNew.setAttribute('readonly','readonly'); pwNew2.setAttribute('readonly','readonly'); pwNew.value=''; pwNew2.value=''; if(pwShow){ pwShow.checked=false; pwNew.type='password'; pwNew2.type='password'; } pwClearErr(); pwm.classList.add('is-open'); document.body.style.overflow='hidden'; }
       function closePw(){ if(!pwm) return; pwm.classList.remove('is-open'); document.body.style.overflow=''; }
       if(pwm){
         Array.prototype.slice.call(pwm.querySelectorAll('[data-pwclose]')).forEach(function(el){ el.addEventListener('click', closePw); });
         if(pwShow) pwShow.addEventListener('change', function(){ var t = pwShow.checked ? 'text' : 'password'; pwNew.type=t; pwNew2.type=t; });
-        if(pwNew) pwNew.addEventListener('input', pwClearErr);
-        if(pwNew2) pwNew2.addEventListener('input', pwClearErr);
+        if(pwNew){ pwNew.addEventListener('input', pwClearErr); pwNew.addEventListener('pointerdown', function(){ pwUnlock(pwNew); }); pwNew.addEventListener('focus', function(){ pwUnlock(pwNew); }); }
+        if(pwNew2){ pwNew2.addEventListener('input', pwClearErr); pwNew2.addEventListener('pointerdown', function(){ pwUnlock(pwNew2); }); pwNew2.addEventListener('focus', function(){ pwUnlock(pwNew2); }); }
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && pwm.classList.contains('is-open')) closePw(); });
         if(pwGo) pwGo.addEventListener('click', function(){
           var a = pwNew.value, b = pwNew2.value;
