@@ -101,6 +101,8 @@
       .lg-main{padding:24px;}
     }
   </style>
+  <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="lg-wrap">
@@ -170,17 +172,68 @@
          - TODO Supabase: "Creá una" -> registro (signUp).
          - Google queda para después (botón deshabilitado).
        ============================================================ */
+    var sb = window.supabase.createClient(window.WSB_URL, window.WSB_ANON);
+
     var form = document.getElementById('lgForm');
     var email = document.getElementById('lgEmail');
     var pass = document.getElementById('lgPass');
     var submit = document.getElementById('lgSubmit');
+    var submitTx = submit.querySelector('.lg-btn-tx');
     var alertBox = document.getElementById('lgAlert');
     var alertText = document.getElementById('lgAlertText');
     var eye = document.getElementById('lgEye');
+    var title = document.querySelector('.lg-title');
+    var sub = document.querySelector('.lg-sub');
+    var foot = document.querySelector('.lg-foot');
 
-    function showError(msg){ alertText.textContent = msg; alertBox.classList.add('is-on'); }
-    function clearError(){ alertBox.classList.remove('is-on'); email.classList.remove('has-err'); pass.classList.remove('has-err'); }
+    var mode = 'signin'; // 'signin' | 'signup'
+
+    function showError(msg, ok){
+      alertText.textContent = msg;
+      alertBox.classList.add('is-on');
+      if (ok){ alertBox.style.background = 'var(--wa-active-soft)'; alertBox.style.color = 'var(--wa-active-ink)'; alertBox.style.borderColor = 'rgba(52,211,153,.4)'; }
+    }
+    function clearError(){ alertBox.classList.remove('is-on'); alertBox.removeAttribute('style'); email.classList.remove('has-err'); pass.classList.remove('has-err'); }
     function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    function setLoading(on){ submit.disabled = on; submit.classList.toggle('is-loading', on); }
+
+    function traducir(msg){
+      msg = String(msg || '');
+      if (/Invalid login credentials/i.test(msg)) return 'Correo o contraseña incorrectos.';
+      if (/already registered|already been registered|User already/i.test(msg)) return 'Ese correo ya tiene una cuenta. Iniciá sesión.';
+      if (/Email not confirmed/i.test(msg)) return 'Confirmá tu correo antes de entrar (revisá tu bandeja).';
+      if (/rate limit|too many/i.test(msg)) return 'Demasiados intentos. Esperá un momento y probá de nuevo.';
+      if (/Password should be at least/i.test(msg)) return 'La contraseña es muy corta.';
+      return 'No se pudo completar. Probá de nuevo.';
+    }
+
+    function bindSignup(){
+      var el = document.getElementById('lgSignup');
+      if (el) el.addEventListener('click', function(e){ e.preventDefault(); setMode('signup'); });
+    }
+    function bindToSignin(){
+      var el = document.getElementById('lgToSignin');
+      if (el) el.addEventListener('click', function(e){ e.preventDefault(); setMode('signin'); });
+    }
+
+    function setMode(m){
+      mode = m; clearError();
+      if (m === 'signup'){
+        title.textContent = 'Creá tu cuenta';
+        sub.textContent = 'Empezá gratis con WalkyUp.';
+        submitTx.textContent = 'Crear cuenta';
+        pass.setAttribute('autocomplete','new-password');
+        foot.innerHTML = '¿Ya tenés cuenta? <a href="#" id="lgToSignin">Entrá</a>';
+        bindToSignin();
+      } else {
+        title.textContent = 'Iniciá sesión';
+        sub.textContent = 'Entrá a tu panel de WalkyUp.';
+        submitTx.textContent = 'Entrar';
+        pass.setAttribute('autocomplete','current-password');
+        foot.innerHTML = '¿No tenés cuenta? <a href="#" id="lgSignup">Creá una</a>';
+        bindSignup();
+      }
+    }
 
     eye.addEventListener('click', function(){
       var show = pass.type === 'password';
@@ -196,23 +249,52 @@
       var em = email.value.trim(), pw = pass.value;
       if (!validEmail(em)){ email.classList.add('has-err'); showError('Ingresá un correo válido.'); email.focus(); return; }
       if (pw.length < 6){ pass.classList.add('has-err'); showError('La contraseña debe tener al menos 6 caracteres.'); pass.focus(); return; }
-      submit.disabled = true; submit.classList.add('is-loading');
-      // TODO Supabase: supabase.auth.signInWithPassword({ email: em, password: pw })
-      //   error -> submit.disabled=false; submit.classList.remove('is-loading'); showError('Correo o contraseña incorrectos.');
-      //   ok    -> window.location.href = '/app';
-      setTimeout(function(){
-        submit.disabled = false; submit.classList.remove('is-loading');
-        showError('El login todavía no está conectado. Se activa cuando enganchemos Supabase.');
-      }, 900);
+      setLoading(true);
+
+      if (mode === 'signup'){
+        sb.auth.signUp({ email: em, password: pw }).then(function(res){
+          setLoading(false);
+          if (res.error){ showError(traducir(res.error.message)); return; }
+          if (res.data && res.data.session){ window.location.href = '/app'; return; } // sin confirmación de correo
+          showError('Cuenta creada. Revisá tu correo para confirmarla y después entrá.', true); // con confirmación
+          setMode('signin');
+        }).catch(function(){ setLoading(false); showError('No se pudo conectar. Probá de nuevo.'); });
+      } else {
+        sb.auth.signInWithPassword({ email: em, password: pw }).then(function(res){
+          setLoading(false);
+          if (res.error){ showError(traducir(res.error.message)); return; }
+          window.location.href = '/app';
+        }).catch(function(){ setLoading(false); showError('No se pudo conectar. Probá de nuevo.'); });
+      }
     });
 
     document.getElementById('lgForgot').addEventListener('click', function(){
-      showError('Recuperar contraseña se activa al conectar Supabase.'); // TODO Supabase: resetPasswordForEmail
+      clearError();
+      var em = email.value.trim();
+      if (!validEmail(em)){ email.classList.add('has-err'); showError('Escribí tu correo arriba y volvé a tocar aquí.'); email.focus(); return; }
+      sb.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + '/login' }).then(function(res){
+        if (res.error){ showError(traducir(res.error.message)); return; }
+        showError('Te enviamos un correo para restablecer la contraseña.', true);
+      }).catch(function(){ showError('No se pudo enviar el correo. Probá de nuevo.'); });
     });
-    document.getElementById('lgSignup').addEventListener('click', function(e){
-      e.preventDefault();
-      showError('Crear cuenta se activa al conectar Supabase.'); // TODO Supabase: signUp
+
+    // Si el usuario vuelve desde el correo de recuperación
+    sb.auth.onAuthStateChange(function(event){
+      if (event === 'PASSWORD_RECOVERY'){
+        var np = prompt('Ingresá tu nueva contraseña (mínimo 6 caracteres):');
+        if (np && np.length >= 6){
+          sb.auth.updateUser({ password: np }).then(function(res){
+            if (res.error){ showError(traducir(res.error.message)); }
+            else { showError('Contraseña actualizada. Ya podés iniciar sesión.', true); }
+          });
+        }
+      }
     });
+
+    // Si ya hay sesión activa, directo al panel
+    sb.auth.getSession().then(function(res){ if (res.data && res.data.session) window.location.replace('/app'); });
+
+    bindSignup();
   })();
   </script>
 </body>
