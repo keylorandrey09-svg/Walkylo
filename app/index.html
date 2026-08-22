@@ -902,6 +902,32 @@
   </div>
 
   <!-- Confirmar eliminar cuenta -->
+  <div class="wa-modal" id="pwModal" role="dialog" aria-modal="true" aria-label="Cambiar contraseña">
+    <div class="wa-modal__scrim" data-pwclose></div>
+    <div class="wa-modal__card" style="max-width:440px">
+      <div class="wa-modal__form">
+        <h2 class="wa-modal__title">Cambiar contraseña</h2>
+        <p class="wa-modal__desc">Elegí una nueva contraseña para tu cuenta. Mínimo 6 caracteres.</p>
+        <div class="wg-field" style="border-top:0;padding-top:0">
+          <label class="wg-field__label" for="pwNew">Nueva contraseña</label>
+          <input class="wg-input" id="pwNew" type="password" autocomplete="new-password" />
+        </div>
+        <div class="wg-field" style="border-top:0">
+          <label class="wg-field__label" for="pwNew2">Repetir contraseña</label>
+          <input class="wg-input" id="pwNew2" type="password" autocomplete="new-password" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--wa-ink-2);margin-top:4px;cursor:pointer">
+          <input type="checkbox" id="pwShow" /> Mostrar contraseña
+        </label>
+        <p id="pwErr" class="wg-field__hint" style="color:#dc2626;display:none"></p>
+        <div class="wa-modal__actions">
+          <button class="wa-btn wa-btn-ghost" type="button" data-pwclose>Cancelar</button>
+          <button class="wa-btn wa-btn-primary" type="button" id="pwGo">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="wa-modal" id="delAccount" role="dialog" aria-modal="true" aria-label="Eliminar cuenta">
     <div class="wa-modal__scrim" data-delclose></div>
     <div class="wa-modal__card" style="max-width:440px">
@@ -1447,14 +1473,37 @@
       var bOut  = document.getElementById('cfgLogout');
       var bDel  = document.getElementById('cfgDelete');
 
-      if(bPass) bPass.addEventListener('click', function(){
-        var np = prompt('Nueva contraseña (mínimo 6 caracteres):');
-        if (np === null) return;
-        if (np.length < 6){ toast('La contraseña es muy corta'); return; }
-        SB.auth.updateUser({ password: np }).then(function(res){
-          toast(res && res.error ? 'No se pudo cambiar la contraseña' : 'Contraseña actualizada');
-        }, function(){ toast('No se pudo cambiar la contraseña'); });
-      });
+      if(bPass) bPass.addEventListener('click', function(){ openPw(); });
+
+      // Cambiar contraseña — modal propio (sin el cuadro nativo del navegador)
+      var pwm = document.getElementById('pwModal');
+      var pwNew = document.getElementById('pwNew');
+      var pwNew2 = document.getElementById('pwNew2');
+      var pwErr = document.getElementById('pwErr');
+      var pwGo = document.getElementById('pwGo');
+      var pwShow = document.getElementById('pwShow');
+      function pwError(m){ if(pwErr){ pwErr.textContent=m; pwErr.style.display='block'; } }
+      function pwClearErr(){ if(pwErr){ pwErr.textContent=''; pwErr.style.display='none'; } }
+      function openPw(){ if(!pwm) return; pwNew.value=''; pwNew2.value=''; if(pwShow){ pwShow.checked=false; pwNew.type='password'; pwNew2.type='password'; } pwClearErr(); pwm.classList.add('is-open'); document.body.style.overflow='hidden'; setTimeout(function(){ pwNew.focus(); }, 60); }
+      function closePw(){ if(!pwm) return; pwm.classList.remove('is-open'); document.body.style.overflow=''; }
+      if(pwm){
+        Array.prototype.slice.call(pwm.querySelectorAll('[data-pwclose]')).forEach(function(el){ el.addEventListener('click', closePw); });
+        if(pwShow) pwShow.addEventListener('change', function(){ var t = pwShow.checked ? 'text' : 'password'; pwNew.type=t; pwNew2.type=t; });
+        if(pwNew) pwNew.addEventListener('input', pwClearErr);
+        if(pwNew2) pwNew2.addEventListener('input', pwClearErr);
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape' && pwm.classList.contains('is-open')) closePw(); });
+        if(pwGo) pwGo.addEventListener('click', function(){
+          var a = pwNew.value, b = pwNew2.value;
+          if (a.length < 6){ pwError('La contraseña debe tener al menos 6 caracteres.'); pwNew.focus(); return; }
+          if (a !== b){ pwError('Las contraseñas no coinciden.'); pwNew2.focus(); return; }
+          pwGo.disabled = true;
+          SB.auth.updateUser({ password: a }).then(function(res){
+            pwGo.disabled = false;
+            if (res && res.error){ pwError('No se pudo cambiar. Probá de nuevo.'); return; }
+            closePw(); toast('Contraseña actualizada');
+          }, function(){ pwGo.disabled = false; pwError('No se pudo cambiar. Probá de nuevo.'); });
+        });
+      }
 
       // Gestión de plan: aún no hay cobro
       if(bPlan) bPlan.addEventListener('click', function(){ toast('Gestión de plan: próximamente'); });
