@@ -295,6 +295,9 @@
     sb.auth.getSession().then(function(res){ if (res.data && res.data.session) window.location.replace('/app'); });
 
     bindSignup();
+
+    // Si venís desde "Empezar gratis" (/login?signup) arrancá en modo crear cuenta
+    if (/(?:[?&]signup|[#]registro)/i.test(location.search + location.hash)) setMode('signup');
   })();
   </script>
 </body>
