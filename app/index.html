@@ -1233,10 +1233,15 @@
     function anRenderChart(buckets){
       var host = document.getElementById('anChartSvg'); if (!host) return;
       var total = buckets.reduce(function(s,b){ return s+b.count; }, 0);
-      var W=700,H=188,padL=30,padR=12,padT=12,padB=24, n=buckets.length;
+      // Tamaño responsivo: en viewport angosto (celular) usamos un viewBox más alto y
+      // cuadrado para que el gráfico no quede aplastado. En escritorio se mantiene 700x188.
+      var mobile = (typeof window !== 'undefined') && window.innerWidth <= 640;
+      var W = mobile ? 360 : 700, H = mobile ? 260 : 188;
+      var padL=30, padR=12, padT=12, padB = mobile ? 28 : 24, n=buckets.length;
       var max = anNiceMax(Math.max.apply(null, buckets.map(function(b){ return b.count; })));
       var iW=W-padL-padR, iH=H-padT-padB;
-      var every = n>16 ? 4 : n>8 ? 2 : 1;
+      var every = mobile ? (n>16 ? 6 : n>8 ? 4 : n>4 ? 2 : 1)
+                         : (n>16 ? 4 : n>8 ? 2 : 1);
       var baseY = padT+iH;
       function px(i){ return padL + (n===1 ? iW/2 : iW*i/(n-1)); }
       function py(v){ return padT + iH*(1 - v/max); }
