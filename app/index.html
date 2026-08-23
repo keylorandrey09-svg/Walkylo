@@ -387,7 +387,72 @@
     }
     @media (min-width:861px){ .wa-drop{display:none;} }
     @media (prefers-reduced-motion:reduce){ .wa-sidebar,.wa-drop{transition:none;} .wa-check{animation:none;} }
-  </style>
+  
+    /* ===== Vista previa: ventana de chat real ===== */
+    .wg-openchat{display:none;width:100%;justify-content:center;margin-bottom:12px;}
+    .cw-holder{position:relative;}
+    .cw-holder__x{display:none;}
+    .cw{--bg:#0e0f12;--surface:#17181c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.09);--in:#1e2025;--accent:#0164FD;
+      position:relative;width:100%;height:560px;background:var(--bg);color:var(--ink);border:1px solid var(--line);
+      border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,.22);}
+    .cw[data-theme="light"]{--bg:#ffffff;--surface:#ffffff;--ink:#0a0a0a;--ink2:#5b6472;--line:#ececf1;--in:#f2f4f7;}
+    .cw-head{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line);flex-shrink:0;}
+    .cw .cw-ava{width:32px;height:32px;border-radius:10px;background:var(--accent);display:grid;place-items:center;font:800 .95rem "Baloo 2",Inter;color:#fff;flex-shrink:0;overflow:hidden;}
+    .cw .cw-ava svg,.cw .cw-ava img{width:70%;height:70%;object-fit:cover;}
+    .cw .cw-ava.lg{width:72px;height:72px;border-radius:22px;font-size:2rem;}
+    .cw-name{font-weight:700;font-size:.95rem;}
+    .cw-head .sp{margin-left:auto;}
+    .cw-ico{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;}
+    .cw-ico:hover{color:var(--ink);}
+    .cw-ico svg{width:17px;height:17px;}
+    .cw-body{flex:1;overflow-y:auto;padding:20px 14px 6px;display:flex;flex-direction:column;}
+    .cw-intro{text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;padding:6px 4px 2px;}
+    .cw-intro h2{margin:2px 0 0;font-size:1.1rem;font-weight:800;}
+    .cw-intro p{margin:0;font-size:.8rem;line-height:1.5;color:var(--ink2);max-width:270px;}
+    .cw-day{align-self:center;font-size:.72rem;color:var(--ink2);margin:18px 0 10px;}
+    .cw-msgs{display:flex;flex-direction:column;gap:9px;}
+    .cw-msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:.87rem;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;}
+    .cw-msg .t{display:block;font-size:.64rem;margin-top:4px;opacity:.6;}
+    .cw-in{align-self:flex-start;background:var(--in);border-bottom-left-radius:5px;color:var(--ink);}
+    .cw-out{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
+    .cw-input{flex-shrink:0;display:flex;align-items:center;gap:7px;padding:10px;border-top:1px solid var(--line);}
+    .cw-input input{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:.88rem;outline:none;}
+    .cw-input input:focus{border-color:var(--accent);}
+    .cw-input input::placeholder{color:var(--ink2);}
+    .cw-send{width:40px;height:40px;flex-shrink:0;border:0;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;}
+    .cw-send svg{width:19px;height:19px;}
+    .cw-foot{flex-shrink:0;text-align:center;font-size:.7rem;color:var(--ink2);padding:0 0 9px;}
+    .cw-foot a{color:var(--ink2);text-decoration:none;font-weight:600;}
+    .cw-foot a:hover{color:var(--accent);}
+    .cw-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
+    .cw.sheet-open .cw-scrim{opacity:1;pointer-events:auto;}
+    .cw-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);padding:4px 0 12px;}
+    .cw.sheet-open .cw-sheet{transform:translateY(0);}
+    .cw-sheet__head{display:flex;align-items:center;justify-content:center;position:relative;padding:14px;border-bottom:1px solid var(--line);}
+    .cw-sheet__x{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:none;color:var(--ink2);cursor:pointer;display:grid;place-items:center;}
+    .cw-sheet__x svg{width:17px;height:17px;}
+    .cw-row{display:flex;align-items:center;gap:12px;padding:13px 18px;color:var(--ink);cursor:pointer;text-decoration:none;font-size:.9rem;}
+    .cw-row:hover{background:var(--in);}
+    .cw-row svg.ico{width:19px;height:19px;color:var(--ink2);flex-shrink:0;}
+    .cw-row .sp{margin-left:auto;}
+    .cw-theme{display:inline-flex;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:3px;}
+    .cw-theme button{border:0;background:none;border-radius:6px;padding:4px 10px;font:600 .75rem Inter;color:var(--ink2);cursor:pointer;}
+    .cw-theme button.on{background:var(--surface);color:var(--ink);}
+    .cw-sheet__foot{text-align:center;font-size:.72rem;color:var(--ink2);padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:4px;}
+    .cw-sheet__foot a{color:var(--ink2);text-decoration:none;}
+    .cw-sheet__foot a:hover{color:var(--accent);}
+    .wg-analyze-status{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--wa-ink-2);margin-top:9px;}
+    .wg-analyze-status .spin{width:15px;height:15px;border:2px solid var(--wa-line);border-top-color:var(--wa-primary);border-radius:50%;animation:wgspin .7s linear infinite;}
+    .wg-analyze-status .ok{color:#059669;}
+    @keyframes wgspin{to{transform:rotate(360deg)}}
+    @media (max-width:860px){
+      .wg-openchat{display:inline-flex;}
+      .cw-holder{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);display:none;}
+      .cw-holder.is-open{display:block;}
+      .cw-holder .cw{width:100%;height:100%;border-radius:0;border:0;}
+      .cw-holder__x{display:grid;position:fixed;top:12px;right:12px;z-index:310;width:36px;height:36px;place-items:center;background:rgba(0,0,0,.5);color:#fff;border:0;border-radius:50%;font-size:1rem;line-height:1;cursor:pointer;}
+    }
+</style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -751,13 +816,6 @@
                   <div class="wg-row2" style="margin-top:9px"><span class="wg-hex" id="wgHex">#0164FD</span></div>
                 </div>
                 <div class="wg-field">
-                  <label class="wg-field__label">Posición en la pantalla</label>
-                  <div class="cfg-toggle" id="wgPos">
-                    <button type="button" data-p="left" disabled>Izquierda</button>
-                    <button type="button" data-p="right" disabled>Derecha</button>
-                  </div>
-                </div>
-                <div class="wg-field">
                   <label class="wg-field__label" for="wgWelcome">Mensaje de bienvenida</label>
                   <input class="wg-input" id="wgWelcome" type="text" maxlength="120" disabled />
                 </div>
@@ -766,6 +824,15 @@
               <!-- Conocimiento -->
               <div class="cfg-card">
                 <h2 class="cfg-card__title">Conocimiento</h2>
+                <div class="wg-field">
+                  <label class="wg-field__label" for="wgSite">URL de tu sitio o app</label>
+                  <div class="wg-row2" style="gap:8px;align-items:stretch">
+                    <input class="wg-input" id="wgSite" type="url" placeholder="https://tuapp.com" disabled style="flex:1" />
+                    <button class="wa-btn wa-btn-ghost" id="wgAnalyze" type="button" disabled>Analizar</button>
+                  </div>
+                  <div class="wg-analyze-status" id="wgAnalyzeStatus" hidden></div>
+                  <p class="wg-field__hint">WalkyUp lee tu sitio y arma un resumen acá abajo. <span style="opacity:.75">El análisis se activa al conectar la IA.</span></p>
+                </div>
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgKnow">Información que usa para responder</label>
                   <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
@@ -801,17 +868,63 @@
                 </div>
               </div>
 
+              <!-- Contacto y privacidad -->
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Contacto y privacidad</h2>
+                <div class="wg-field">
+                  <label class="wg-field__label" for="wgEmail">Correo de contacto</label>
+                  <input class="wg-input" id="wgEmail" type="email" placeholder="soporte@tuempresa.com" disabled />
+                  <p class="wg-field__hint">Aparece en el menú del chat para que el visitante te escriba.</p>
+                </div>
+                <div class="wg-field">
+                  <label class="wg-field__label" for="wgPrivacy">URL de privacidad</label>
+                  <input class="wg-input" id="wgPrivacy" type="url" placeholder="https://tuempresa.com/privacidad" disabled />
+                  <p class="wg-field__hint">Link a la política de privacidad de tu empresa (menú del chat).</p>
+                </div>
+              </div>
+
             </div>
 
             <aside class="wg-preview">
-              <div class="cfg-eyebrow">Vista previa</div>
-              <div class="wg-stage is-right" id="wgStage">
-                <div class="wg-chat">
-                  <div class="wg-chat__head" id="wgPvHead" style="background:#0164FD"><span class="wg-chat__ava" id="wgPvAva">A</span><span id="wgPvName">Asistente</span></div>
-                  <div class="wg-chat__body"><div class="wg-chat__msg" id="wgPvWelcome">¡Hola! ¿En qué te puedo ayudar?</div></div>
-                  <div class="wg-chat__input" id="wgPvInput">Escribí tu mensaje…</div>
+              <div class="cfg-eyebrow">Vista previa del chat</div>
+              <button class="wa-btn wa-btn-primary wg-openchat" id="wgOpenChat" type="button">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:7px"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
+                Ver chat de prueba
+              </button>
+              <div class="cw-holder" id="cwHolder">
+                <button class="cw-holder__x" id="cwHolderX" type="button" aria-label="Cerrar">✕</button>
+                <div class="cw" id="wgCw" data-theme="dark">
+                  <div class="cw-head">
+                    <div class="cw-ava" id="cwAvaSm">A</div>
+                    <div class="cw-name" id="cwName">Asistente</div>
+                    <span class="sp"></span>
+                    <button class="cw-ico" id="cwMenu" type="button" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+                    <button class="cw-ico" id="cwClose" type="button" title="Cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                  </div>
+                  <div class="cw-body" id="cwBody">
+                    <div class="cw-intro">
+                      <div class="cw-ava lg" id="cwAvaLg">A</div>
+                      <h2 id="cwName2">Asistente</h2>
+                      <p>Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p>
+                    </div>
+                    <div class="cw-day">Hoy</div>
+                    <div class="cw-msgs" id="cwMsgs">
+                      <div class="cw-msg cw-in"><span id="cwWelcome">¡Hola! ¿En qué te puedo ayudar?</span><span class="t">ahora</span></div>
+                    </div>
+                  </div>
+                  <div class="cw-input">
+                    <input id="cwInput" type="text" placeholder="Escribí tu mensaje…" autocomplete="off" />
+                    <button class="cw-send" id="cwSend" type="button" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  </div>
+                  <div class="cw-foot">AI Agent powered by · <a href="https://walkyup.app" target="_blank" rel="noopener">WalkyUp</a></div>
+                  <div class="cw-scrim" id="cwScrim"></div>
+                  <div class="cw-sheet" id="cwSheet">
+                    <div class="cw-sheet__head"><b>Ajustes</b><button class="cw-sheet__x" id="cwSheetX" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+                    <a class="cw-row" id="cwMail" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>
+                    <div class="cw-row">Tema<span class="sp"></span><span class="cw-theme" id="cwThemeSeg"><button data-theme="light" type="button">Claro</button><button data-theme="dark" type="button" class="on">Oscuro</button></span></div>
+                    <div class="cw-sheet__foot">© 2026 · <a id="cwPriv" href="#" target="_blank" rel="noopener">Privacidad</a></div>
+                  </div>
                 </div>
-                <button class="wg-bubble" id="wgPvBubble" type="button" style="background:#0164FD" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg></button>
               </div>
             </aside>
           </div>
@@ -1582,6 +1695,7 @@
     function cvEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
     function renderConversations(){
+      function cvCode(id){ return id ? '#' + String(id).replace(/[^A-Za-z0-9]/g,'').slice(-4).toUpperCase() : ''; }
       var banner = document.getElementById('cvBanner');
       if (banner) banner.style.display = cvExample ? '' : 'none';
       var items = document.getElementById('cvItems');
@@ -1605,9 +1719,9 @@
         items.innerHTML = list.map(function(c){
           var last = c.messages[c.messages.length - 1];
           return '<div class="cv-item' + (c.id === cvActiveId ? ' is-active' : '') + '" data-id="' + c.id + '">' +
-            '<div class="cv-avatar">' + cvEsc(c.initial) + '</div>' +
+            '<div class="cv-avatar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div>' +
             '<div class="cv-item__body">' +
-              '<div class="cv-item__top"><span class="cv-item__name">' + cvEsc(c.name) + '</span><span class="cv-item__time" data-time="' + c.updatedAt + '"></span></div>' +
+              '<div class="cv-item__top"><span class="cv-item__name">' + 'Visitante ' + cvCode(c.id) + '</span><span class="cv-item__time" data-time="' + c.updatedAt + '"></span></div>' +
               '<div class="cv-item__prev">' + cvEsc(last ? last.text : '') + '</div>' +
               '<div class="cv-item__foot"><span class="cv-status cv-status--' + c.status + '">' + cvStatusEs(c.status) + '</span></div>' +
             '</div></div>';
@@ -1628,7 +1742,7 @@
         detail.innerHTML =
           '<div class="cv-detail__head">' +
             '<button class="cv-back" type="button" id="cvBack" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
-            '<span class="cv-detail__who">' + cvEsc(active.name) + '</span>' +
+            '<span class="cv-detail__who">Visitante ' + cvCode(active.id) + '</span>' +
             '<span class="cv-detail__spacer"></span>' +
             '<span class="cv-status cv-status--' + active.status + '">' + cvStatusEs(active.status) + '</span>' +
           '</div>' +
@@ -1678,7 +1792,8 @@
       name: 'Asistente', accent: '#0164FD', position: 'right',
       welcome: '¡Hola! ¿En qué te puedo ayudar?',
       tone: 'cercano', language: 'es', fallback: 'email', knowledge: '',
-      avatar: 'w1', avatarHidden: false
+      avatar: 'w1', avatarHidden: false,
+      siteUrl: '', contactEmail: '', privacyUrl: ''
     };
     var WG_SNIPPET = '<script src="https://walkyup.app/w.js" data-id="TU_ID" defer></' + 'script>';
     var WG_AVATARS = {
@@ -1711,27 +1826,30 @@
       if (wgId('wgKnow')) wgDraft.knowledge = wgId('wgKnow').value;
       if (wgId('wgLang')) wgDraft.language = wgId('wgLang').value;
       if (wgId('wgFallback')) wgDraft.fallback = wgId('wgFallback').value;
+      if (wgId('wgSite')) wgDraft.siteUrl = wgId('wgSite').value;
+      if (wgId('wgEmail')) wgDraft.contactEmail = wgId('wgEmail').value;
+      if (wgId('wgPrivacy')) wgDraft.privacyUrl = wgId('wgPrivacy').value;
     }
 
     function renderWidgetPreview(){
       var c = wgCfg();
-      if (wgId('wgPvHead')) wgId('wgPvHead').style.background = c.accent;
-      if (wgId('wgPvBubble')) wgId('wgPvBubble').style.background = c.accent;
-      if (wgId('wgPvName')) wgId('wgPvName').textContent = c.name || 'Asistente';
-      var pvAva = wgId('wgPvAva');
-      if (pvAva){
-        var initial = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase();
-        if (c.avatarHidden){ pvAva.style.display = 'none'; }
-        else {
-          pvAva.style.display = '';
-          if (typeof c.avatar === 'string' && c.avatar.indexOf('data:') === 0){ pvAva.innerHTML = '<img src="' + c.avatar + '" alt="">'; pvAva.style.background = 'transparent'; }
-          else { pvAva.innerHTML = WG_AVATARS[c.avatar] || WG_AVATARS.w1; pvAva.style.background = c.accent; }
-        }
+      var accent = c.accent || '#0164FD';
+      var isImg = (typeof c.avatar === 'string' && c.avatar.indexOf('data:') === 0);
+      var initial = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase();
+      var root = wgId('wgCw'); if (root) root.style.setProperty('--accent', accent);
+      function setAva(el){
+        if (!el) return;
+        if (c.avatarHidden){ el.textContent = initial; el.style.background = accent; return; }
+        if (isImg){ el.innerHTML = '<img src="' + c.avatar + '" alt="">'; el.style.background = 'transparent'; }
+        else { el.innerHTML = WG_AVATARS[c.avatar] || WG_AVATARS.w1; el.style.background = accent; }
       }
-      if (wgId('wgPvWelcome')) wgId('wgPvWelcome').textContent = c.welcome || '';
-      var st = wgId('wgStage');
-      if (st){ st.classList.toggle('is-left', c.position === 'left'); st.classList.toggle('is-right', c.position !== 'left'); }
-      if (wgId('wgPvInput')) wgId('wgPvInput').textContent = WG_INPUT_PH[c.language] || WG_INPUT_PH.es;
+      setAva(wgId('cwAvaSm')); setAva(wgId('cwAvaLg'));
+      if (wgId('cwName')) wgId('cwName').textContent = c.name || 'Asistente';
+      if (wgId('cwName2')) wgId('cwName2').textContent = c.name || 'Asistente';
+      if (wgId('cwWelcome')) wgId('cwWelcome').textContent = c.welcome || '';
+      if (wgId('cwInput')) wgId('cwInput').setAttribute('placeholder', WG_INPUT_PH[c.language] || WG_INPUT_PH.es);
+      var mail = wgId('cwMail'); if (mail) mail.setAttribute('href', c.contactEmail ? ('mailto:' + c.contactEmail) : '#');
+      var priv = wgId('cwPriv'); if (priv) priv.setAttribute('href', c.privacyUrl || '#');
     }
 
     function renderWidget(){
@@ -1742,17 +1860,19 @@
       if (wgId('wgKnow')) wgId('wgKnow').value = c.knowledge;
       if (wgId('wgLang')) wgId('wgLang').value = c.language;
       if (wgId('wgFallback')) wgId('wgFallback').value = c.fallback;
+      if (wgId('wgSite')) wgId('wgSite').value = c.siteUrl || '';
+      if (wgId('wgEmail')) wgId('wgEmail').value = c.contactEmail || '';
+      if (wgId('wgPrivacy')) wgId('wgPrivacy').value = c.privacyUrl || '';
       if (wgId('wgHex')) wgId('wgHex').textContent = c.accent;
       var accMatched = false;
       Array.prototype.slice.call(document.querySelectorAll('#wgAccent .wg-swatch[data-c]')).forEach(function(b){ var on = b.getAttribute('data-c').toLowerCase() === c.accent.toLowerCase(); b.classList.toggle('is-active', on); if (on) accMatched = true; });
       if (wgId('wgCustomWrap')) wgId('wgCustomWrap').classList.toggle('is-active', !accMatched);
       if (wgId('wgCustom')) wgId('wgCustom').value = /^#[0-9a-fA-F]{6}$/.test(c.accent) ? c.accent : '#0164FD';
-      Array.prototype.slice.call(document.querySelectorAll('#wgPos button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-p') === c.position); });
       Array.prototype.slice.call(document.querySelectorAll('#wgTone button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-t') === c.tone); });
 
       var dis = !wgEditing;
-      ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgCustom'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
-      Array.prototype.slice.call(document.querySelectorAll('#wgAccent .wg-swatch, #wgPos button, #wgTone button')).forEach(function(b){ b.disabled = dis; });
+      ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgCustom','wgSite','wgEmail','wgPrivacy','wgAnalyze'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
+      Array.prototype.slice.call(document.querySelectorAll('#wgAccent .wg-swatch, #wgTone button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button')).forEach(function(b){ b.classList.toggle('is-active', (b.getAttribute('data-av') === 'hide') === !!c.avatarHidden); });
@@ -1801,6 +1921,7 @@
           user_id: uid, name: w.name, accent: w.accent, position: w.position,
           welcome: w.welcome, tone: w.tone, language: w.language, fallback: w.fallback,
           knowledge: w.knowledge, avatar: avatarValue, avatar_hidden: !!w.avatarHidden,
+          site_url: w.siteUrl || '', contact_email: w.contactEmail || '', privacy_url: w.privacyUrl || '',
           updated_at: new Date().toISOString()
         };
         SB.from('widgets').upsert(row, { onConflict: 'user_id' }).then(function(res){
@@ -1824,17 +1945,54 @@
     }
 
     (function(){
-      ['wgName','wgWelcome','wgKnow'].forEach(function(id){
+      ['wgName','wgWelcome','wgKnow','wgSite','wgEmail','wgPrivacy'].forEach(function(id){
         var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); });
       });
       var acc = wgId('wgAccent');
       if (acc) acc.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('.wg-swatch[data-c]'); if (!b) return; wgReadInputs(); wgDraft.accent = b.getAttribute('data-c'); renderWidget(); });
       var custom = wgId('wgCustom');
       if (custom) custom.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); wgDraft.accent = custom.value; renderWidget(); });
-      var pos = wgId('wgPos');
-      if (pos) pos.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.position = b.getAttribute('data-p'); renderWidget(); });
       var tone = wgId('wgTone');
       if (tone) tone.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.tone = b.getAttribute('data-t'); renderWidget(); });
+      // Analizar sitio (UI lista; el resumen real llega con la IA)
+      var an = wgId('wgAnalyze');
+      if (an) an.addEventListener('click', function(){
+        if (!wgEditing) return;
+        wgReadInputs();
+        var url = (wgDraft.siteUrl || '').trim();
+        var st = wgId('wgAnalyzeStatus'); if (!st) return;
+        if (!/^https?:\/\//i.test(url)){ st.hidden = false; st.innerHTML = '<span style="color:#dc2626">Poné una URL válida (https://…)</span>'; return; }
+        st.hidden = false; st.innerHTML = '<span class="spin"></span> Leyendo tu sitio…';
+        an.disabled = true;
+        setTimeout(function(){
+          st.innerHTML = '<span class="ok">✓ Sitio detectado.</span> El resumen se genera al conectar la IA (Fase 8).';
+          an.disabled = false;
+        }, 1400);
+      });
+
+      // Abrir/cerrar el chat de prueba (overlay en móvil)
+      var holder = wgId('cwHolder');
+      var openChat = wgId('wgOpenChat');
+      if (openChat && holder) openChat.addEventListener('click', function(){ holder.classList.add('is-open'); });
+      var hx = wgId('cwHolderX'); if (hx && holder) hx.addEventListener('click', function(){ holder.classList.remove('is-open'); });
+      var cwClose = wgId('cwClose'); if (cwClose && holder) cwClose.addEventListener('click', function(){ holder.classList.remove('is-open'); });
+
+      // Menú 3 puntos -> hoja de ajustes
+      var cw = wgId('wgCw');
+      var cwMenu = wgId('cwMenu'); if (cwMenu && cw) cwMenu.addEventListener('click', function(){ cw.classList.add('sheet-open'); });
+      var cwSheetX = wgId('cwSheetX'); if (cwSheetX && cw) cwSheetX.addEventListener('click', function(){ cw.classList.remove('sheet-open'); });
+      var cwScrim = wgId('cwScrim'); if (cwScrim && cw) cwScrim.addEventListener('click', function(){ cw.classList.remove('sheet-open'); });
+      var cwThemeSeg = wgId('cwThemeSeg');
+      if (cwThemeSeg && cw) cwThemeSeg.addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; cw.setAttribute('data-theme', b.getAttribute('data-theme')); this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); }); });
+
+      // Enviar en el preview (honesto: la IA todavía no está conectada)
+      var cwInput = wgId('cwInput'), cwSend = wgId('cwSend'), cwMsgs = wgId('cwMsgs'), cwBody = wgId('cwBody');
+      function cwHHMM(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+      function cwBubble(text, out){ var el=document.createElement('div'); el.className='cw-msg '+(out?'cw-out':'cw-in'); el.appendChild(document.createTextNode(text)); var t=document.createElement('span'); t.className='t'; t.textContent=cwHHMM(); el.appendChild(t); return el; }
+      function cwDoSend(){ if(!cwInput||!cwMsgs) return; var v=cwInput.value.trim(); if(!v) return; cwMsgs.appendChild(cwBubble(v,true)); cwInput.value=''; if(cwBody) cwBody.scrollTop=cwBody.scrollHeight; setTimeout(function(){ cwMsgs.appendChild(cwBubble('El asistente va a responder cuando se conecte la IA (Fase 8).',false)); if(cwBody) cwBody.scrollTop=cwBody.scrollHeight; }, 700); }
+      if (cwSend) cwSend.addEventListener('click', cwDoSend);
+      if (cwInput) cwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') cwDoSend(); });
+
       // pintar los avatares preset una vez
       Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id]; });
       var avMode = wgId('wgAvMode');
@@ -1941,7 +2099,8 @@
               user_id: user.id, name: appState.widget.name, accent: appState.widget.accent,
               position: appState.widget.position, welcome: appState.widget.welcome, tone: appState.widget.tone,
               language: appState.widget.language, fallback: appState.widget.fallback, knowledge: appState.widget.knowledge,
-              avatar: appState.widget.avatar, avatar_hidden: appState.widget.avatarHidden
+              avatar: appState.widget.avatar, avatar_hidden: appState.widget.avatarHidden,
+              site_url: '', contact_email: '', privacy_url: ''
             };
             return SB.from('widgets').insert(def).select('*').maybeSingle().then(function(ins){ return (ins && ins.data) ? ins.data : def; });
           }).then(function(wrow){
@@ -1949,7 +2108,8 @@
               appState.widget = {
                 name: wrow.name, accent: wrow.accent, position: wrow.position, welcome: wrow.welcome,
                 tone: wrow.tone, language: wrow.language, fallback: wrow.fallback, knowledge: wrow.knowledge,
-                avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden
+                avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
+                siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || ''
               };
               if (wrow.id) wgSetSnippet(wrow.id);
             }
