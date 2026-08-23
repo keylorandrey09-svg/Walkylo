@@ -391,15 +391,15 @@
     /* ===== Vista previa: ventana de chat real ===== */
     .wg-openchat{display:none;width:100%;justify-content:center;margin-bottom:12px;}
     .cw-holder{position:relative;}
-    .cw-holder__x{display:none;}
     .cw{--bg:#0e0f12;--surface:#17181c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.09);--in:#1e2025;--accent:#0164FD;
       position:relative;width:100%;height:560px;background:var(--bg);color:var(--ink);border:1px solid var(--line);
       border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,.22);}
     .cw[data-theme="light"]{--bg:#ffffff;--surface:#ffffff;--ink:#0a0a0a;--ink2:#5b6472;--line:#ececf1;--in:#f2f4f7;}
     .cw-head{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line);flex-shrink:0;}
-    .cw .cw-ava{width:32px;height:32px;border-radius:10px;background:var(--accent);display:grid;place-items:center;font:800 .95rem "Baloo 2",Inter;color:#fff;flex-shrink:0;overflow:hidden;}
-    .cw .cw-ava svg,.cw .cw-ava img{width:70%;height:70%;object-fit:cover;}
-    .cw .cw-ava.lg{width:72px;height:72px;border-radius:22px;font-size:2rem;}
+    .cw .cw-ava{width:32px;height:32px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font:800 .95rem "Baloo 2",Inter;color:#fff;flex-shrink:0;overflow:hidden;}
+    .cw .cw-ava svg{width:64%;height:64%;}
+    .cw .cw-ava img{width:100%;height:100%;object-fit:cover;}
+    .cw .cw-ava.lg{width:72px;height:72px;border-radius:50%;font-size:2rem;}
     .cw-name{font-weight:700;font-size:.95rem;}
     .cw-head .sp{margin-left:auto;}
     .cw-ico{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;}
@@ -450,7 +450,6 @@
       .cw-holder{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);display:none;}
       .cw-holder.is-open{display:block;}
       .cw-holder .cw{width:100%;height:100%;border-radius:0;border:0;}
-      .cw-holder__x{display:grid;position:fixed;top:12px;right:12px;z-index:310;width:36px;height:36px;place-items:center;background:rgba(0,0,0,.5);color:#fff;border:0;border-radius:50%;font-size:1rem;line-height:1;cursor:pointer;}
     }
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
@@ -892,7 +891,6 @@
                 Ver chat de prueba
               </button>
               <div class="cw-holder" id="cwHolder">
-                <button class="cw-holder__x" id="cwHolderX" type="button" aria-label="Cerrar">✕</button>
                 <div class="cw" id="wgCw" data-theme="dark">
                   <div class="cw-head">
                     <div class="cw-ava" id="cwAvaSm">A</div>
@@ -1974,7 +1972,6 @@
       var holder = wgId('cwHolder');
       var openChat = wgId('wgOpenChat');
       if (openChat && holder) openChat.addEventListener('click', function(){ holder.classList.add('is-open'); });
-      var hx = wgId('cwHolderX'); if (hx && holder) hx.addEventListener('click', function(){ holder.classList.remove('is-open'); });
       var cwClose = wgId('cwClose'); if (cwClose && holder) cwClose.addEventListener('click', function(){ holder.classList.remove('is-open'); });
 
       // Menú 3 puntos -> hoja de ajustes
