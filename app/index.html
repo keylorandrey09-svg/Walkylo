@@ -466,6 +466,61 @@
     .wg-cp__prev{width:34px;height:34px;border-radius:9px;flex-shrink:0;border:1px solid var(--wa-line);background:#0164FD;}
     .wg-cp__hex{flex:1;text-transform:uppercase;}
     .wg-cp__ok{flex-shrink:0;}
+
+    /* ===== Onboarding de instalación ===== */
+    .ob{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease;}
+    .ob.is-open{opacity:1;}
+    .ob__scrim{position:absolute;inset:0;background:rgba(8,12,22,.55);backdrop-filter:blur(2px);}
+    .ob__card{position:relative;width:100%;max-width:440px;max-height:calc(100dvh - 36px);overflow-y:auto;
+      background:var(--wa-surface);border:1px solid var(--wa-line);border-radius:22px;padding:26px 22px 20px;
+      box-shadow:0 30px 70px rgba(10,20,40,.35);transform:translateY(18px) scale(.97);opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;}
+    .ob.is-open .ob__card{transform:none;opacity:1;}
+    .ob__x{position:absolute;top:14px;right:14px;width:34px;height:34px;border:1px solid var(--wa-line);background:none;color:var(--wa-ink-3);border-radius:10px;display:grid;place-items:center;cursor:pointer;}
+    .ob__x:hover{color:var(--wa-ink);}
+    .ob__x svg{width:17px;height:17px;}
+    .ob__head{text-align:center;margin-bottom:16px;}
+    .ob__logo{width:52px;height:52px;border-radius:16px;background:var(--wa-primary);display:grid;place-items:center;margin:0 auto 12px;box-shadow:0 8px 22px rgba(1,100,253,.4);animation:obPop .4s .05s both;}
+    .ob__logo svg{width:26px;height:26px;}
+    .ob__title{font-size:1.25rem;font-weight:800;margin:0 0 4px;}
+    .ob__sub{font-size:.88rem;color:var(--wa-ink-2);margin:0;}
+    .ob__prog{height:5px;border-radius:99px;background:var(--wa-line);overflow:hidden;margin:16px 0 4px;}
+    .ob__bar{display:block;height:100%;width:33%;border-radius:99px;background:var(--wa-primary);transition:width .35s cubic-bezier(.2,.8,.2,1);}
+    .ob__steps{position:relative;padding:14px 2px 6px;min-height:190px;}
+    .ob__step{display:none;animation:obSlide .34s ease both;}
+    .ob__step.is-on{display:block;}
+    .ob__badge{display:inline-block;font:700 .7rem var(--wa-font);letter-spacing:.06em;text-transform:uppercase;color:var(--wa-primary);background:var(--wa-primary-soft);padding:4px 10px;border-radius:99px;margin-bottom:10px;}
+    .ob__step h3{font-size:1.05rem;font-weight:800;margin:0 0 6px;}
+    .ob__step > p{font-size:.9rem;color:var(--wa-ink-2);line-height:1.5;margin:0 0 14px;}
+    .ob__inline{background:var(--wa-primary-soft);color:var(--wa-primary);border-radius:5px;padding:1px 5px;font:.82rem ui-monospace,Menlo,monospace;}
+    .ob__code{display:flex;align-items:stretch;gap:8px;}
+    .ob__code code{flex:1;min-width:0;background:#0e1116;color:#e8eef7;border-radius:12px;padding:12px 13px;font:.78rem ui-monospace,Menlo,monospace;line-height:1.4;overflow-x:auto;white-space:nowrap;}
+    .ob__copy{flex-shrink:0;border:0;border-radius:12px;background:var(--wa-primary);color:#fff;font:600 .85rem var(--wa-font);padding:0 16px;cursor:pointer;}
+    .ob__copy.done{background:#059669;}
+    .ob__plats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+    .ob__plat{border:1px solid var(--wa-line);background:var(--wa-surface);color:var(--wa-ink-2);border-radius:99px;padding:6px 12px;font:600 .8rem var(--wa-font);cursor:pointer;transition:all .15s;}
+    .ob__plat.is-on{background:var(--wa-primary);border-color:var(--wa-primary);color:#fff;}
+    .ob__guide{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;}
+    .ob__guide li{font-size:.88rem;line-height:1.5;color:var(--wa-ink);}
+    .ob__guide li::marker{color:var(--wa-primary);font-weight:700;}
+    .ob__guide code{background:var(--wa-primary-soft);color:var(--wa-primary);border-radius:5px;padding:1px 5px;font:.8rem ui-monospace,Menlo,monospace;}
+    .ob__verify{width:100%;border:0;border-radius:13px;background:var(--wa-primary);color:#fff;font:700 .95rem var(--wa-font);padding:13px;cursor:pointer;transition:transform .12s;}
+    .ob__verify:active{transform:scale(.98);}
+    .ob__status{margin-top:14px;font-size:.9rem;display:flex;align-items:center;gap:9px;line-height:1.45;}
+    .ob__status .ob-spin{width:16px;height:16px;flex-shrink:0;border:2px solid var(--wa-line);border-top-color:var(--wa-primary);border-radius:50%;animation:obSpin .7s linear infinite;}
+    .ob__status .ob-ok{width:20px;height:20px;flex-shrink:0;border-radius:50%;background:#059669;color:#fff;display:grid;place-items:center;font-size:.8rem;animation:obPop .3s both;}
+    .ob__status.is-ok{color:#059669;font-weight:600;}
+    .ob__nav{display:flex;gap:10px;margin-top:6px;}
+    .ob__back{border:1px solid var(--wa-line);background:none;color:var(--wa-ink-2);border-radius:12px;padding:11px 16px;font:600 .9rem var(--wa-font);cursor:pointer;}
+    .ob__back[hidden]{display:none;}
+    .ob__next{flex:1;border:0;border-radius:12px;background:var(--wa-primary);color:#fff;font:700 .95rem var(--wa-font);padding:11px;cursor:pointer;}
+    .ob-fab{position:fixed;right:20px;bottom:20px;z-index:390;width:56px;height:56px;border:0;border-radius:18px;background:var(--wa-primary);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 30px rgba(1,100,253,.42);animation:obBounce 2.4s ease-in-out infinite;}
+    .ob-fab[hidden]{display:none;}
+    .ob-fab svg{width:26px;height:26px;}
+    @keyframes obSpin{to{transform:rotate(360deg)}}
+    @keyframes obPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+    @keyframes obSlide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+    @keyframes obBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @media (max-width:520px){ .ob__card{border-radius:20px 20px 0 0;align-self:flex-end;max-height:calc(100dvh - 20px);} .ob{align-items:flex-end;padding:0;} }
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -771,17 +826,6 @@
 
           <div class="wg-grid">
             <div class="wg-form">
-              <!-- Instalación -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Instalación</h2>
-                <p class="wg-field__hint" style="margin:6px 0 12px">Pegá esta línea antes de la etiqueta de cierre &lt;/body&gt; en tu sitio.</p>
-                <div class="wg-code-block">
-                  <div class="wg-code-bar"><span class="wg-code-tag">index.html</span><button class="wg-copy" id="wgCopy" type="button">Copiar</button></div>
-                  <pre class="wg-code" id="wgCode">&lt;script src="https://walkyup.app/w.js" data-id="TU_ID" defer&gt;&lt;/script&gt;</pre>
-                </div>
-                <div class="wg-install-status"><span class="cfg-dot"></span>Sin instalar todavía</div>
-              </div>
-
               <!-- Apariencia -->
               <div class="cfg-card">
                 <h2 class="cfg-card__title">Apariencia</h2>
@@ -1038,6 +1082,63 @@
   </div>
 
   <!-- Confirmar eliminar cuenta -->
+  <!-- Onboarding de instalación -->
+  <div class="ob" id="ob" hidden>
+    <div class="ob__scrim" data-obclose></div>
+    <div class="ob__card" role="dialog" aria-modal="true" aria-label="Instalar WalkyUp">
+      <button class="ob__x" id="obX" type="button" data-obclose aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="ob__head">
+        <div class="ob__logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></div>
+        <h2 class="ob__title">Instalá WalkyUp en tu sitio</h2>
+        <p class="ob__sub">3 pasos. Sin build, sin configuración.</p>
+      </div>
+      <div class="ob__prog"><span class="ob__bar" id="obBar"></span></div>
+
+      <div class="ob__steps">
+        <section class="ob__step is-on" data-step="1">
+          <div class="ob__badge">Paso 1</div>
+          <h3>Copiá tu línea</h3>
+          <p>Esta es tu línea única de instalación.</p>
+          <div class="ob__code">
+            <code id="obCode">&lt;script src="https://walkyup.app/w.js" data-id="TU_ID" defer&gt;&lt;/script&gt;</code>
+            <button class="ob__copy" id="obCopy" type="button">Copiar</button>
+          </div>
+        </section>
+        <section class="ob__step" data-step="2">
+          <div class="ob__badge">Paso 2</div>
+          <h3>Pegala en tu sitio</h3>
+          <p>Justo antes de <code class="ob__inline">&lt;/body&gt;</code>. Elegí tu plataforma:</p>
+          <div class="ob__plats" id="obPlats">
+            <button type="button" class="ob__plat is-on" data-g="html">HTML</button>
+            <button type="button" class="ob__plat" data-g="shopify">Shopify</button>
+            <button type="button" class="ob__plat" data-g="wordpress">WordPress</button>
+            <button type="button" class="ob__plat" data-g="wix">Wix</button>
+            <button type="button" class="ob__plat" data-g="webflow">Webflow</button>
+            <button type="button" class="ob__plat" data-g="gtm">Tag Manager</button>
+          </div>
+          <ol class="ob__guide" id="obGuide"></ol>
+        </section>
+        <section class="ob__step" data-step="3">
+          <div class="ob__badge">Paso 3</div>
+          <h3>Verificá que quedó</h3>
+          <p>Pegá la línea, abrí tu sitio y tocá verificar.</p>
+          <button class="ob__verify" id="obVerify" type="button">Verificar instalación</button>
+          <div class="ob__status" id="obStatus" hidden></div>
+        </section>
+      </div>
+
+      <div class="ob__nav">
+        <button class="ob__back" id="obBack" type="button">Atrás</button>
+        <button class="ob__next" id="obNext" type="button">Siguiente</button>
+      </div>
+    </div>
+  </div>
+  <button class="ob-fab" id="obFab" type="button" hidden aria-label="Cómo instalar WalkyUp">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+  </button>
+
   <div class="wa-modal" id="pwModal" role="dialog" aria-modal="true" aria-label="Cambiar contraseña">
     <div class="wa-modal__scrim" data-pwclose></div>
     <div class="wa-modal__card" style="max-width:440px">
@@ -2119,7 +2220,7 @@
        ============================================================ */
     function wgSetSnippet(id){
       WG_SNIPPET = '<script src="https://walkyup.app/w.js" data-id="' + id + '" defer></' + 'script>';
-      var code = document.getElementById('wgCode');
+      var code = document.getElementById('obCode');
       if (code) code.textContent = WG_SNIPPET;
     }
 
@@ -2204,6 +2305,62 @@
     }
 
     wuInit();
+
+    /* ===== Onboarding de instalación ===== */
+    (function(){
+      function $id(x){ return document.getElementById(x); }
+      var ob=$id('ob'), obFab=$id('obFab'), obBar=$id('obBar'), obBack=$id('obBack'), obNext=$id('obNext');
+      if (!ob) return;
+      var step=1, TOTAL=3;
+      var OB_GUIDES = {
+        html:['Copiá la línea del Paso 1.','Abrí el HTML de tu sitio y pegala antes de <code>&lt;/body&gt;</code>.','Guardá y recargá: la burbuja aparece sola.'],
+        shopify:['En tu admin: <b>Online Store → Themes → ··· → Edit code</b>.','Abrí <code>theme.liquid</code> y pegá la línea antes de <code>&lt;/body&gt;</code>.','Tocá <b>Save</b>.'],
+        wordpress:['Instalá el plugin gratis <b>WPCode</b> (o "Insert Headers and Footers").','En su sección <b>Footer</b>, pegá la línea.','Guardá.'],
+        wix:['<b>Ajustes → Código personalizado → + Agregar código</b>.','Pegá la línea; ubicación <b>Cuerpo — final</b>.','Aplicá a <b>todas las páginas</b> y publicá.'],
+        webflow:['<b>Project Settings → Custom Code</b>.','Pegá la línea en <b>Footer Code</b>.','<b>Save changes</b> y publicá.'],
+        gtm:['<b>Etiquetas → Nueva → HTML personalizado</b>.','Pegá la línea. Activador <b>All Pages</b>.','Guardá y publicá.']
+      };
+      function obGuide(k){
+        var ol=$id('obGuide'); if (ol) ol.innerHTML=(OB_GUIDES[k]||OB_GUIDES.html).map(function(s){return '<li>'+s+'</li>';}).join('');
+        Array.prototype.slice.call(document.querySelectorAll('#obPlats .ob__plat')).forEach(function(b){ b.classList.toggle('is-on', b.getAttribute('data-g')===k); });
+      }
+      function showStep(n){
+        step=Math.max(1,Math.min(TOTAL,n));
+        Array.prototype.slice.call(ob.querySelectorAll('.ob__step')).forEach(function(s){ s.classList.toggle('is-on', +s.getAttribute('data-step')===step); });
+        if (obBar) obBar.style.width=(step/TOTAL*100)+'%';
+        if (obBack) obBack.hidden=(step===1);
+        if (obNext) obNext.textContent=(step===TOTAL?'Listo':'Siguiente');
+      }
+      function obShow(){ ob.hidden=false; if (obFab) obFab.hidden=true; requestAnimationFrame(function(){ ob.classList.add('is-open'); }); }
+      function obHide(remember){ ob.classList.remove('is-open'); setTimeout(function(){ ob.hidden=true; },230); if (obFab) obFab.hidden=false; if (remember){ try{ localStorage.setItem('wu_ob_seen','1'); }catch(e){} } }
+
+      Array.prototype.slice.call(ob.querySelectorAll('[data-obclose]')).forEach(function(el){ el.addEventListener('click', function(){ obHide(true); }); });
+      if (obFab) obFab.addEventListener('click', obShow);
+      if (obBack) obBack.addEventListener('click', function(){ showStep(step-1); });
+      if (obNext) obNext.addEventListener('click', function(){ if (step===TOTAL) obHide(true); else showStep(step+1); });
+      var obPlats=$id('obPlats'); if (obPlats) obPlats.addEventListener('click', function(e){ var b=e.target.closest('.ob__plat'); if (b) obGuide(b.getAttribute('data-g')); });
+
+      var obCopy=$id('obCopy');
+      if (obCopy) obCopy.addEventListener('click', function(){
+        var code=$id('obCode'); try{ if (navigator.clipboard && code) navigator.clipboard.writeText(code.textContent); }catch(e){}
+        obCopy.textContent='Copiado'; obCopy.classList.add('done'); setTimeout(function(){ obCopy.textContent='Copiar'; obCopy.classList.remove('done'); },1600);
+      });
+
+      var obVerify=$id('obVerify'), obStatus=$id('obStatus');
+      if (obVerify) obVerify.addEventListener('click', function(){
+        if (!obStatus) return;
+        obStatus.hidden=false; obStatus.className='ob__status'; obStatus.innerHTML='<span class="ob-spin"></span> Buscando tu widget…';
+        SB.from('events').select('id',{count:'exact',head:true}).then(function(r){
+          var n=(r && r.count)||0;
+          if (n>0){ obStatus.className='ob__status is-ok'; obStatus.innerHTML='<span class="ob-ok">✓</span> Instalado y funcionando.'; }
+          else { obStatus.className='ob__status'; obStatus.innerHTML='Todavía no detectamos actividad. Pegá la línea, abrí tu sitio y volvé a verificar.'; }
+        }, function(){ obStatus.innerHTML='No se pudo verificar. Probá de nuevo.'; });
+      });
+
+      obGuide('html'); showStep(1);
+      var seen=false; try{ seen=localStorage.getItem('wu_ob_seen')==='1'; }catch(e){}
+      if (seen){ if (obFab) obFab.hidden=false; } else { obShow(); }
+    })();
 
     // Al volver a la pestaña, refrescar eventos si estás en Analíticas
     document.addEventListener('visibilitychange', function(){
