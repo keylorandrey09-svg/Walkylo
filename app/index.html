@@ -441,6 +441,7 @@
     .cw-sheet__foot{text-align:center;font-size:.72rem;color:var(--ink2);padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:4px;}
     .cw-sheet__foot a{color:var(--ink2);text-decoration:none;}
     .cw-sheet__foot a:hover{color:var(--accent);}
+    .wg-analyze-status[hidden]{display:none;}
     .wg-analyze-status{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--wa-ink-2);margin-top:9px;}
     .wg-analyze-status .spin{width:15px;height:15px;border:2px solid var(--wa-line);border-top-color:var(--wa-primary);border-radius:50%;animation:wgspin .7s linear infinite;}
     .wg-analyze-status .ok{color:#059669;}
@@ -469,6 +470,8 @@
 
     /* ===== Onboarding de instalación ===== */
     .ob{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease;}
+    .ob[hidden]{display:none;}
+    .ob__status[hidden]{display:none;}
     .ob.is-open{opacity:1;}
     .ob__scrim{position:absolute;inset:0;background:rgba(8,12,22,.55);backdrop-filter:blur(2px);}
     .ob__card{position:relative;width:100%;max-width:440px;max-height:calc(100dvh - 36px);overflow-y:auto;
