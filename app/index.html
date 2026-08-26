@@ -1105,7 +1105,7 @@
           <h3>Copiá tu línea</h3>
           <p>Esta es tu línea única de instalación.</p>
           <div class="ob__code">
-            <code id="obCode">&lt;script src="https://walkyup.app/w.js" data-id="TU_ID" defer&gt;&lt;/script&gt;</code>
+            <code id="obCode">&lt;script src="https://walkylo.vercel.app/w.js" data-id="TU_ID" defer&gt;&lt;/script&gt;</code>
             <button class="ob__copy" id="obCopy" type="button">Copiar</button>
           </div>
         </section>
@@ -1921,7 +1921,7 @@
       avatar: 'w1', avatarHidden: false,
       siteUrl: '', contactEmail: '', privacyUrl: ''
     };
-    var WG_SNIPPET = '<script src="https://walkyup.app/w.js" data-id="TU_ID" defer></' + 'script>';
+    var WG_SNIPPET = '<script src="https://walkylo.vercel.app/w.js" data-id="TU_ID" defer></' + 'script>';
     var WG_AVATARS = {
       w1: '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M20 9c1.1 5.4 5.6 9.9 11 11-5.4 1.1-9.9 5.6-11 11-1.1-5.4-5.6-9.9-11-11 5.4-1.1 9.9-5.6 11-11z" fill="#fff"/></svg>',
       w2: '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="9" fill="none" stroke="#fff" stroke-width="2.6"/><circle cx="20" cy="20" r="3.1" fill="#fff"/></svg>',
@@ -2222,7 +2222,7 @@
        puente localStorage: los datos viven en la base, por usuario.
        ============================================================ */
     function wgSetSnippet(id){
-      WG_SNIPPET = '<script src="https://walkyup.app/w.js" data-id="' + id + '" defer></' + 'script>';
+      WG_SNIPPET = '<script src="https://walkylo.vercel.app/w.js" data-id="' + id + '" defer></' + 'script>';
       var code = document.getElementById('obCode');
       if (code) code.textContent = WG_SNIPPET;
     }
