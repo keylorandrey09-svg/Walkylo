@@ -829,6 +829,14 @@
 
           <div class="wg-grid">
             <div class="wg-form">
+              <!-- Instalación / guía -->
+              <div class="cfg-card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div>
+                  <h2 class="cfg-card__title" style="margin-bottom:4px">Instalación</h2>
+                  <p class="wg-field__hint" style="margin:0">Tu línea única y la guía paso a paso para pegarla en tu sitio.</p>
+                </div>
+                <button class="wa-btn wa-btn-primary" id="wgGuide" type="button">Ver guía de instalación</button>
+              </div>
               <!-- Apariencia -->
               <div class="cfg-card">
                 <h2 class="cfg-card__title">Apariencia</h2>
@@ -1138,9 +1146,8 @@
       </div>
     </div>
   </div>
-  <button class="ob-fab" id="obFab" type="button" hidden aria-label="Cómo instalar WalkyUp">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-  </button>
+  <!-- Botón flotante de guía retirado: la guía se reabre desde la sección Widget -->
+  <button class="ob-fab" id="obFab" type="button" hidden aria-hidden="true" style="display:none" aria-label="Cómo instalar WalkyUp"></button>
 
   <div class="wa-modal" id="pwModal" role="dialog" aria-modal="true" aria-label="Cambiar contraseña">
     <div class="wa-modal__scrim" data-pwclose></div>
@@ -2335,7 +2342,7 @@
         if (obNext) obNext.textContent=(step===TOTAL?'Listo':'Siguiente');
       }
       function obShow(){ ob.hidden=false; if (obFab) obFab.hidden=true; requestAnimationFrame(function(){ ob.classList.add('is-open'); }); }
-      function obHide(remember){ ob.classList.remove('is-open'); setTimeout(function(){ ob.hidden=true; },230); if (obFab) obFab.hidden=false; if (remember){ try{ localStorage.setItem('wu_ob_seen','1'); }catch(e){} } }
+      function obHide(remember){ ob.classList.remove('is-open'); setTimeout(function(){ ob.hidden=true; },230); if (remember){ try{ localStorage.setItem('wu_ob_seen','1'); }catch(e){} } }
 
       Array.prototype.slice.call(ob.querySelectorAll('[data-obclose]')).forEach(function(el){ el.addEventListener('click', function(){ obHide(true); }); });
       if (obFab) obFab.addEventListener('click', obShow);
@@ -2361,8 +2368,10 @@
       });
 
       obGuide('html'); showStep(1);
+      var wgGuideBtn=document.getElementById('wgGuide');
+      if (wgGuideBtn) wgGuideBtn.addEventListener('click', obShow);
       var seen=false; try{ seen=localStorage.getItem('wu_ob_seen')==='1'; }catch(e){}
-      if (seen){ if (obFab) obFab.hidden=false; } else { obShow(); }
+      if (!seen){ obShow(); }
     })();
 
     // Al volver a la pestaña, refrescar eventos si estás en Analíticas
