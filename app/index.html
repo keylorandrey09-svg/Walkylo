@@ -832,10 +832,13 @@
               <!-- Instalación / guía -->
               <div class="cfg-card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                 <div>
-                  <h2 class="cfg-card__title" style="margin-bottom:4px">Instalación</h2>
-                  <p class="wg-field__hint" style="margin:0">Tu línea única y la guía paso a paso para pegarla en tu sitio.</p>
+                  <h2 class="cfg-card__title" style="margin-bottom:4px">Estado del chat</h2>
+                  <p class="wg-field__hint" style="margin:0" id="wgStateHint">El chat está activo en tu sitio.</p>
                 </div>
-                <button class="wa-btn wa-btn-primary" id="wgGuide" type="button">Ver guía de instalación</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="wa-btn" id="wgGuide" type="button">Ver guía</button>
+                  <button class="wa-btn" id="wgToggle" type="button">Deshabilitar chat</button>
+                </div>
               </div>
               <!-- Apariencia -->
               <div class="cfg-card">
@@ -1926,7 +1929,8 @@
       welcome: '¡Hola! ¿En qué te puedo ayudar?',
       tone: 'cercano', language: 'es', fallback: 'email', knowledge: '',
       avatar: 'w1', avatarHidden: false,
-      siteUrl: '', contactEmail: '', privacyUrl: ''
+      siteUrl: '', contactEmail: '', privacyUrl: '',
+      enabled: true, installed: false
     };
     var WG_SNIPPET = '<script src="https://walkylo.vercel.app/w.js" data-id="TU_ID" defer></' + 'script>';
     var WG_AVATARS = {
@@ -2029,6 +2033,27 @@
         if (wgId('wgCancel')) wgId('wgCancel').addEventListener('click', wgCancel);
       }
       renderWidgetPreview();
+      renderChatState();
+    }
+
+    function renderChatState(){
+      var btn = wgId('wgToggle'), hint = wgId('wgStateHint');
+      if (btn && !btn.__wired){ btn.__wired = true; btn.addEventListener('click', wgToggleChat); }
+      var on = appState.widget && appState.widget.enabled !== false;
+      if (btn){ btn.textContent = on ? 'Deshabilitar chat' : 'Habilitar chat'; btn.classList.toggle('wa-btn-danger', on); }
+      if (hint) hint.textContent = on ? 'El chat está activo en tu sitio.' : 'El chat está apagado: no aparece en tu sitio.';
+    }
+    function wgToggleChat(){
+      var uid = currentUserId(); if (!uid){ toast('Perdimos tu sesión. Recargá.'); return; }
+      var next = !(appState.widget && appState.widget.enabled !== false);
+      var btn = wgId('wgToggle'); if (btn) btn.disabled = true;
+      SB.from('widgets').update({ enabled: next }).eq('user_id', uid).then(function(res){
+        if (btn) btn.disabled = false;
+        if (res && res.error){ toast('No se pudo cambiar el estado'); return; }
+        appState.widget.enabled = next; if (wgDraft) wgDraft.enabled = next;
+        renderChatState();
+        toast(next ? 'Chat habilitado' : 'Chat deshabilitado');
+      }, function(){ if (btn) btn.disabled = false; toast('No se pudo cambiar el estado'); });
     }
 
     function wgEnterEdit(){ wgDraft = wgClone(appState.widget); wgEditing = true; renderWidget(); if (wgId('wgName')) wgId('wgName').focus(); }
@@ -2299,7 +2324,8 @@
                 name: wrow.name, accent: wrow.accent, position: wrow.position, welcome: wrow.welcome,
                 tone: wrow.tone, language: wrow.language, fallback: wrow.fallback, knowledge: wrow.knowledge,
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
-                siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || ''
+                siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
+                enabled: wrow.enabled !== false, installed: !!wrow.installed_at
               };
               if (wrow.id) wgSetSnippet(wrow.id);
             }
