@@ -29,8 +29,25 @@
     body: JSON.stringify({ widget_id: dataId })
   })
     .then(function (r) { return r.ok ? r.json() : []; })
-    .then(function (rows) { render((rows && rows[0]) || {}); })
-    .catch(function () { render({}); });
+    .then(function (rows) {
+      var cfg = rows && rows[0];
+      if (!cfg) return;          // chat deshabilitado, id inválido o sin config -> no dibujar
+      render(cfg);
+      ping();                    // avisar a Supabase que el widget está vivo en este sitio
+    })
+    .catch(function () {});        // error de red -> no dibujar (mejor nada que algo roto)
+
+  // Ping de instalación: marca installed_at / last_seen_at (sin IA, liviano)
+  function ping() {
+    try {
+      fetch(SUPA_URL + "/rest/v1/rpc/widget_ping", {
+        method: "POST",
+        headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ widget_id: dataId }),
+        keepalive: true
+      });
+    } catch (e) {}
+  }
 
   // ---- 3) Dibujar el widget (aislado con Shadow DOM) ----
   function render(cfg) {
