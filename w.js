@@ -19,6 +19,7 @@
   }
   var dataId = me && me.getAttribute("data-id");
   if (!dataId || dataId === "TU_ID") { console.warn("[WalkyUp] Falta data-id en el <script>."); return; }
+  var launcher = ((me && me.getAttribute("data-launcher")) || "").toLowerCase();
   if (window.__walkyupLoaded) { return; } window.__walkyupLoaded = true;
 
   // ---- 2) Traer la config pública del widget ----
@@ -113,10 +114,20 @@
     function scroll() { body.scrollTop = body.scrollHeight; }
 
     // Abrir / cerrar
+    var hideFab = (launcher === "none" || launcher === "off");
+    if (hideFab) $(".fab").style.display = "none";
     function open() { panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); $(".fab").style.display = "none"; setTimeout(function () { $(".inp").focus(); }, 250); }
-    function close() { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = ""; }
+    function close() { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = hideFab ? "none" : ""; }
+    function toggle() { panel.classList.contains("open") ? close() : open(); }
     $(".fab").addEventListener("click", open);
     $(".close").addEventListener("click", close);
+
+    // API pública: el dueño abre el chat desde su propio botón, donde quiera.
+    window.WalkyUp = { open: open, close: close, toggle: toggle };
+    document.addEventListener("click", function (e) {
+      var t = e.target && e.target.closest && e.target.closest("[data-walkyup-open]");
+      if (t) { e.preventDefault(); open(); }
+    });
 
     // Enviar (sin IA todavía: respuesta de espera, honesta)
     var inp = $(".inp");
@@ -159,14 +170,14 @@
   var CSS =
     ':host{all:initial;}' +
     '*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}' +
-    '.fab{position:fixed;right:20px;bottom:20px;width:58px;height:58px;border:0;border-radius:18px;cursor:pointer;display:grid;place-items:center;box-shadow:0 12px 30px rgba(0,0,0,.28);overflow:hidden;}' +
-    '.fab img{width:100%;height:100%;object-fit:cover;} .fab svg{width:26px;height:26px;}' +
+    '.fab{position:fixed;right:20px;bottom:20px;width:48px;height:48px;border:0;border-radius:15px;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.26);overflow:hidden;}' +
+    '.fab img{width:100%;height:100%;object-fit:cover;} .fab svg{width:22px;height:22px;}' +
     '.panel{--accent:#0164FD;--bg:#0e0f12;--surface:#17181c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.09);--in:#1e2025;' +
-      'position:fixed;right:20px;bottom:20px;width:372px;height:min(600px,calc(100vh - 96px));background:var(--bg);color:var(--ink);' +
-      'border:1px solid var(--line);border-radius:20px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 26px 64px rgba(0,0,0,.32);}' +
-    '.panel.open{display:flex;animation:wu-in .22s ease;}' +
+      'position:fixed;right:0;top:0;bottom:0;width:400px;max-width:100vw;height:100vh;height:100dvh;background:var(--bg);color:var(--ink);' +
+      'border:0;border-left:1px solid var(--line);border-radius:0;overflow:hidden;display:none;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.30);}' +
+    '.panel.open{display:flex;animation:wu-slide .26s cubic-bezier(.4,0,.2,1);}' +
     '.panel[data-theme=light]{--bg:#fff;--surface:#fff;--ink:#0a0a0a;--ink2:#5b6472;--line:#ececf1;--in:#f2f4f7;}' +
-    '@keyframes wu-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
+    '@keyframes wu-slide{from{transform:translateX(100%)}to{transform:none}}' +
     '.head{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--line);}' +
     '.ava{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;}' +
     '.ava img{width:100%;height:100%;object-fit:cover;} .ava svg{width:60%;height:60%;} .ava.lg{width:74px;height:74px;} .ava.lg svg{width:56%;height:56%;}' +
