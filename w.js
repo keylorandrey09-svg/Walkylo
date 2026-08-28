@@ -141,8 +141,8 @@
     function onEsc(e) { if (e.key === "Escape" || e.key === "Esc") close(); }
     function open() {
       panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); $(".fab").style.display = "none";
-      setTimeout(function () { $(".inp").focus(); }, 250);
-      setTimeout(function () { document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc); }, 0);
+      setTimeout(function () { scroll(); document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc); }, 0);
+      setTimeout(function () { $(".inp").focus(); scroll(); }, 250);
     }
     function close() {
       panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = hideFab ? "none" : "";
