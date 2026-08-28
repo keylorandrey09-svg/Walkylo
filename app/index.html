@@ -400,9 +400,11 @@
     .cw .cw-ava svg{width:64%;height:64%;}
     .cw .cw-ava img{width:100%;height:100%;object-fit:cover;}
     .cw .cw-ava.lg{width:72px;height:72px;border-radius:50%;font-size:2rem;}
-    .cw-name{font-weight:700;font-size:.95rem;}
+    .cw-name{font-weight:700;font-size:.95rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .cw-head .sp{margin-left:auto;}
     .cw-ico{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;}
+    .cw-reset{border:1px solid var(--line);background:none;color:var(--ink2);border-radius:9px;padding:6px 11px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .cw-reset:hover{border-color:var(--accent);}
     .cw-ico:hover{color:var(--ink);}
     .cw-ico svg{width:17px;height:17px;}
     .cw-body{flex:1;overflow-y:auto;padding:20px 14px 6px;display:flex;flex-direction:column;}
@@ -975,10 +977,11 @@
               <div class="cw-holder" id="cwHolder">
                 <div class="cw" id="wgCw" data-theme="dark">
                   <div class="cw-head">
+                    <button class="cw-ico" id="cwMenu" type="button" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
                     <div class="cw-ava" id="cwAvaSm">A</div>
                     <div class="cw-name" id="cwName">Asistente</div>
                     <span class="sp"></span>
-                    <button class="cw-ico" id="cwMenu" type="button" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+                    <button class="cw-reset" id="cwReset" type="button">Reiniciar</button>
                     <button class="cw-ico" id="cwClose" type="button" title="Cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                   </div>
                   <div class="cw-body" id="cwBody">
@@ -1982,6 +1985,7 @@
       }
       setAva(wgId('cwAvaSm')); setAva(wgId('cwAvaLg'));
       if (wgId('cwName')) wgId('cwName').textContent = c.name || 'Asistente';
+      if (wgId('cwReset')) wgId('cwReset').textContent = ({ es: 'Reiniciar', en: 'Restart', pt: 'Reiniciar' }[c.language] || 'Reiniciar');
       if (wgId('cwName2')) wgId('cwName2').textContent = c.name || 'Asistente';
       if (wgId('cwWelcome')) wgId('cwWelcome').textContent = c.welcome || '';
       if (wgId('cwInput')) wgId('cwInput').setAttribute('placeholder', WG_INPUT_PH[c.language] || WG_INPUT_PH.es);
@@ -2207,6 +2211,14 @@
       function cwDoSend(){ if(!cwInput||!cwMsgs) return; var v=cwInput.value.trim(); if(!v) return; cwMsgs.appendChild(cwBubble(v,true)); cwInput.value=''; if(cwBody) cwBody.scrollTop=cwBody.scrollHeight; setTimeout(function(){ cwMsgs.appendChild(cwBubble('El asistente va a responder cuando se conecte la IA (Fase 8).',false)); if(cwBody) cwBody.scrollTop=cwBody.scrollHeight; }, 700); }
       if (cwSend) cwSend.addEventListener('click', cwDoSend);
       if (cwInput) cwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') cwDoSend(); });
+      var cwReset = wgId('cwReset');
+      if (cwReset) cwReset.addEventListener('click', function(){
+        if (!cwMsgs) return;
+        var w = (wgCfg().welcome || '¡Hola! ¿En qué te puedo ayudar?');
+        cwMsgs.innerHTML = '<div class="cw-msg cw-in"><span id="cwWelcome"></span><span class="t">' + cwHHMM() + '</span></div>';
+        var ws = wgId('cwWelcome'); if (ws) ws.textContent = w;
+        if (cwBody) cwBody.scrollTop = 0;
+      });
 
       // pintar los avatares preset una vez
       Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id]; });
