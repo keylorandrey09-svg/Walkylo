@@ -39,6 +39,8 @@
     var avatar = cfg.avatar || "";
     var email = cfg.contact_email || "";
     var privacy = cfg.privacy_url || "";
+    var lang = (cfg.language || "es").toLowerCase().slice(0, 2);
+    var RESET_LABEL = { es: "Reiniciar", en: "Restart", pt: "Reiniciar" }[lang] || "Reiniciar";
 
     var isImg = !!avatar && (avatar.indexOf("data:") === 0 || /^https?:\/\//.test(avatar));
     var spark = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>';
@@ -55,10 +57,11 @@
       '<button class="fab" part="fab" aria-label="Abrir chat">' + avaInner + '</button>' +
       '<div class="panel" data-theme="dark" aria-hidden="true">' +
         '<div class="head">' +
+          '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
           '<span class="ava sm">' + avaInner + '</span>' +
           '<span class="nm"></span>' +
           '<span class="sp"></span>' +
-          '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
+          '<button class="reset" aria-label="Reiniciar chat"></button>' +
           '<button class="ico close" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
         '</div>' +
         '<div class="body">' +
@@ -84,19 +87,27 @@
     panel.style.setProperty("--accent", accent);
     $(".nm").textContent = name;
     $(".nm2").textContent = name;
+    $(".reset").textContent = RESET_LABEL;
     Array.prototype.forEach.call($$(".ava"), function (a) { if (!isImg) a.style.background = accent; else a.style.background = "transparent"; });
     var mail = $(".mail"); if (email) mail.setAttribute("href", "mailto:" + email); else mail.style.display = "none";
     var priv = $(".priv"); if (privacy) priv.setAttribute("href", privacy); else priv.parentNode.style.display = "none";
 
-    // Mensaje de bienvenida
+    // Persistencia por pestaña: sobrevive recargas, se borra al cerrar la pestaña.
     var msgs = $(".msgs"), body = $(".body");
-    msgs.appendChild(bubble(welcome, false));
+    var STORE_KEY = "wu_chat_" + dataId;
+    var hist = [];
+    try { hist = JSON.parse(sessionStorage.getItem(STORE_KEY)) || []; } catch (e) { hist = []; }
+    function persist() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(hist)); } catch (e) {} }
 
-    function bubble(text, out) {
+    // Bienvenida (no se guarda) + historial de esta sesión
+    msgs.appendChild(bubble(welcome, false, null));
+    hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, m.t)); });
+
+    function bubble(text, out, time) {
       var el = document.createElement("div");
       el.className = "msg " + (out ? "out" : "in");
       el.appendChild(document.createTextNode(text));
-      var t = document.createElement("span"); t.className = "t"; t.textContent = hhmm(); el.appendChild(t);
+      var t = document.createElement("span"); t.className = "t"; t.textContent = time || hhmm(); el.appendChild(t);
       return el;
     }
     function scroll() { body.scrollTop = body.scrollHeight; }
@@ -111,8 +122,14 @@
     var inp = $(".inp");
     function send() {
       var v = inp.value.trim(); if (!v) return;
-      msgs.appendChild(bubble(v, true)); inp.value = ""; scroll();
-      setTimeout(function () { msgs.appendChild(bubble("¡Gracias por tu mensaje! El asistente estará disponible muy pronto.", false)); scroll(); }, 700);
+      var tu = hhmm();
+      msgs.appendChild(bubble(v, true, tu)); hist.push({ x: v, o: 1, t: tu }); persist();
+      inp.value = ""; scroll();
+      setTimeout(function () {
+        var ta = hhmm(), r = "¡Gracias por tu mensaje! El asistente estará disponible muy pronto.";
+        msgs.appendChild(bubble(r, false, ta)); hist.push({ x: r, o: 0, t: ta }); persist();
+        scroll();
+      }, 700);
     }
     $(".send").addEventListener("click", send);
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
@@ -125,6 +142,14 @@
       var b = e.target.closest("button"); if (!b) return;
       panel.setAttribute("data-theme", b.getAttribute("data-theme"));
       Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); });
+    });
+
+    // Reiniciar: borra el historial de esta sesión y vuelve al inicio
+    $(".reset").addEventListener("click", function () {
+      hist = []; persist();
+      msgs.innerHTML = "";
+      msgs.appendChild(bubble(welcome, false, null));
+      scroll();
     });
   }
 
@@ -145,9 +170,11 @@
     '.head{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--line);}' +
     '.ava{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;}' +
     '.ava img{width:100%;height:100%;object-fit:cover;} .ava svg{width:60%;height:60%;} .ava.lg{width:74px;height:74px;} .ava.lg svg{width:56%;height:56%;}' +
-    '.nm{font-weight:700;font-size:.96rem;} .sp{margin-left:auto;}' +
+    '.nm{font-weight:700;font-size:.96rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sp{margin-left:auto;}' +
     '.ico{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;}' +
     '.ico svg{width:17px;height:17px;}' +
+    '.reset{border:1px solid var(--line);background:none;color:var(--ink2);border-radius:9px;padding:6px 11px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}' +
+    '.reset:hover{color:var(--ink);border-color:var(--accent);}' +
     '.body{flex:1;overflow-y:auto;padding:22px 15px 6px;display:flex;flex-direction:column;scrollbar-width:none;-ms-overflow-style:none;}' +
     '.body::-webkit-scrollbar{width:0;height:0;display:none;}' +
     '.intro{text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;}' +
