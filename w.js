@@ -106,6 +106,11 @@
     $(".nm").textContent = name;
     $(".nm2").textContent = name;
     $(".reset").textContent = RESET_LABEL;
+    var THEME_KEY = "wu_theme_" + dataId;
+    var savedTheme = null; try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
+    var theme = (savedTheme === "light" || savedTheme === "dark") ? savedTheme : ((cfg.theme === "light") ? "light" : "dark");
+    panel.setAttribute("data-theme", theme);
+    Array.prototype.forEach.call($$(".themeseg button"), function (b) { b.classList.toggle("on", b.getAttribute("data-theme") === theme); });
     Array.prototype.forEach.call($$(".ava"), function (a) { if (!isImg) a.style.background = accent; else a.style.background = "transparent"; });
     var mail = $(".mail"); if (email) mail.setAttribute("href", "mailto:" + email); else mail.style.display = "none";
     var priv = $(".priv"); if (privacy) priv.setAttribute("href", privacy); else priv.parentNode.style.display = "none";
@@ -181,7 +186,9 @@
     $(".scrim").addEventListener("click", function () { panel.classList.remove("sheet-open"); });
     $(".themeseg").addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
-      panel.setAttribute("data-theme", b.getAttribute("data-theme"));
+      var t = b.getAttribute("data-theme");
+      panel.setAttribute("data-theme", t);
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
       Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); });
     });
 
