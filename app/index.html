@@ -934,6 +934,13 @@
                   </div>
                 </div>
                 <div class="wg-field">
+                  <label class="wg-field__label">Tema por defecto</label>
+                  <div class="cfg-toggle" id="wgTheme">
+                    <button type="button" data-th="light" disabled>Claro</button>
+                    <button type="button" data-th="dark" disabled>Oscuro</button>
+                  </div>
+                </div>
+                <div class="wg-field">
                   <label class="wg-field__label" for="wgLang">Idioma</label>
                   <select class="wg-select" id="wgLang" disabled>
                     <option value="es">Español</option>
@@ -1933,7 +1940,7 @@
       tone: 'cercano', language: 'es', fallback: 'email', knowledge: '',
       avatar: 'w1', avatarHidden: false,
       siteUrl: '', contactEmail: '', privacyUrl: '',
-      enabled: true, installed: false
+      enabled: true, installed: false, theme: 'dark'
     };
     var WG_SNIPPET = '<script src="https://walkylo.vercel.app/w.js" data-id="TU_ID" defer></' + 'script>';
     var WG_AVATARS = {
@@ -1977,6 +1984,8 @@
       var isImg = (typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar]);
       var initial = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase();
       var root = wgId('wgCw'); if (root) root.style.setProperty('--accent', accent);
+      if (root) root.setAttribute('data-theme', (c.theme === 'light' ? 'light' : 'dark'));
+      Array.prototype.slice.call(document.querySelectorAll('#cwThemeSeg button')).forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-theme') === (c.theme === 'light' ? 'light' : 'dark')); });
       function setAva(el){
         if (!el) return;
         if (c.avatarHidden){ el.textContent = initial; el.style.background = accent; return; }
@@ -2011,10 +2020,11 @@
       if (!wgEditing && wgId('wgCp')) wgId('wgCp').hidden = true;
       if (wgId('wgCustom')) wgId('wgCustom').value = /^#[0-9a-fA-F]{6}$/.test(c.accent) ? c.accent : '#0164FD';
       Array.prototype.slice.call(document.querySelectorAll('#wgTone button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-t') === c.tone); });
+      Array.prototype.slice.call(document.querySelectorAll('#wgTheme button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-th') === (c.theme || 'dark')); });
 
       var dis = !wgEditing;
       ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgCustom','wgSite','wgEmail','wgPrivacy','wgAnalyze'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
-      Array.prototype.slice.call(document.querySelectorAll('#wgAccent .wg-swatch, #wgTone button')).forEach(function(b){ b.disabled = dis; });
+      Array.prototype.slice.call(document.querySelectorAll('#wgAccent .wg-swatch, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button')).forEach(function(b){ b.classList.toggle('is-active', (b.getAttribute('data-av') === 'hide') === !!c.avatarHidden); });
@@ -2085,6 +2095,7 @@
           welcome: w.welcome, tone: w.tone, language: w.language, fallback: w.fallback,
           knowledge: w.knowledge, avatar: avatarValue, avatar_hidden: !!w.avatarHidden,
           site_url: w.siteUrl || '', contact_email: w.contactEmail || '', privacy_url: w.privacyUrl || '',
+          theme: (w.theme === 'light' ? 'light' : 'dark'),
           updated_at: new Date().toISOString()
         };
         SB.from('widgets').upsert(row, { onConflict: 'user_id' }).then(function(res){
@@ -2174,6 +2185,8 @@
       document.addEventListener('click', function(e){ if (cp && !cp.hidden && !cp.contains(e.target) && !(cpBtn && (e.target === cpBtn || cpBtn.contains(e.target)))) cpClose(); });
       var tone = wgId('wgTone');
       if (tone) tone.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.tone = b.getAttribute('data-t'); renderWidget(); });
+      var themeSeg = wgId('wgTheme');
+      if (themeSeg) themeSeg.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.theme = b.getAttribute('data-th'); renderWidget(); });
       // Analizar sitio (UI lista; el resumen real llega con la IA)
       var an = wgId('wgAnalyze');
       if (an) an.addEventListener('click', function(){
@@ -2337,7 +2350,7 @@
                 tone: wrow.tone, language: wrow.language, fallback: wrow.fallback, knowledge: wrow.knowledge,
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
                 siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
-                enabled: wrow.enabled !== false, installed: !!wrow.installed_at
+                enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')
               };
               if (wrow.id) wgSetSnippet(wrow.id);
             }
