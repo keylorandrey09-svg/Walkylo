@@ -116,8 +116,21 @@
     // Abrir / cerrar
     var hideFab = (launcher === "none" || launcher === "off");
     if (hideFab) $(".fab").style.display = "none";
-    function open() { panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); $(".fab").style.display = "none"; setTimeout(function () { $(".inp").focus(); }, 250); }
-    function close() { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = hideFab ? "none" : ""; }
+    function onOutside(e) {
+      if (host.contains(e.target)) return; // clic dentro del widget (Shadow DOM retargetea al host)
+      if (e.target && e.target.closest && e.target.closest("[data-walkyup-open]")) return; // el propio disparador no cierra
+      close();
+    }
+    function onEsc(e) { if (e.key === "Escape" || e.key === "Esc") close(); }
+    function open() {
+      panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); $(".fab").style.display = "none";
+      setTimeout(function () { $(".inp").focus(); }, 250);
+      setTimeout(function () { document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc); }, 0);
+    }
+    function close() {
+      panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = hideFab ? "none" : "";
+      document.removeEventListener("click", onOutside); document.removeEventListener("keydown", onEsc);
+    }
     function toggle() { panel.classList.contains("open") ? close() : open(); }
     $(".fab").addEventListener("click", open);
     $(".close").addEventListener("click", close);
