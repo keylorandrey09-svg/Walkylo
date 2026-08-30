@@ -1281,10 +1281,10 @@
       if (full){
         Array.prototype.slice.call(full.querySelectorAll('.wa-noti, .wu-noti-empty')).forEach(function(el){ el.remove(); });
         if (wuNotis.length) full.insertAdjacentHTML('beforeend', wuNotis.map(notiHTML).join(''));
-        else full.insertAdjacentHTML('beforeend', '<p class="wa-page-sub wu-noti-empty">No tenés notificaciones.</p>');
+        else full.insertAdjacentHTML('beforeend', '<p class="wa-page-sub wu-noti-empty">Por ahora no hay notificaciones.</p>');
       }
       if (dropBody){
-        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">No tenés notificaciones.</p>';
+        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">Por ahora no hay notificaciones.</p>';
       }
       Array.prototype.slice.call(document.querySelectorAll('.wa-noti__time')).forEach(function(el){
         var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
@@ -1304,16 +1304,22 @@
        Soporta: recién / minutos / horas / días / semanas / meses / años. */
     function timeAgo(iso){
       if (!iso) return "";
-      var then = new Date(iso).getTime();
+      var dt = new Date(iso); var then = dt.getTime();
       if (isNaN(then)) return "";
-      var s = Math.max(0, Math.floor((Date.now() - then) / 1000));
+      var now = new Date();
+      var s = Math.max(0, Math.floor((now.getTime() - then) / 1000));
       if (s < 45) return "recién";
       var m = Math.floor(s / 60);
       if (m < 60) return "hace " + m + (m === 1 ? " minuto" : " minutos");
       var h = Math.floor(m / 60);
       if (h < 24) return "hace " + h + (h === 1 ? " hora" : " horas");
-      var d = Math.floor(h / 24);
-      if (d < 7) return "hace " + d + (d === 1 ? " día" : " días");
+      // Días por fecha de calendario: estable (solo cambia a medianoche) e igual para avisos del mismo día
+      var hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var dia = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      var d = Math.round((hoy - dia) / 86400000);
+      if (d <= 0) return "hoy";
+      if (d === 1) return "ayer";
+      if (d < 7) return "hace " + d + " días";
       var w = Math.floor(d / 7);
       if (w < 5) return "hace " + w + (w === 1 ? " semana" : " semanas");
       var mo = Math.floor(d / 30);
