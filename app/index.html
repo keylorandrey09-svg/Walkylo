@@ -287,6 +287,9 @@
     .wa-noti__title{font-size:1.05rem;font-weight:700;margin:0 0 4px;}
     .wa-noti__body{margin:0;color:var(--wa-ink-2);font-size:.95rem;}
     .wa-view[data-view="notificaciones"] .wa-noti{max-width:800px;}
+    .noti-wrap{margin-top:14px;background:var(--wa-surface);border-radius:var(--wa-r-lg);box-shadow:var(--wa-sh);padding:12px;display:flex;flex-direction:column;gap:10px;height:clamp(440px,calc(100vh - 250px),640px);overflow-y:auto;}
+    .noti-wrap.is-empty{height:auto;min-height:280px;overflow:visible;}
+    .noti-wrap .wa-noti{margin:0;max-width:none;}
     .wa-view[data-view="notificaciones"] .wa-page-sub{max-width:60ch;}
     .wa-drop .wa-noti{margin:6px;border-radius:12px;padding:14px;}
 
@@ -373,6 +376,7 @@
       .cfg-toggle button{flex:1;justify-content:center;}
       .cfg-row .wa-btn{margin-left:0;}
       .cv-wrap{grid-template-columns:1fr;height:clamp(460px,calc(100dvh - 210px),660px);}
+      .noti-wrap{height:clamp(460px,calc(100dvh - 210px),660px);}
       .cv-detail{display:none;}
       .cv-wrap.is-detail .cv-list{display:none;}
       .cv-wrap.is-detail .cv-detail{display:flex;}
@@ -653,12 +657,14 @@
         <section class="wa-view" data-view="notificaciones">
           <h1 class="wa-page-title">Notificaciones</h1>
           <p class="wa-page-sub">Novedades, actualizaciones y avisos del equipo de WalkyUp.</p>
-          <!-- TODO Supabase: renderizar acá las notificaciones reales del usuario -->
-          <div class="wa-noti is-unread">
-            <div class="wa-noti__top"><span class="wa-noti__tag">NOVEDAD</span><span class="wa-noti__time" data-time=""></span></div>
-            <p class="wa-noti__title">Bienvenido a WalkyUp</p>
-            <p class="wa-noti__body">Este es tu centro de notificaciones. Acá te vamos a avisar de novedades, nuevas funciones y actualizaciones importantes. ¡Gracias por ser de los primeros!</p>
+          <div class="cv-toolbar">
+            <div class="cv-tabs" id="notiTabs">
+              <button class="cv-tab is-active" type="button" data-nf="all">Todas</button>
+              <button class="cv-tab" type="button" data-nf="important">Importantes</button>
+              <button class="cv-tab" type="button" data-nf="unread">No leídas</button>
+            </div>
           </div>
+          <div class="noti-wrap" id="notiWrap"></div>
         </section>
 
         <!-- VIEW: Analíticas -->
@@ -1273,23 +1279,47 @@
         '<p class="wa-noti__title">' + cvEsc(n.title || '') + '</p>' +
         '<p class="wa-noti__body">' + cvEsc(n.body || '') + '</p></div>';
     }
+    var notiFilter = 'all';
+    function notiList(){
+      if (notiFilter === 'unread') return wuNotis.filter(function(n){ return !n.read_at; });
+      if (notiFilter === 'important') return wuNotis.filter(function(n){ return n.important; });
+      return wuNotis;
+    }
     function renderNotis(){
       hasUnread = wuNotis.some(function(n){ return !n.read_at; });
       renderUnread();
-      var full = document.querySelector('.wa-view[data-view="notificaciones"]');
-      var dropBody = document.querySelector('#drop .wa-drop__body');
-      if (full){
-        Array.prototype.slice.call(full.querySelectorAll('.wa-noti, .wu-noti-empty')).forEach(function(el){ el.remove(); });
-        if (wuNotis.length) full.insertAdjacentHTML('beforeend', wuNotis.map(notiHTML).join(''));
-        else full.insertAdjacentHTML('beforeend', '<p class="wa-page-sub wu-noti-empty">Por ahora no hay notificaciones.</p>');
+      var list = notiList();
+      var wrap = document.getElementById('notiWrap');
+      if (wrap){
+        if (list.length){
+          wrap.classList.remove('is-empty');
+          wrap.innerHTML = list.map(notiHTML).join('');
+        } else {
+          wrap.classList.add('is-empty');
+          var msg = 'Todavía no hay notificaciones.', sub = 'Cuando el equipo publique novedades, tus avisos aparecen acá.';
+          if (wuNotis.length && notiFilter === 'unread'){ msg = 'No hay notificaciones sin leer.'; sub = 'Cambiá a “Todas” para ver el resto.'; }
+          else if (notiFilter === 'important'){ msg = 'No hay notificaciones importantes.'; sub = 'Las importantes van a aparecer marcadas acá.'; }
+          wrap.innerHTML = '<div class="cv-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><p>' + msg + '</p><p class="cv-empty__sub">' + sub + '</p></div>';
+        }
       }
+      var dropBody = document.querySelector('#drop .wa-drop__body');
       if (dropBody){
-        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">Por ahora no hay notificaciones.</p>';
+        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">Todavía no hay notificaciones.</p>';
       }
       Array.prototype.slice.call(document.querySelectorAll('.wa-noti__time')).forEach(function(el){
         var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
       });
     }
+    (function(){
+      var tabs = document.getElementById('notiTabs');
+      if (!tabs) return;
+      tabs.addEventListener('click', function(e){
+        var b = e.target.closest('button'); if (!b) return;
+        notiFilter = b.getAttribute('data-nf') || 'all';
+        Array.prototype.slice.call(tabs.querySelectorAll('button')).forEach(function(x){ x.classList.toggle('is-active', x === b); });
+        renderNotis();
+      });
+    })();
     function markRead(){
       if (!hasUnread) return;
       var nowIso = new Date().toISOString();
