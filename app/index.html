@@ -290,6 +290,7 @@
     .noti-wrap{margin:14px auto 0;max-width:880px;background:var(--wa-surface);border-radius:var(--wa-r-lg);box-shadow:var(--wa-sh);padding:12px;display:flex;flex-direction:column;gap:10px;max-height:clamp(440px,calc(100vh - 250px),640px);overflow-y:auto;}
     .noti-wrap.is-empty{min-height:280px;}
     .noti-wrap .wa-noti{margin:0;max-width:none;}
+    .wa-view[data-view="notificaciones"] .cv-toolbar{max-width:880px;margin-left:auto;margin-right:auto;}
     .wa-view[data-view="notificaciones"] .wa-page-sub{max-width:60ch;}
     .wa-drop .wa-noti{margin:6px;border-radius:12px;padding:14px;}
 
@@ -905,6 +906,13 @@
                   </div>
                 </div>
                 <div class="wg-field">
+                  <label class="wg-field__label">Tema por defecto</label>
+                  <div class="cfg-toggle" id="wgTheme">
+                    <button type="button" data-th="light" disabled>Claro</button>
+                    <button type="button" data-th="dark" disabled>Oscuro</button>
+                  </div>
+                </div>
+                <div class="wg-field">
                   <label class="wg-field__label" for="wgWelcome">Mensaje de bienvenida</label>
                   <input class="wg-input" id="wgWelcome" type="text" maxlength="120" disabled />
                 </div>
@@ -937,13 +945,6 @@
                   <div class="cfg-toggle" id="wgTone">
                     <button type="button" data-t="cercano" disabled>Cercano</button>
                     <button type="button" data-t="formal" disabled>Formal</button>
-                  </div>
-                </div>
-                <div class="wg-field">
-                  <label class="wg-field__label">Tema por defecto</label>
-                  <div class="cfg-toggle" id="wgTheme">
-                    <button type="button" data-th="light" disabled>Claro</button>
-                    <button type="button" data-th="dark" disabled>Oscuro</button>
                   </div>
                 </div>
                 <div class="wg-field">
