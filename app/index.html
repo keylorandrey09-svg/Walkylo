@@ -190,7 +190,7 @@
     .cv-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--wa-ink-3);pointer-events:none;}
     .cv-banner{display:flex;align-items:center;gap:8px;margin-top:14px;padding:9px 13px;border:1px dashed var(--wa-line);border-radius:11px;color:var(--wa-ink-3);font-size:.82rem;background:var(--wa-bg);}
     .cv-banner svg{width:15px;height:15px;flex-shrink:0;}
-    .cv-wrap{display:grid;grid-template-columns:340px 1fr;margin-top:14px;border:1px solid var(--wa-line);border-radius:var(--wa-r-lg);overflow:hidden;background:var(--wa-surface);box-shadow:var(--wa-sh);height:clamp(440px,calc(100vh - 250px),640px);}
+    .cv-wrap{display:grid;grid-template-columns:340px 1fr;margin-top:14px;border:1px solid var(--wa-line);border-radius:var(--wa-r-lg);overflow:hidden;background:var(--wa-surface);box-shadow:var(--wa-sh);height:auto;}
     .cv-wrap.is-empty{grid-template-columns:1fr;height:auto;min-height:280px;}
     .cv-wrap.is-empty .cv-list{display:none;}
     .cv-list{border-right:1px solid var(--wa-line);display:flex;flex-direction:column;min-height:0;}
@@ -216,6 +216,8 @@
     .cv-detail__spacer{margin-left:auto;}
     .cv-thread{flex:1;min-height:0;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px;background:var(--wa-bg);}
     .cv-msg{max-width:78%;padding:9px 13px;border-radius:14px;font-size:.9rem;line-height:1.4;overflow-wrap:anywhere;word-break:break-word;}
+    .cv-thread__rest{display:flex;flex-direction:column;gap:10px;}
+    .cv-more{display:none;}
     .cv-msg__time{display:block;font-size:.66rem;margin-top:4px;opacity:.6;}
     .cv-msg--in{align-self:flex-start;background:var(--wa-surface);border:1px solid var(--wa-line);border-bottom-left-radius:5px;color:var(--wa-ink);}
     .cv-msg--out{align-self:flex-end;background:var(--wa-primary);color:#fff;border-bottom-right-radius:5px;}
@@ -376,11 +378,16 @@
       .cfg-toggle{margin-left:0;width:100%;}
       .cfg-toggle button{flex:1;justify-content:center;}
       .cfg-row .wa-btn{margin-left:0;}
-      .cv-wrap{grid-template-columns:1fr;height:clamp(460px,calc(100dvh - 210px),660px);}
+      .cv-wrap{grid-template-columns:1fr;height:auto;}
       .noti-wrap{max-width:none;max-height:clamp(460px,calc(100dvh - 210px),660px);}
       .cv-detail{display:none;}
       .cv-wrap.is-detail .cv-list{display:none;}
       .cv-wrap.is-detail .cv-detail{display:flex;}
+      .cv-thread__rest{display:none;}
+      .cv-thread.is-expanded .cv-thread__rest{display:flex;}
+      .cv-more{display:inline-flex;align-self:center;margin:4px auto 2px;padding:7px 16px;border-radius:20px;border:1px solid var(--wa-line);background:var(--wa-surface);color:var(--wa-primary);font-size:.85rem;font-weight:600;cursor:pointer;}
+      .cv-thread.is-expanded .cv-more{display:none;}
+      .cv-detail__head{position:sticky;top:0;background:var(--wa-surface);z-index:2;}
       .cv-back{display:grid;}
       .cv-search{max-width:none;flex:1 1 100%;}
       .cv-wrap.is-empty .cv-detail{display:flex;}
@@ -1917,11 +1924,14 @@
         detail.innerHTML = '<div class="cv-detail__ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><p>Elegí una conversación para leerla.</p></div>';
         if (wrap) wrap.classList.remove('is-detail');
       } else {
-        var thread = active.messages.map(function(m){
+        var msgHTML = function(m){
           var isOut = m.from === 'assistant';
           var st = isOut ? ' style="background:' + ((appState.widget && appState.widget.accent) || '#0164FD') + '"' : '';
           return '<div class="cv-msg ' + (isOut ? 'cv-msg--out' : 'cv-msg--in') + '"' + st + '>' + cvEsc(m.text) + '<span class="cv-msg__time" data-time="' + m.at + '"></span></div>';
-        }).join('');
+        };
+        var ms = active.messages || [];
+        var head2 = ms.slice(0, 2).map(msgHTML).join('');
+        var moreBlk = ms.length > 2 ? '<button class="cv-more" type="button" id="cvMore">Ver más</button><div class="cv-thread__rest">' + ms.slice(2).map(msgHTML).join('') + '</div>' : '';
         detail.innerHTML =
           '<div class="cv-detail__head">' +
             '<button class="cv-back" type="button" id="cvBack" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
@@ -1929,9 +1939,11 @@
             '<span class="cv-detail__spacer"></span>' +
             '<span class="cv-status cv-status--' + active.status + '">' + cvStatusEs(active.status) + '</span>' +
           '</div>' +
-          '<div class="cv-thread">' + thread + '</div>';
+          '<div class="cv-thread">' + head2 + moreBlk + '</div>';
         var back = document.getElementById('cvBack');
         if (back) back.addEventListener('click', function(){ cvActiveId = null; renderConversations(); });
+        var more = document.getElementById('cvMore');
+        if (more) more.addEventListener('click', function(){ if (more.parentNode) more.parentNode.classList.add('is-expanded'); });
       }
 
       // fechas relativas (reusa timeAgo de notificaciones)
