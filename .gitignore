@@ -1,0 +1,22 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secretos (nunca al repo)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Supabase CLI (archivos locales temporales)
+supabase/.temp/
+supabase/.branches/
+
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# Editor y logs
+.vscode/
+*.log

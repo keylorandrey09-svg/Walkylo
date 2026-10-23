@@ -1,0 +1,29 @@
+# Walkylet (carpeta y repo: Walkylo)
+
+Nombre anterior: WalkyUp (es el mismo proyecto). El cambio de nombre en textos y el dominio propio se harán más adelante; NO los cambies sin que Keylor lo pida.
+
+## Qué es
+Widget de chat con IA que se instala en cualquier web con una línea de código. Piezas: landing (`index.html`), login (`login/`), panel (`app/`), páginas legales (`legal/`) y el widget instalable (`w.js`). Backend: Supabase.
+
+## Reglas técnicas
+- HTML, CSS y JavaScript vanilla. NO agregar React, Next.js, bundlers ni dependencias sin justificación aprobada por Keylor.
+- Hosting actual: Vercel (`vercel.json` solo tiene cleanUrls). Se migrará a Cloudflare Pages: no introducir nada exclusivo de Vercel.
+- Supabase (tablas, RLS, funciones, Edge Functions) se gestiona en otro chat. Claude Code NO modifica Supabase.
+- Usar rutas absolutas (`/assets/...`) en archivos nuevos.
+
+## Reglas de oro
+1. `w.js` es un contrato público: no moverlo ni renombrarlo, mantenerlo autónomo (sin importar archivos del sitio, usa Shadow DOM) y sin cambios incompatibles.
+2. Nunca secretos en el repo. En el frontend solo van claves públicas (`sb_publishable_...`). Jamás `service_role`, `sb_secret_`, ni llaves de OpenAI o Dodo.
+3. No inventar datos ni promesas comerciales. Hoy el chat del widget NO responde con IA real. Los datos de demostración deben decir que son ilustrativos.
+4. Cada botón o flujo debe funcionar, o no existir.
+5. Marca: azul #0164FD. El verde se usa solo para estados confirmados.
+
+## Cómo trabajar con Keylor
+- Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
+- Un cambio pequeño por vez, siempre en una rama. Nunca commit directo a main. No hacer push salvo que Keylor lo pida.
+- Antes de editar, explicá qué vas a cambiar y por qué. Después, listá los archivos tocados y cómo probar el cambio.
+- Para cambios grandes, proponé primero un plan y esperá aprobación.
+- Nada destructivo (borrar archivos, reset --hard, force push) sin confirmación explícita.
+
+## Calidad mínima en cada cambio
+Formularios con estado de carga, error útil y confirmación; etiquetas, foco visible y buen contraste; diseño pensado primero para móvil.
