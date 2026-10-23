@@ -27,3 +27,14 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 
 ## Calidad mínima en cada cambio
 Formularios con estado de carga, error útil y confirmación; etiquetas, foco visible y buen contraste; diseño pensado primero para móvil.
+
+## Panel y rutas
+- El panel (`app/index.html`) es una sola página con vistas. Decide qué vista mostrar SOLO leyendo `location.pathname`. Nunca uses el hash ni el query para elegir vista: Supabase los usa para confirmación de correo y supabase-js debe procesarlos solo. Única excepción: convertir `/app#<id-de-vista>` a su ruta nueva.
+- Rutas: `/app` (resumen), `/app/conversaciones`, `/app/widget`, `/app/analiticas`, `/app/notificaciones` y `/app/configuracion` (la vista interna se llama "config").
+- `vercel.json` tiene un rewrite `{ "/app/:path*" → "/app" }` y dos redirects que ocultan CLAUDE.md y README.md del sitio público. Si se migra a Cloudflare Pages hay que traducir ambos a su formato (`_redirects` o similar) y probarlos, o sacar esos archivos del sitio publicado.
+- La recuperación de contraseña vuelve a `/login`, no a `/app`.
+
+## Flujo de trabajo y pendientes
+- Todo cambio va en una rama, con Pull Request y vista previa de Vercel antes de unir a main. Probar en la vista previa antes de unir.
+- Carpeta de trabajo local: `C:\dev\Walkylo` (fuera de OneDrive).
+- Pendientes conocidos (NO implementar sin que Keylor lo pida): cambio de nombre a Walkylet en textos, dominio propio, corregir el snippet de la landing (hoy apunta a `walkyup.app/widget.js`, que no corresponde al archivo real `w.js`), conectar la IA real al widget (hoy responde un mensaje fijo), CSS compartido (`brand.css`) y respaldo del backend de Supabase en el repo.
