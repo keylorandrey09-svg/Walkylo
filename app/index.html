@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>WalkyUp — Panel</title>
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -567,28 +568,28 @@
       <span class="wa-brand"><svg class="wa-mark" viewBox="0 0 643 341" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></svg><span>alkyUp</span></span>
 
       <nav class="wa-nav" id="nav">
-        <a data-view="resumen" data-label="Resumen" class="is-active">
+        <a href="/app" data-view="resumen" data-label="Resumen" class="is-active">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           Resumen
         </a>
-        <a data-view="conversaciones" data-label="Conversaciones">
+        <a href="/app/conversaciones" data-view="conversaciones" data-label="Conversaciones">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
           Conversaciones
         </a>
-        <a data-view="widget" data-label="Widget">
+        <a href="/app/widget" data-view="widget" data-label="Widget">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
           Widget
         </a>
-        <a data-view="analiticas" data-label="Analíticas">
+        <a href="/app/analiticas" data-view="analiticas" data-label="Analíticas">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="9" rx="1"/><rect x="17" y="5" width="3" height="12" rx="1"/></svg>
           Analíticas
         </a>
-        <a data-view="notificaciones" data-label="Notificaciones" id="navNoti">
+        <a href="/app/notificaciones" data-view="notificaciones" data-label="Notificaciones" id="navNoti">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           Notificaciones
           <span class="wa-dot"></span>
         </a>
-        <a data-view="config" data-label="Configuración">
+        <a href="/app/configuracion" data-view="config" data-label="Configuración">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M20.80 10.13 L20.80 13.87 L18.66 14.16 L17.20 16.68 L18.02 18.69 L14.78 20.56 L13.46 18.85 L10.54 18.85 L9.22 20.56 L5.98 18.69 L6.80 16.68 L5.34 14.16 L3.20 13.87 L3.20 10.13 L5.34 9.84 L6.80 7.32 L5.98 5.31 L9.22 3.44 L10.54 5.15 L13.46 5.15 L14.78 3.44 L18.02 5.31 L17.20 7.32 L18.66 9.84 Z"/><circle cx="12" cy="12" r="2.9"/></svg>
           Configuración
         </a>
@@ -1261,10 +1262,14 @@
         if (a.getAttribute("data-action") === "logout"){ e.preventDefault(); wuLogout(); return; }
         var view = a.getAttribute("data-view");
         if (!view) return; /* Cerrar sesión: link real */
+        // Abrir en pestaña nueva (Ctrl/Cmd/Shift o botón del medio): no interceptar.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();
         setActive(a);
         showView(view, a.getAttribute("data-label"));
-        try { history.replaceState(null, '', location.pathname + '#' + view); } catch(e){ try { location.hash = view; } catch(e2){} }
+        var path = WU_VIEW_TO_PATH[view] || '/app';
+        try { history.pushState(null, '', path); } catch(err){}
+        wuSetTitle(view, a);
         setSidebar(false);
       });
     });
@@ -2313,15 +2318,74 @@
       });
     })();
 
-    // Restaurar la vista según el hash de la URL (recargar te deja donde estabas).
-    function goToViewFromHash(){
-      var v = (location.hash || '').replace('#','');
-      if (!v) return;
-      var link = nav.querySelector('a[data-view="' + v + '"]');
-      if (link){ setActive(link); showView(v, link.getAttribute('data-label')); }
+    /* ---------- Router por ruta (pathname) ----------
+       El router decide la vista SOLO leyendo location.pathname. Nunca usamos
+       el hash ni el query para elegir vista: Supabase los usa para confirmación
+       y recuperación de contraseña, y supabase-js debe seguir procesándolos solo. */
+    // Tabla de equivalencias vista <-> ruta.
+    var WU_VIEW_TO_PATH = {
+      resumen: '/app',
+      conversaciones: '/app/conversaciones',
+      widget: '/app/widget',
+      analiticas: '/app/analiticas',
+      notificaciones: '/app/notificaciones',
+      config: '/app/configuracion'
+    };
+    var WU_PATH_TO_VIEW = {
+      '/app': 'resumen',
+      '/app/conversaciones': 'conversaciones',
+      '/app/widget': 'widget',
+      '/app/analiticas': 'analiticas',
+      '/app/notificaciones': 'notificaciones',
+      '/app/configuracion': 'config'
+    };
+    // Sufijo actual del título (" — Panel"): solo cambia la parte inicial.
+    var WU_TITLE_SUFFIX = (function(){
+      var t = document.title || '';
+      var i = t.indexOf(' — ');
+      return i !== -1 ? t.slice(i) : '';
+    })();
+    function wuNormalizePath(p){
+      p = p || '/app';
+      if (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1);
+      return p;
     }
-    goToViewFromHash();
-    window.addEventListener('hashchange', goToViewFromHash);
+    function wuViewFromPath(){
+      return WU_PATH_TO_VIEW[wuNormalizePath(location.pathname)];
+    }
+    function wuSetTitle(view, link){
+      var label = (link && link.getAttribute('data-label')) || '';
+      if (label) document.title = label + WU_TITLE_SUFFIX;
+    }
+    // Pinta la vista según la ruta actual. Ruta desconocida bajo /app -> Resumen.
+    function wuRouteFromLocation(){
+      var view = wuViewFromPath();
+      if (!view){
+        view = 'resumen';
+        try { history.replaceState(null, '', WU_VIEW_TO_PATH.resumen); } catch(e){}
+      }
+      var link = nav.querySelector('a[data-view="' + view + '"]');
+      if (link){ setActive(link); showView(view, link.getAttribute('data-label')); }
+      else { showView(view); }
+      wuSetTitle(view, link);
+    }
+    // Carga inicial: compatibilidad con los enlaces viejos /app#vista.
+    function wuInitRoute(){
+      var p = wuNormalizePath(location.pathname);
+      var h = location.hash || '';
+      if (p === '/app' && h.length > 1){
+        var hv = h.slice(1); // hash sin '#'
+        // Solo si el hash es EXACTAMENTE el id de una vista conocida.
+        if (WU_VIEW_TO_PATH.hasOwnProperty(hv)){
+          try { history.replaceState(null, '', WU_VIEW_TO_PATH[hv]); } catch(e){}
+        }
+        // Cualquier otro hash (#access_token=...) no se toca: lo procesa supabase-js.
+      }
+      wuRouteFromLocation();
+    }
+    wuInitRoute();
+    // Atrás/adelante del navegador: volver a derivar la vista del pathname.
+    window.addEventListener('popstate', wuRouteFromLocation);
 
     /* ============================================================
        CARGA REAL DESDE SUPABASE (fuente de verdad). Reemplaza al
@@ -2334,7 +2398,7 @@
     }
 
     function wuRenderCurrent(){
-      var current = (location.hash || '#resumen').replace('#','') || 'resumen';
+      var current = wuViewFromPath() || 'resumen';
       if (current === 'config') renderConfig();
       else if (current === 'widget') renderWidget();
       else if (current === 'conversaciones') renderConversations();
@@ -2477,7 +2541,7 @@
     // Al volver a la pestaña, refrescar eventos si estás en Analíticas
     document.addEventListener('visibilitychange', function(){
       if (document.visibilityState === 'visible' && window.__wuUser){
-        wuLoadEvents().then(function(){ if ((location.hash || '').indexOf('analiticas') !== -1) renderAnalytics(); });
+        wuLoadEvents().then(function(){ if (wuViewFromPath() === 'analiticas') renderAnalytics(); });
       }
     });
   })();

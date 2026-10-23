@@ -1,5 +1,8 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/app/:path*", "destination": "/app" }
+  ],
   "redirects": [
     { "source": "/CLAUDE.md", "destination": "/", "permanent": false },
     { "source": "/README.md", "destination": "/", "permanent": false }
