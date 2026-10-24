@@ -6,8 +6,32 @@
 (function () {
   "use strict";
 
+  // ---- Textos del estado vacío (editables) ----
+  // Rotan solos cada ~4 s en el estado vacío, al azar sin repetir el anterior.
+  var EMPTY_TITLES = [
+    "Preguntá lo que quieras",
+    "Obtener ayuda de nuestro equipo IA",
+    "¿En qué podemos ayudarte hoy?",
+    "Escribí tu consulta",
+    "¿Tenés alguna duda?",
+    "Estamos para ayudarte"
+  ];
+
+  // ---- Fotos adjuntas (lado navegador, sin red) ----
+  // Beta activa. Antes de lanzar a clientes definir el lado servidor o volver a false
+  // (ver CLAUDE.md > "Pendientes antes de lanzar a clientes").
+  var ATTACHMENTS_ENABLED = true;
+  var ATT_MAX = 4;                 // cantidad máxima de fotos
+  var ATT_MAX_MB = 5;              // tamaño máximo por foto
+  var ATT_MAX_PX = 1600;          // lado mayor tras reducir
+  var ATT_QUALITY = 0.8;           // calidad del canvas
+  var ATT_TYPES = { "image/jpeg": 1, "image/png": 1, "image/webp": 1 };
+
   var SUPA_URL = "https://ejbtgkvlrkecnslpapyd.supabase.co";
   var SUPA_KEY = "sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";
+
+  // Texto de espera actual (la IA real se conecta en la Fase 8). No inventar respuestas.
+  var PENDING_REPLY = "¡Gracias por tu mensaje! El asistente estará disponible muy pronto.";
 
   // ---- 1) Encontrar el script y su data-id ----
   var me = document.currentScript;
@@ -20,6 +44,7 @@
   var dataId = me && me.getAttribute("data-id");
   if (!dataId || dataId === "TU_ID") { console.warn("[WalkyUp] Falta data-id en el <script>."); return; }
   var launcher = ((me && me.getAttribute("data-launcher")) || "").toLowerCase();
+  if ((me && (me.getAttribute("data-beta") || "").toLowerCase() === "attachments")) ATTACHMENTS_ENABLED = true;
   if (window.__walkyupLoaded) { return; } window.__walkyupLoaded = true;
 
   // ---- 2) Traer la config pública del widget ----
@@ -52,16 +77,17 @@
   // ---- 3) Dibujar el widget (aislado con Shadow DOM) ----
   function render(cfg) {
     var name = cfg.name || "Asistente";
-    var accent = cfg.accent || "#0164FD";
     var welcome = cfg.welcome || "¡Hola! ¿En qué te puedo ayudar?";
     var avatar = cfg.avatar || "";
+    var accent = cfg.accent || "";       // color del cliente: por ahora NO se aplica (ver resumen)
     var email = cfg.contact_email || "";
     var privacy = cfg.privacy_url || "";
     var lang = (cfg.language || "es").toLowerCase().slice(0, 2);
-    var RESET_LABEL = { es: "Reiniciar", en: "Restart", pt: "Reiniciar" }[lang] || "Reiniciar";
+    var reduceMotion = false;
+    try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
 
     var isImg = !!avatar && (avatar.indexOf("data:") === 0 || /^https?:\/\//.test(avatar));
-    var spark = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>';
+    var spark = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg>';
     var avaInner = isImg ? '<img src="' + esc(avatar) + '" alt="">' : spark;
 
     var host = document.createElement("div");
@@ -73,88 +99,162 @@
     root.innerHTML =
       '<style>' + CSS + '</style>' +
       '<button class="fab" part="fab" aria-label="Abrir chat">' + avaInner + '</button>' +
-      '<div class="panel" data-theme="dark" aria-hidden="true">' +
+      '<div class="panel" data-theme="dark" role="dialog" aria-modal="true" aria-label="Chat de ' + esc(name) + '" aria-hidden="true">' +
         '<div class="head">' +
-          '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
+          '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
           '<span class="ava sm">' + avaInner + '</span>' +
           '<span class="nm"></span>' +
           '<span class="sp"></span>' +
-          '<button class="reset" aria-label="Reiniciar chat"></button>' +
-          '<button class="ico close" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
+          '<button class="ico newchat" aria-label="Nuevo chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
+          '<button class="ico close" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
         '</div>' +
         '<div class="body">' +
-          '<div class="intro"><span class="ava lg">' + avaInner + '</span><h2 class="nm2"></h2>' +
-            '<p>Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p></div>' +
-          '<div class="day">Hoy</div><div class="msgs"></div>' +
+          '<div class="hero"><h2 class="herotitle"></h2></div>' +
+          '<div class="msgs"></div>' +
+          '<div class="typing" role="status" aria-live="polite" hidden><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="sr">Escribiendo…</span></div>' +
         '</div>' +
-        '<div class="inputbar"><input class="inp" type="text" placeholder="Escribí tu mensaje…" autocomplete="off"/>' +
-          '<button class="send" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>' +
-        '<div class="foot">AI Agent powered by · <a href="https://walkyup.app" target="_blank" rel="noopener">Walkylet</a></div>' +
+        '<div class="composer-wrap">' +
+          '<div class="composer">' +
+            '<div class="thumbs" hidden></div>' +
+            '<textarea class="ta" rows="1" placeholder="Escribí tu mensaje…" aria-label="Escribí tu mensaje"></textarea>' +
+            '<button class="plus" aria-label="Agregar fotos"' + (ATTACHMENTS_ENABLED ? '' : ' hidden') + '><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>' +
+            '<button class="send" aria-label="Enviar" disabled><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span class="sqr" aria-hidden="true"></span></button>' +
+            '<input class="fileinp" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />' +
+          '</div>' +
+          '<div class="atterr" role="alert" hidden></div>' +
+          '<div class="foot"><p class="disc">Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p></div>' +
+        '</div>' +
         '<div class="scrim"></div>' +
-        '<div class="sheet"><div class="shead"><b>Ajustes</b><button class="sx" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>' +
-          '<a class="row mail"><svg class="rico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>' +
+        '<div class="sheet"><div class="shead"><b>Ajustes</b><button class="sx" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>' +
+          '<a class="row mail"><svg class="rico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>' +
           '<div class="row">Tema<span class="sp"></span><span class="themeseg"><button data-theme="light">Claro</button><button data-theme="dark" class="on">Oscuro</button></span></div>' +
           '<div class="sfoot">© 2026 · <a class="priv" target="_blank" rel="noopener">Privacidad</a></div></div>' +
+        '<div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="wu-cf-t" aria-describedby="wu-cf-d" hidden>' +
+          '<div class="confirm-scrim"></div>' +
+          '<div class="confirm-box">' +
+            '<h3 class="confirm-t" id="wu-cf-t">¿Crear un chat nuevo?</h3>' +
+            '<p class="confirm-d" id="wu-cf-d">La conversación actual se borrará.</p>' +
+            '<div class="confirm-btns"><button class="btn-sec cf-cancel">Cancelar</button><button class="btn-pri cf-ok">Listo</button></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="viewer" role="dialog" aria-modal="true" aria-label="Imagen adjunta" hidden>' +
+          '<div class="viewer-scrim"></div>' +
+          '<button class="viewer-x" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
+          '<button class="viewer-nav viewer-prev" aria-label="Imagen anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>' +
+          '<img class="viewer-img" alt="">' +
+          '<button class="viewer-nav viewer-next" aria-label="Imagen siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>' +
+        '</div>' +
       '</div>';
 
-    // Aplicar config
+    // Atajos
     var $ = function (s) { return root.querySelector(s); };
     var $$ = function (s) { return root.querySelectorAll(s); };
-    $(".fab").style.background = accent;
+
     var panel = $(".panel");
-    panel.style.setProperty("--accent", accent);
     $(".nm").textContent = name;
-    $(".nm2").textContent = name;
-    $(".reset").textContent = RESET_LABEL;
+
+    // Avatar: fondo neutro (sin color de marca); si es imagen, mostrarla
+    Array.prototype.forEach.call($$(".ava, .fab"), function (a) { if (isImg) a.classList.add("isimg"); });
+
+    // Tema (se lee de localStorage y, si no, de la config del panel)
     var THEME_KEY = "wu_theme_" + dataId;
     var savedTheme = null; try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
     var theme = (savedTheme === "light" || savedTheme === "dark") ? savedTheme : ((cfg.theme === "light") ? "light" : "dark");
     panel.setAttribute("data-theme", theme);
     Array.prototype.forEach.call($$(".themeseg button"), function (b) { b.classList.toggle("on", b.getAttribute("data-theme") === theme); });
-    Array.prototype.forEach.call($$(".ava"), function (a) { if (!isImg) a.style.background = accent; else a.style.background = "transparent"; });
+
     var mail = $(".mail"); if (email) mail.setAttribute("href", "mailto:" + email); else mail.style.display = "none";
     var priv = $(".priv"); if (privacy) priv.setAttribute("href", privacy); else priv.parentNode.style.display = "none";
 
-    // Persistencia por pestaña: sobrevive recargas, se borra al cerrar la pestaña.
-    var msgs = $(".msgs"), body = $(".body");
+    // ---- Persistencia por pestaña: sobrevive recargas, se borra al cerrar ----
+    var msgs = $(".msgs"), body = $(".body"), hero = $(".hero"), heroTitle = $(".herotitle");
     var STORE_KEY = "wu_chat_" + dataId;
     var hist = [];
     try { hist = JSON.parse(sessionStorage.getItem(STORE_KEY)) || []; } catch (e) { hist = []; }
     function persist() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(hist)); } catch (e) {} }
 
-    // Bienvenida (no se guarda) + historial de esta sesión
-    msgs.appendChild(bubble(welcome, false, null));
-    hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, m.t)); });
+    // Bienvenida (no se guarda) como primer mensaje del asistente + historial
+    msgs.appendChild(bubble(welcome, false));
+    hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, m.a)); });
 
-    function bubble(text, out, time) {
+    function userMsgCount() { for (var k = 0; k < hist.length; k++) { if (hist[k].o) return 1; } return 0; }
+
+    // ---- Estado vacío: título grande que rota ----
+    var lastTitleIdx = -1;
+    function pickTitle() {
+      if (EMPTY_TITLES.length <= 1) return 0;
+      var n; do { n = Math.floor(Math.random() * EMPTY_TITLES.length); } while (n === lastTitleIdx);
+      lastTitleIdx = n; return n;
+    }
+    heroTitle.textContent = EMPTY_TITLES[pickTitle()];
+    var titleTimer = null;
+    function startTitles() {
+      if (reduceMotion || titleTimer) return;
+      titleTimer = setInterval(function () {
+        heroTitle.classList.add("fade");
+        setTimeout(function () { heroTitle.textContent = EMPTY_TITLES[pickTitle()]; heroTitle.classList.remove("fade"); }, 240);
+      }, 4000);
+    }
+    function stopTitles() { if (titleTimer) { clearInterval(titleTimer); titleTimer = null; } }
+    function syncHero() {
+      var empty = userMsgCount() === 0;
+      panel.classList.toggle("has-hero", empty);
+      if (empty) startTitles(); else stopTitles();
+    }
+    syncHero();
+
+    // ---- Burbujas / texto ----
+    function bubble(text, out, atts) {
       var el = document.createElement("div");
       el.className = "msg " + (out ? "out" : "in");
-      el.appendChild(document.createTextNode(text));
-      var t = document.createElement("span"); t.className = "t"; t.textContent = time || hhmm(); el.appendChild(t);
+      if (atts && atts.length) {
+        var g = document.createElement("div"); g.className = "msg-atts";
+        atts.forEach(function (src, i) {
+          var im = document.createElement("img"); im.src = src; im.alt = "Imagen adjunta " + (i + 1) + " de " + atts.length;
+          im.setAttribute("role", "button"); im.setAttribute("tabindex", "0");
+          im.onerror = function () { im.style.display = "none"; };
+          im.addEventListener("click", function () { openViewer(atts, i, im); });
+          im.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openViewer(atts, i, im); } });
+          g.appendChild(im);
+        });
+        el.appendChild(g);
+      }
+      if (text) { var tx = document.createElement("div"); tx.className = "tx"; tx.textContent = text; el.appendChild(tx); }
       return el;
     }
     function scroll() { body.scrollTop = body.scrollHeight; }
 
-    // Abrir / cerrar
+    // ---- Abrir / cerrar ----
     var hideFab = (launcher === "none" || launcher === "off");
-    if (hideFab) $(".fab").style.display = "none";
+    var fab = $(".fab");
+    if (hideFab) fab.style.display = "none";
+    var lastFocus = null;
     function onOutside(e) {
-      if (host.contains(e.target)) return; // clic dentro del widget (Shadow DOM retargetea al host)
-      if (e.target && e.target.closest && e.target.closest("[data-walkyup-open]")) return; // el propio disparador no cierra
+      if (host.contains(e.target)) return;
+      if (e.target && e.target.closest && e.target.closest("[data-walkyup-open]")) return;
       close();
     }
-    function onEsc(e) { if (e.key === "Escape" || e.key === "Esc") close(); }
+    function onEsc(e) {
+      if (e.key !== "Escape" && e.key !== "Esc") return;
+      if (viewerEl && !viewerEl.hidden) { closeViewer(); return; }
+      if (confirmEl && !confirmEl.hidden) { cancelConfirm(); return; }
+      if (panel.classList.contains("sheet-open")) { panel.classList.remove("sheet-open"); return; }
+      close();
+    }
     function open() {
-      panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); $(".fab").style.display = "none";
-      setTimeout(function () { scroll(); document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc); }, 0);
-      setTimeout(function () { $(".inp").focus(); scroll(); }, 250);
+      lastFocus = document.activeElement;
+      panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); fab.style.display = "none";
+      setTimeout(function () { autogrow(); scroll(); document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc); }, 0);
+      setTimeout(function () { ta.focus(); autogrow(); scroll(); }, 250);
     }
     function close() {
-      panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); $(".fab").style.display = hideFab ? "none" : "";
+      panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); fab.style.display = hideFab ? "none" : "";
       document.removeEventListener("click", onOutside); document.removeEventListener("keydown", onEsc);
+      var back = (!hideFab) ? fab : lastFocus;
+      try { if (back && back.focus) back.focus(); } catch (e) {}
     }
     function toggle() { panel.classList.contains("open") ? close() : open(); }
-    $(".fab").addEventListener("click", open);
+    fab.addEventListener("click", open);
     $(".close").addEventListener("click", close);
 
     // API pública: el dueño abre el chat desde su propio botón, donde quiera.
@@ -164,23 +264,129 @@
       if (t) { e.preventDefault(); open(); }
     });
 
-    // Enviar (sin IA todavía: respuesta de espera, honesta)
-    var inp = $(".inp");
-    function send() {
-      var v = inp.value.trim(); if (!v) return;
-      var tu = hhmm();
-      msgs.appendChild(bubble(v, true, tu)); hist.push({ x: v, o: 1, t: tu }); persist();
-      inp.value = ""; scroll();
-      setTimeout(function () {
-        var ta = hhmm(), r = "¡Gracias por tu mensaje! El asistente estará disponible muy pronto.";
-        msgs.appendChild(bubble(r, false, ta)); hist.push({ x: r, o: 0, t: ta }); persist();
-        scroll();
-      }, 700);
-    }
-    $(".send").addEventListener("click", send);
-    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
+    // ---- Campo de texto (autogrow hasta ~5 líneas) ----
+    var ta = $(".ta"), sendBtn = $(".send"), typing = $(".typing");
+    function autogrow() { ta.style.height = "auto"; var h = Math.min(ta.scrollHeight, 132); ta.style.height = h + "px"; ta.style.overflowY = (ta.scrollHeight > 132) ? "auto" : "hidden"; }
+    function canSend() { return ta.value.trim().length > 0 || attachments.length > 0; }
+    function syncSend() { if (state === "idle") sendBtn.disabled = !canSend(); }
+    ta.addEventListener("input", function () { autogrow(); syncSend(); });
+    ta.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (state === "idle") send(); }
+    });
 
-    // Menú de ajustes
+    // ---- Máquina de estados: idle | thinking | responding ----
+    var state = "idle";
+    var pendingTimer = null;
+    var ctrl = null; // AbortController para la Fase 8 (fetch/stream real)
+    function setState(s) {
+      state = s;
+      var busy = (s !== "idle");
+      sendBtn.classList.toggle("busy", busy);
+      sendBtn.setAttribute("aria-label", busy ? "Detener" : "Enviar");
+      typing.hidden = (s !== "thinking");
+      if (busy) { sendBtn.disabled = false; } else { syncSend(); }
+      if (s === "thinking") scroll();
+    }
+
+    function send() {
+      if (!canSend()) return;
+      var v = ta.value.trim();
+      var atts = attachments.map(function (a) { return a.url; });
+      // Mostrar el mensaje del usuario (texto y/o fotos, solo local)
+      msgs.appendChild(bubble(v, true, atts));
+      hist.push({ x: v, o: 1, a: atts }); persist();
+      // TODO Fase 8: onSendAttachments(attachments) -> subir/enviar al backend (hoy NO hay red)
+      clearAttachments();
+      ta.value = ""; autogrow(); syncHero(); scroll();
+
+      setState("thinking");
+      try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
+      // Hoy la respuesta es fija: simulamos ~1,2 s de "pensando" para ver los estados.
+      pendingTimer = setTimeout(function () {
+        setState("responding");
+        var r = PENDING_REPLY;
+        msgs.appendChild(bubble(r, false)); hist.push({ x: r, o: 0 }); persist();
+        scroll();
+        setState("idle");
+        ta.focus();
+      }, 1200);
+    }
+
+    function stop() {
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+      try { if (ctrl) ctrl.abort(); } catch (e) {}
+      ctrl = null;
+      // Se conserva lo ya mostrado (marcado como detenido si había texto parcial).
+      var last = msgs.querySelector(".msg.in:last-child .tx");
+      if (state === "responding" && last && last.textContent) {
+        var tag = document.createElement("span"); tag.className = "stopped"; tag.textContent = " (detenido)"; last.appendChild(tag);
+      }
+      setState("idle");
+      ta.focus();
+    }
+
+    sendBtn.addEventListener("click", function () { if (state === "idle") send(); else stop(); });
+
+    // ---- Fotos (+): solo lado navegador, apagado en producción ----
+    var attachments = []; // { url, blob }
+    var fileInp = $(".fileinp"), thumbs = $(".thumbs"), atterr = $(".atterr");
+    function showAttErr(msg) { if (!atterr) return; atterr.textContent = msg; atterr.hidden = false; setTimeout(function () { atterr.hidden = true; }, 3500); }
+    function renderThumbs() {
+      thumbs.innerHTML = "";
+      attachments.forEach(function (a, idx) {
+        var t = document.createElement("div"); t.className = "thumb";
+        var im = document.createElement("img"); im.src = a.url; im.alt = "";
+        var x = document.createElement("button"); x.className = "thumbx"; x.setAttribute("aria-label", "Quitar foto " + (idx + 1));
+        x.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+        x.addEventListener("click", function () { removeAttachment(idx); });
+        t.appendChild(im); t.appendChild(x); thumbs.appendChild(t);
+      });
+      thumbs.hidden = attachments.length === 0;
+      syncSend();
+    }
+    function removeAttachment(idx) {
+      var a = attachments[idx]; if (!a) return;
+      try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {}
+      attachments.splice(idx, 1); renderThumbs();
+    }
+    function clearAttachments() {
+      attachments.forEach(function (a) { try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {} });
+      attachments = []; renderThumbs();
+    }
+    function downscale(file, cb) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var w = img.width, h = img.height, scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
+        var cw = Math.round(w * scale), ch = Math.round(h * scale);
+        try {
+          var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+          cv.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          cv.toBlob(function (blob) {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+            if (!blob) { cb(null); return; }
+            cb({ url: URL.createObjectURL(blob), blob: blob });
+          }, "image/jpeg", ATT_QUALITY);
+        } catch (e) { try { URL.revokeObjectURL(url); } catch (_) {} cb({ url: URL.createObjectURL(file), blob: file }); }
+      };
+      img.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) {} cb(null); };
+      img.src = url;
+    }
+    if (ATTACHMENTS_ENABLED) {
+      $(".plus").addEventListener("click", function () { fileInp.click(); });
+      fileInp.addEventListener("change", function () {
+        var files = Array.prototype.slice.call(fileInp.files || []);
+        fileInp.value = "";
+        files.forEach(function (f) {
+          if (attachments.length >= ATT_MAX) { showAttErr("Hasta " + ATT_MAX + " fotos."); return; }
+          if (!ATT_TYPES[f.type]) { showAttErr("Solo JPG, PNG o WEBP."); return; }
+          if (f.size > ATT_MAX_MB * 1024 * 1024) { showAttErr("Cada foto hasta " + ATT_MAX_MB + " MB."); return; }
+          downscale(f, function (a) { if (!a) { showAttErr("No se pudo procesar esa foto."); return; } if (attachments.length >= ATT_MAX) { try { URL.revokeObjectURL(a.url); } catch (e) {} return; } attachments.push(a); renderThumbs(); });
+        });
+      });
+    }
+
+    // ---- Menú de ajustes ----
     $(".menu").addEventListener("click", function () { panel.classList.add("sheet-open"); });
     $(".sx").addEventListener("click", function () { panel.classList.remove("sheet-open"); });
     $(".scrim").addEventListener("click", function () { panel.classList.remove("sheet-open"); });
@@ -192,62 +398,189 @@
       Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); });
     });
 
-    // Reiniciar: borra el historial de esta sesión y vuelve al inicio
-    $(".reset").addEventListener("click", function () {
+    // ---- Foco atrapado (Tab) dentro de un diálogo del widget ----
+    function focusables(el) {
+      return Array.prototype.slice.call(el.querySelectorAll('button,[href],input,textarea,[tabindex]:not([tabindex="-1"])'))
+        .filter(function (n) { return !n.disabled && !n.hidden && n.getClientRects().length; });
+    }
+    function trap(el, e) {
+      if (e.key !== "Tab") return;
+      var f = focusables(el); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1], cur = root.activeElement;
+      if (e.shiftKey && cur === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && cur === last) { e.preventDefault(); first.focus(); }
+    }
+
+    // ---- Visor de imágenes (dentro del widget, nunca sobre la página) ----
+    var viewerEl = $(".viewer"), viewerImg = $(".viewer-img"), viewerPrev = $(".viewer-prev"), viewerNext = $(".viewer-next");
+    var viewerList = [], viewerIdx = 0, viewerReturn = null;
+    function showViewerImg() {
+      viewerImg.src = viewerList[viewerIdx];
+      viewerImg.alt = "Imagen adjunta " + (viewerIdx + 1) + " de " + viewerList.length;
+      var multi = viewerList.length > 1;
+      viewerPrev.hidden = !multi; viewerNext.hidden = !multi;
+    }
+    function openViewer(list, idx, returnTo) {
+      viewerList = list.slice(); viewerIdx = idx || 0; viewerReturn = returnTo || null;
+      showViewerImg();
+      viewerEl.hidden = false;
+      setTimeout(function () { $(".viewer-x").focus(); }, 0);
+    }
+    function closeViewer() {
+      viewerEl.hidden = true;
+      try { if (viewerReturn && viewerReturn.focus) viewerReturn.focus(); } catch (e) {}
+    }
+    function viewerStep(d) { if (viewerList.length < 2) return; viewerIdx = (viewerIdx + d + viewerList.length) % viewerList.length; showViewerImg(); }
+    $(".viewer-x").addEventListener("click", closeViewer);
+    $(".viewer-scrim").addEventListener("click", closeViewer);
+    viewerPrev.addEventListener("click", function () { viewerStep(-1); });
+    viewerNext.addEventListener("click", function () { viewerStep(1); });
+    viewerEl.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); viewerStep(-1); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); viewerStep(1); }
+      else trap(viewerEl, e);
+    });
+
+    // ---- Nuevo chat con confirmación ----
+    function doNewChat() {
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+      try { if (ctrl) ctrl.abort(); } catch (e) {} ctrl = null;
+      setState("idle");
       hist = []; persist();
       msgs.innerHTML = "";
-      msgs.appendChild(bubble(welcome, false, null));
-      scroll();
-    });
+      msgs.appendChild(bubble(welcome, false));
+      clearAttachments();
+      lastTitleIdx = -1; heroTitle.textContent = EMPTY_TITLES[pickTitle()];
+      syncHero(); scroll();
+    }
+    var confirmEl = $(".confirm"), cfCancel = $(".cf-cancel"), cfOk = $(".cf-ok"), cfReturn = null;
+    function openConfirm() { cfReturn = root.activeElement; confirmEl.hidden = false; setTimeout(function () { cfCancel.focus(); }, 0); }
+    function cancelConfirm() { confirmEl.hidden = true; try { if (cfReturn && cfReturn.focus) cfReturn.focus(); } catch (e) {} ta.focus(); }
+    $(".newchat").addEventListener("click", openConfirm);
+    cfCancel.addEventListener("click", cancelConfirm);
+    $(".confirm-scrim").addEventListener("click", cancelConfirm);
+    cfOk.addEventListener("click", function () { confirmEl.hidden = true; doNewChat(); ta.focus(); });
+    confirmEl.addEventListener("keydown", function (e) { trap(confirmEl, e); });
+
+    autogrow();
   }
 
-  function hhmm() { var d = new Date(); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
   function esc(s) { return String(s).replace(/"/g, "&quot;"); }
 
   var CSS =
     ':host{all:initial;}' +
-    '*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}' +
-    '.fab{position:fixed;right:20px;bottom:20px;width:48px;height:48px;border:0;border-radius:15px;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.26);overflow:hidden;}' +
-    '.fab img{width:100%;height:100%;object-fit:cover;} .fab svg{width:22px;height:22px;}' +
-    '.panel{--accent:#0164FD;--bg:#0e0f12;--surface:#17181c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.09);--in:#1e2025;' +
-      'position:fixed;right:0;top:0;bottom:0;width:400px;max-width:100vw;height:100vh;height:100dvh;background:var(--bg);color:var(--ink);' +
-      'border:0;border-left:1px solid var(--line);border-radius:0;overflow:hidden;display:none;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.30);}' +
-    '.panel.open{display:flex;animation:wu-slide .26s cubic-bezier(.4,0,.2,1);}' +
-    '.panel[data-theme=light]{--bg:#fff;--surface:#fff;--ink:#0a0a0a;--ink2:#5b6472;--line:#ececf1;--in:#f2f4f7;}' +
-    '@keyframes wu-slide{from{transform:translateX(100%)}to{transform:none}}' +
-    '.head{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--line);}' +
-    '.ava{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;}' +
-    '.ava img{width:100%;height:100%;object-fit:cover;} .ava svg{width:60%;height:60%;} .ava.lg{width:74px;height:74px;} .ava.lg svg{width:56%;height:56%;}' +
-    '.nm{font-weight:700;font-size:.96rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sp{margin-left:auto;}' +
-    '.ico{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;}' +
-    '.ico svg{width:17px;height:17px;}' +
-    '.reset{border:1px solid var(--line);background:none;color:var(--ink2);border-radius:9px;padding:6px 11px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}' +
-    '.reset:hover{color:var(--ink);border-color:var(--accent);}' +
-    '.body{flex:1;overflow-y:auto;padding:22px 15px 6px;display:flex;flex-direction:column;scrollbar-width:none;-ms-overflow-style:none;}' +
-    '.body::-webkit-scrollbar{width:0;height:0;display:none;}' +
-    '.intro{text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;}' +
-    '.intro h2{margin:2px 0 0;font-size:1.15rem;font-weight:800;} .intro p{margin:0;font-size:.82rem;line-height:1.5;color:var(--ink2);max-width:290px;}' +
-    '.day{align-self:center;font-size:.73rem;color:var(--ink2);margin:20px 0 12px;}' +
-    '.msgs{display:flex;flex-direction:column;gap:9px;}' +
-    '.msg{max-width:82%;padding:9px 12px;border-radius:15px;font-size:.88rem;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;}' +
-    '.msg .t{display:block;font-size:.64rem;margin-top:4px;opacity:.6;}' +
-    '.in{align-self:flex-start;background:var(--in);border-bottom-left-radius:5px;color:var(--ink);}' +
-    '.out{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px;}' +
-    '.inputbar{display:flex;align-items:center;gap:7px;padding:11px;border-top:1px solid var(--line);}' +
-    '.inp{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 13px;font-size:.9rem;outline:none;}' +
-    '.inp::placeholder{color:var(--ink2);} .inp:focus{border-color:var(--accent);}' +
-    '.send{width:42px;height:42px;flex-shrink:0;border:0;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;} .send svg{width:19px;height:19px;}' +
-    '.foot{text-align:center;font-size:.7rem;color:var(--ink2);padding:0 0 10px;} .foot a{color:var(--ink2);text-decoration:none;font-weight:600;}' +
+    '*{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}' +
+    '.panel button:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink2);}' +
+    '.ta:focus{outline:none;}' +
+    // ----- Launcher -----
+    '.fab{position:fixed;right:20px;bottom:20px;width:52px;height:52px;border:0;border-radius:16px;cursor:pointer;display:grid;place-items:center;background:#111;color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.26);overflow:hidden;}' +
+    '.fab.isimg{background:#111;} .fab img{width:100%;height:100%;object-fit:cover;} .fab svg{width:24px;height:24px;}' +
+    // ----- Variables de tema -----
+    '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);' +
+      '--ubub:#2a2b31;--uink:#f4f5f7;--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--thumb:#26272c;' +
+      '--send-bg:#f4f5f7;--send-ink:#0e0f12;--stop-bg:#3a3b41;--stop-ink:#f4f5f7;--dot:#52545b;--dot-on:#c9ccd1;--sb:rgba(255,255,255,.18);' +
+      'position:fixed;right:16px;top:16px;bottom:16px;width:420px;max-width:calc(100vw - 32px);background:var(--bg);color:var(--ink);' +
+      'border:1px solid var(--line);border-radius:18px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.32);}' +
+    '.panel[data-theme=light]{--bg:#fff;--surface:#f6f6f7;--surface2:#ececed;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;' +
+      '--ubub:#ededee;--uink:#0a0a0a;--ava-bg:#0a0a0a;--ava-ink:#fff;--thumb:#ececed;' +
+      '--send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);}' +
+    '.panel.open{display:flex;animation:wu-pop .26s cubic-bezier(.2,.8,.2,1);}' +
+    '@keyframes wu-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
+    // ----- Encabezado (sin línea divisoria) -----
+    '.head{display:flex;align-items:center;gap:8px;padding:10px 10px 6px;flex-shrink:0;}' +
+    '.ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;background:var(--ava-bg);color:var(--ava-ink);margin:0 2px;}' +
+    '.ava img{width:100%;height:100%;object-fit:cover;} .ava svg{width:60%;height:60%;}' +
+    '.nm{font-weight:650;font-size:.95rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sp{margin-left:auto;}' +
+    '.ico{width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;flex-shrink:0;}' +
+    '.ico:hover{background:var(--surface);} .ico svg{width:20px;height:20px;}' +
+    // ----- Cuerpo / scroll -----
+    '.body{flex:1;overflow-y:auto;padding:10px 16px 4px;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
+    '.body::-webkit-scrollbar{width:7px;} .body::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;} .body::-webkit-scrollbar-track{background:transparent;}' +
+    // ----- Estado vacío -----
+    '.hero{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;min-height:150px;}' +
+    '.panel.has-hero .hero{display:flex;}' +
+    '.herotitle{margin:0;font-size:1.6rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);transition:opacity .24s ease;}' +
+    '.herotitle.fade{opacity:0;}' +
+    '@media(prefers-reduced-motion:reduce){.herotitle{transition:none;}}' +
+    // ----- Mensajes -----
+    '.msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}' +
+    '.msg{max-width:85%;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}' +
+    '.msg .tx{white-space:pre-wrap;}' +
+    '.in{align-self:flex-start;color:var(--ink);max-width:100%;}' +
+    '.out{align-self:flex-end;background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;}' +
+    '.stopped{color:var(--ink2);font-style:italic;}' +
+    '.msg-atts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;justify-content:flex-end;}' +
+    '.msg-atts img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:1px solid var(--line);cursor:pointer;display:block;}' +
+    // ----- Puntos de carga (solo opacity/transform, se mueve en todos lados) -----
+    '.typing{display:flex;align-items:center;gap:6px;padding:2px 2px 10px;align-self:flex-start;}' +
+    '.typing[hidden]{display:none;}' +
+    '.typing .dot{width:8px;height:8px;border-radius:50%;background:var(--dot-on);opacity:.35;animation:wu-blink 1.2s infinite ease-in-out;will-change:transform,opacity;}' +
+    '.typing .dot:nth-child(2){animation-delay:.2s;} .typing .dot:nth-child(3){animation-delay:.4s;}' +
+    '@keyframes wu-blink{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}' +
+    '@keyframes wu-blink-rm{0%,100%{opacity:.35}50%{opacity:1}}' +
+    '@media(prefers-reduced-motion:reduce){.typing .dot{animation:wu-blink-rm 1.4s infinite ease-in-out;transform:none;}}' +
+    '.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}' +
+    // ----- Composer -----
+    '.composer-wrap{padding:6px 14px 8px;flex-shrink:0;}' +
+    '.composer{display:grid;gap:7px 8px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:7px 8px 7px 12px;' +
+      'grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "plus text send";}' +
+    '.composer:focus-within{border-color:var(--ink2);}' +
+    '.thumbs{grid-area:thumbs;display:flex;flex-wrap:wrap;gap:7px;padding:4px 2px 2px;}' +
+    '.thumbs[hidden]{display:none;}' +
+    '.thumb{position:relative;width:56px;height:56px;border-radius:11px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}' +
+    '.thumb img{width:100%;height:100%;object-fit:cover;}' +
+    '.thumbx{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:7px;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;} .thumbx svg{width:13px;height:13px;}' +
+    '.ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:7px 2px;min-height:36px;max-height:132px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
+    '.ta::-webkit-scrollbar{width:6px;} .ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;} .ta::-webkit-scrollbar-track{background:transparent;}' +
+    '.ta::placeholder{color:var(--ink2);}' +
+    '.plus{grid-area:plus;align-self:end;width:36px;height:36px;border-radius:50%;border:0;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;} .plus:hover{background:var(--surface2);color:var(--ink);} .plus svg{width:20px;height:20px;} .plus[hidden]{display:none;}' +
+    '.send{grid-area:send;align-self:end;width:36px;height:36px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;cursor:pointer;transition:background .15s,opacity .15s;}' +
+    '.send:disabled{opacity:.35;cursor:default;} .send svg{width:18px;height:18px;} .send .sqr{display:none;width:11px;height:11px;border-radius:3px;background:var(--stop-ink);}' +
+    '.send.busy{background:var(--stop-bg);} .send.busy .sicon{display:none;} .send.busy .sqr{display:block;} .send.busy{opacity:1;}' +
+    // ----- Pie -----
+    '.foot{text-align:center;padding:9px 6px 2px;} .foot .disc{margin:0;font-size:.68rem;line-height:1.45;color:var(--ink2);}' +
+    '.atterr{color:#e5484d;font-size:.74rem;text-align:center;padding:4px 6px 0;} .atterr[hidden]{display:none;}' +
+    // ----- Hoja de ajustes -----
     '.scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}' +
     '.panel.sheet-open .scrim{opacity:1;pointer-events:auto;}' +
-    '.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);}' +
+    '.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);padding-bottom:env(safe-area-inset-bottom);}' +
     '.panel.sheet-open .sheet{transform:translateY(0);}' +
     '.shead{display:flex;align-items:center;justify-content:center;position:relative;padding:14px;border-bottom:1px solid var(--line);}' +
-    '.sx{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:none;color:var(--ink2);cursor:pointer;} .sx svg{width:16px;height:16px;}' +
+    '.sx{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:none;color:var(--ink2);cursor:pointer;display:grid;place-items:center;} .sx svg{width:17px;height:17px;}' +
     '.row{display:flex;align-items:center;gap:12px;padding:13px 18px;color:var(--ink);cursor:pointer;text-decoration:none;font-size:.9rem;}' +
-    '.rico{width:19px;height:19px;color:var(--ink2);flex-shrink:0;}' +
-    '.themeseg{display:inline-flex;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:3px;}' +
-    '.themeseg button{border:0;background:none;border-radius:6px;padding:4px 10px;font-size:.75rem;font-weight:600;color:var(--ink2);cursor:pointer;} .themeseg button.on{background:var(--surface);color:var(--ink);}' +
+    '.row:hover{background:var(--surface);} .rico{width:19px;height:19px;color:var(--ink2);flex-shrink:0;}' +
+    '.themeseg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px;}' +
+    '.themeseg button{border:0;background:none;border-radius:6px;padding:4px 11px;font:inherit;font-size:.78rem;font-weight:600;color:var(--ink2);cursor:pointer;} .themeseg button.on{background:var(--bg);color:var(--ink);}' +
     '.sfoot{text-align:center;font-size:.72rem;color:var(--ink2);padding:12px;border-top:1px solid var(--line);} .sfoot a{color:var(--ink2);text-decoration:none;}' +
-    '@media(max-width:520px){.panel{left:0;right:0;top:0;width:auto;height:100dvh;border-radius:0;border:0;}.fab{right:16px;bottom:16px;}}';
+    // ----- Confirmación de Nuevo chat (capa solo sobre el widget) -----
+    '.confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:22px;}' +
+    '.confirm[hidden]{display:none;}' +
+    '.confirm-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);}' +
+    '.confirm-box{position:relative;width:100%;max-width:300px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.4);text-align:center;}' +
+    '.confirm-t{margin:0 0 6px;font-size:1.05rem;font-weight:800;color:var(--ink);}' +
+    '.confirm-d{margin:0 0 16px;font-size:.88rem;line-height:1.45;color:var(--ink2);}' +
+    '.confirm-btns{display:flex;gap:9px;}' +
+    '.btn-sec,.btn-pri{flex:1;border-radius:11px;padding:10px 12px;font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;}' +
+    '.btn-sec{border:1px solid var(--line);background:none;color:var(--ink);} .btn-sec:hover{background:var(--surface);}' +
+    '.btn-pri{border:0;background:var(--send-bg);color:var(--send-ink);} .btn-pri:hover{opacity:.9;}' +
+    // ----- Visor de imágenes -----
+    '.viewer{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:44px 16px;}' +
+    '.viewer[hidden]{display:none;}' +
+    '.viewer-scrim{position:absolute;inset:0;background:rgba(0,0,0,.82);}' +
+    '.viewer-img{position:relative;max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;}' +
+    '.viewer-x{position:absolute;top:12px;right:12px;z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;} .viewer-x:hover{background:rgba(255,255,255,.26);} .viewer-x svg{width:20px;height:20px;}' +
+    '.viewer-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;} .viewer-nav:hover{background:rgba(255,255,255,.26);} .viewer-nav svg{width:22px;height:22px;} .viewer-nav[hidden]{display:none;}' +
+    '.viewer-prev{left:10px;} .viewer-next{right:10px;}' +
+    // ----- Móvil: hoja que sube desde abajo -----
+    '@media(max-width:640px){' +
+      '.panel{left:0;right:0;top:auto;bottom:0;width:auto;max-width:100vw;height:92dvh;max-height:92dvh;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;' +
+        'padding-bottom:env(safe-area-inset-bottom);}' +
+      '.panel.open{animation:wu-up .28s cubic-bezier(.2,.8,.2,1);}' +
+      '@keyframes wu-up{from{transform:translateY(100%)}to{transform:none}}' +
+      '.herotitle{font-size:1.5rem;}' +
+      '.composer{grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "text text text" "plus . send";padding:8px 10px 10px;border-radius:22px;}' +
+      '.ta{padding:6px 4px 2px;}' +
+      '.ico{width:44px;height:44px;}' +
+      '.fab{right:16px;bottom:16px;}' +
+    '}';
 })();
