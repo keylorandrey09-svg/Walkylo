@@ -42,3 +42,6 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 - Todo cambio va en una rama, con Pull Request y vista previa de Vercel antes de unir a main. Probar en la vista previa antes de unir.
 - Carpeta de trabajo local: `C:\dev\Walkylo` (fuera de OneDrive).
 - Pendientes conocidos (NO implementar sin que Keylor lo pida): dominio propio, corregir el snippet de la landing (hoy apunta a `walkyup.app/widget.js`, que no corresponde al archivo real `w.js`), conectar la IA real al widget (hoy responde un mensaje fijo), CSS compartido (`brand.css`) y respaldo del backend de Supabase en el repo.
+
+## Pendientes antes de lanzar a clientes
+- **Fotos del widget (`+`)**: hoy `ATTACHMENTS_ENABLED = true` en `w.js`, pero las fotos son SOLO del lado del navegador (vista local, sin red ni Supabase; el enganche real está marcado con el TODO `onSendAttachments` para la Fase 8). Antes de habilitarlas para clientes reales hay que definir el lado servidor: almacenamiento privado, permisos (RLS), límites contra abuso (cantidad/tamaño/ritmo), política de privacidad y que la IA pueda ver las imágenes. Si eso no está listo al lanzar, poné `ATTACHMENTS_ENABLED = false`.
