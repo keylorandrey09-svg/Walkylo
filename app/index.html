@@ -503,6 +503,8 @@
     .cw-hrow__menu{position:absolute;right:8px;top:calc(100% - 6px);z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);padding:4px;} .cw-hrow__menu[hidden]{display:none;}
     .cw-hrow__del{border:0;background:none;color:var(--ink);font:inherit;font-size:.86rem;padding:8px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;} .cw-hrow__del:hover{background:var(--surface);}
     .cw-hempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink2);font-size:.95rem;padding:20px;gap:6px;} .cw-hempty span{font-size:.8rem;} .cw-hempty[hidden]{display:none;}
+    .cw-hclear-wrap{flex-shrink:0;text-align:center;padding:8px 10px 12px;border-top:1px solid var(--line);} .cw-hclear-wrap[hidden]{display:none;}
+    .cw-hclear{border:0;background:none;color:var(--ink2);font:inherit;font-size:.8rem;padding:8px 14px;border-radius:8px;cursor:pointer;} .cw-hclear:hover{color:var(--ink);background:var(--surface);}
     .cw-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
     .cw.sheet-open .cw-scrim{opacity:1;pointer-events:auto;}
     .cw-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);padding:4px 0 12px;}
@@ -1100,7 +1102,6 @@
                   <div class="cw-sheet" id="cwSheet">
                     <div class="cw-sheet__head"><b>Ajustes</b><button class="cw-sheet__x" id="cwSheetX" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
                     <a class="cw-row" id="cwMail" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>
-                    <button class="cw-row" id="cwClearHist" type="button"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Borrar historial</button>
                     <div class="cw-row">Tema<span class="sp"></span><span class="cw-theme" id="cwThemeSeg"><button data-theme="light" type="button">Claro</button><button data-theme="dark" type="button" class="on">Oscuro</button></span></div>
                     <div class="cw-sheet__foot">© 2026 · <a id="cwPriv" href="#" target="_blank" rel="noopener">Privacidad</a></div>
                   </div>
@@ -1110,6 +1111,7 @@
                     <button class="cw-hnew" id="cwHNew" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Nuevo chat</button>
                     <div class="cw-hlist" id="cwHList" role="list"></div>
                     <div class="cw-hempty" id="cwHEmpty" hidden>Todavía no tenés chats guardados<span>Los chats se guardan solo en este dispositivo.</span></div>
+                    <div class="cw-hclear-wrap" id="cwHClearWrap" hidden><button class="cw-hclear" id="cwHClearBtn" type="button">Borrar historial</button></div>
                   </div>
                   <div class="cw-confirm" id="cwConfirm" role="alertdialog" aria-modal="true" aria-labelledby="cwCfT" aria-describedby="cwCfD" hidden>
                     <div class="cw-confirm__scrim" id="cwCfScrim"></div>
@@ -2534,7 +2536,8 @@
 
       // ---- Historial (vista previa, namespace propio) ----
       var cwHistoryEl=wgId('cwHistory'), cwHList=wgId('cwHList'), cwHEmpty=wgId('cwHEmpty'), cwHSearch=wgId('cwHSearch'), cwHClear=wgId('cwHClear'), cwHistBtn=wgId('cwHist');
-      if (!cwLsOk){ if (cwHistBtn) cwHistBtn.style.display='none'; var cwch0=wgId('cwClearHist'); if (cwch0) cwch0.style.display='none'; }
+      var cwHClearWrap=wgId('cwHClearWrap'), cwHClearBtn=wgId('cwHClearBtn');
+      if (!cwLsOk && cwHistBtn) cwHistBtn.style.display='none';
       function cwLoadLog(){ if (!cwLsOk) return []; var l=[]; try{ l=JSON.parse(localStorage.getItem(CW_LOG_KEY))||[]; }catch(e){ l=[]; } var cut=Date.now()-CW_HTTL; l=l.filter(function(c){ return c&&c.ts&&c.ts>=cut&&c.msgs&&c.msgs.length; }); if (l.length>CW_HMAX_CHATS) l=l.slice(0,CW_HMAX_CHATS); return l; }
       function cwSaveLog(l){ if (!cwLsOk) return; try{ localStorage.setItem(CW_LOG_KEY, JSON.stringify(l)); }catch(e){} }
       function cwHasUserMsg(){ for (var i=0;i<cwHist.length;i++){ if (cwHist[i].o) return true; } return false; }
@@ -2544,9 +2547,9 @@
       function cwFmtTime(ts,n){ var d=new Date(n); d.setHours(0,0,0,0); var t=d.getTime(), x=new Date(ts); if (ts>=t) return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2); return x.getDate()+'/'+(x.getMonth()+1); }
       function cwCloseRowMenus(except){ Array.prototype.forEach.call(cwHList.querySelectorAll('.cw-hrow__menu'), function(m){ if (m!==except) m.hidden=true; }); }
       function cwRenderHist(q){
-        var l=cwLoadLog(); q=(q||'').trim().toLowerCase();
-        if (q){ l=l.filter(function(c){ if (cwChatTitle(c).toLowerCase().indexOf(q)!==-1) return true; for (var i=0;i<c.msgs.length;i++){ if (c.msgs[i].x&&c.msgs[i].x.toLowerCase().indexOf(q)!==-1) return true; } return false; }); }
-        cwHList.innerHTML=''; cwHEmpty.hidden=l.length>0; if (!l.length) return;
+        var full=cwLoadLog(), total=full.length, l=full; q=(q||'').trim().toLowerCase();
+        if (q){ l=full.filter(function(c){ if (cwChatTitle(c).toLowerCase().indexOf(q)!==-1) return true; for (var i=0;i<c.msgs.length;i++){ if (c.msgs[i].x&&c.msgs[i].x.toLowerCase().indexOf(q)!==-1) return true; } return false; }); }
+        cwHList.innerHTML=''; cwHEmpty.hidden=total>0; if (cwHClearWrap) cwHClearWrap.hidden=total===0; if (!l.length) return;
         var nowT=Date.now(), lastG=null;
         l.forEach(function(c){
           var grp=cwDayGroup(c.ts,nowT);
@@ -2608,8 +2611,7 @@
         cwHistoryEl.addEventListener('click', function(e){ if (!e.target.closest('.cw-hrow__kebab') && !e.target.closest('.cw-hrow__menu')) cwCloseRowMenus(null); });
         cwHistoryEl.addEventListener('keydown', function(e){ if (e.key==='Escape'){ e.stopPropagation(); cwCloseHistory(); } else cwTrap(cwHistoryEl, e); });
       }
-      var cwClearHistBtn=wgId('cwClearHist');
-      if (cwClearHistBtn) cwClearHistBtn.addEventListener('click', function(){ cw.classList.remove('sheet-open'); cwAsk('¿Borrar todo el historial?','Se eliminarán todos los chats guardados en este dispositivo.', cwClearHistory); });
+      if (cwHClearBtn) cwHClearBtn.addEventListener('click', function(){ cwAsk('¿Borrar todo el historial?','Se eliminarán todos los chats guardados en este dispositivo.', function(){ cwClearHistory(); setTimeout(function(){ try{ wgId('cwHBack').focus(); }catch(e){} },0); }); });
 
       cwSyncHero(); cwAutogrow();
 

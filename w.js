@@ -157,7 +157,6 @@
         '<div class="scrim"></div>' +
         '<div class="sheet"><div class="shead"><b>Ajustes</b><button class="sx" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>' +
           '<a class="row mail"><svg class="rico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>' +
-          '<button class="row clearhist"><svg class="rico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Borrar historial</button>' +
           '<div class="row">Tema<span class="sp"></span><span class="themeseg"><button data-theme="light">Claro</button><button data-theme="dark" class="on">Oscuro</button></span></div>' +
           '<div class="sfoot">© 2026 · <a class="priv" target="_blank" rel="noopener">Privacidad</a></div></div>' +
         '<div class="histview" role="dialog" aria-label="Historial del chat" hidden>' +
@@ -168,6 +167,7 @@
           '<button class="hnew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Nuevo chat</button>' +
           '<div class="hlist" role="list"></div>' +
           '<div class="hempty" hidden>Todavía no tenés chats guardados<span>Los chats se guardan solo en este dispositivo.</span></div>' +
+          '<div class="hclear-wrap" hidden><button class="hclear">Borrar historial</button></div>' +
         '</div>' +
         '<div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="wu-cf-t" aria-describedby="wu-cf-d" hidden>' +
           '<div class="confirm-scrim"></div>' +
@@ -536,11 +536,9 @@
     // ---- Historial (localStorage, solo este dispositivo) ----
     var historyEl = $(".histview"), hlist = $(".hlist"), hempty = $(".hempty");
     var hsearchInp = $(".hsearch-inp"), hsearchClear = $(".hsearch-clear");
+    var hclearWrap = $(".hclear-wrap"), hclearBtn = $(".hclear");
     var histBtn = root.querySelector(".ico.history");
-    if (!lsOk) {
-      if (histBtn) histBtn.style.display = "none";
-      var clr0 = $(".clearhist"); if (clr0) clr0.style.display = "none";
-    }
+    if (!lsOk && histBtn) histBtn.style.display = "none";
 
     function loadLog() {
       if (!lsOk) return [];
@@ -578,17 +576,18 @@
       try { histBtn.focus(); } catch (e) {}
     }
     function renderHistList(q) {
-      var log = loadLog();
+      var full = loadLog(), total = full.length, log = full;
       q = (q || "").trim().toLowerCase();
       if (q) {
-        log = log.filter(function (c) {
+        log = full.filter(function (c) {
           if (chatTitle(c).toLowerCase().indexOf(q) !== -1) return true;
           for (var i = 0; i < c.msgs.length; i++) { if (c.msgs[i].x && c.msgs[i].x.toLowerCase().indexOf(q) !== -1) return true; }
           return false;
         });
       }
       hlist.innerHTML = "";
-      hempty.hidden = log.length > 0;
+      hempty.hidden = total > 0;       // "no hay chats" solo si de verdad no hay guardados
+      hclearWrap.hidden = total === 0; // "Borrar historial" solo si hay chats guardados
       if (!log.length) return;
       var nowT = Date.now(), lastGroup = null;
       log.forEach(function (c) {
@@ -670,11 +669,11 @@
       var saves = lsOk;
       askConfirm("¿Crear un chat nuevo?", saves ? "El chat actual quedará en el historial." : "La conversación actual se borrará.", function () { doNewChat(); focusInput(); });
     });
-    // Borrar historial (hoja de ajustes)
-    var clearBtn = $(".clearhist");
-    if (clearBtn) clearBtn.addEventListener("click", function () {
-      panel.classList.remove("sheet-open");
-      askConfirm("¿Borrar todo el historial?", "Se eliminarán todos los chats guardados en este dispositivo.", clearHistory);
+    // Borrar historial (botón discreto al fondo de la vista de Historial)
+    if (hclearBtn) hclearBtn.addEventListener("click", function () {
+      askConfirm("¿Borrar todo el historial?", "Se eliminarán todos los chats guardados en este dispositivo.", function () {
+        clearHistory(); setTimeout(function () { try { $(".hback").focus(); } catch (e) {} }, 0);
+      });
     });
 
     // ---- Instancia (para que la red actualice la config sin rehacer el widget) ----
@@ -843,6 +842,8 @@
     '.hrow-menu{position:absolute;right:8px;top:calc(100% - 6px);z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);padding:4px;} .hrow-menu[hidden]{display:none;}' +
     '.hrow-del{border:0;background:none;color:var(--ink);font:inherit;font-size:.86rem;padding:8px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;} .hrow-del:hover{background:var(--surface);}' +
     '.hempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink2);font-size:.95rem;padding:20px;gap:6px;} .hempty span{font-size:.8rem;} .hempty[hidden]{display:none;}' +
+    '.hclear-wrap{flex-shrink:0;text-align:center;padding:8px 10px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);} .hclear-wrap[hidden]{display:none;}' +
+    '.hclear{border:0;background:none;color:var(--ink2);font:inherit;font-size:.8rem;padding:8px 14px;border-radius:8px;cursor:pointer;} .hclear:hover{color:var(--ink);background:var(--surface);}' +
     // ----- Confirmación -----
     '.confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:22px;}' +
     '.confirm[hidden]{display:none;}' +
