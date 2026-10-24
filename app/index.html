@@ -427,8 +427,9 @@
     .cw-body::-webkit-scrollbar{width:7px;} .cw-body::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;} .cw-body::-webkit-scrollbar-track{background:transparent;}
     .cw-hero{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;min-height:150px;}
     .cw.has-hero .cw-hero{display:flex;}
-    .cw-hero h2{margin:0;font-size:1.5rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);transition:opacity .24s ease;}
-    .cw-hero h2.fade{opacity:0;}
+    .cw-hero h2{margin:0;font-size:1.5rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);}
+    .cw.has-hero .cw-hero h2{animation:cwtitlein .15s ease both;}
+    @keyframes cwtitlein{from{opacity:0}to{opacity:1}}
     .cw-msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}
     .cw-msg{max-width:85%;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}
     .cw-msg .tx{white-space:pre-wrap;}
@@ -527,7 +528,7 @@
     .wg-analyze-status .ok{color:#059669;}
     @keyframes wgspin{to{transform:rotate(360deg)}}
     @media (prefers-reduced-motion:reduce){
-      .cw-hero h2{transition:none;}
+      .cw.has-hero .cw-hero h2{animation:none;}
       .cw-typing .dot{animation:cwblink-rm 1.4s infinite ease-in-out;transform:none;}
     }
     @media (max-width:860px){
@@ -2365,7 +2366,7 @@
       // Abrir/cerrar el chat de prueba (overlay en móvil)
       var holder = wgId('cwHolder');
       var openChat = wgId('wgOpenChat');
-      if (openChat && holder) openChat.addEventListener('click', function(){ holder.classList.add('is-open'); setTimeout(function(){ if (typeof cwAutogrow === 'function') cwAutogrow(); if (cwInput) cwInput.focus(); }, 0); });
+      if (openChat && holder) openChat.addEventListener('click', function(){ holder.classList.add('is-open'); if (cwUserMsgs === 0) cwPickNewTitle(); setTimeout(function(){ if (typeof cwAutogrow === 'function') cwAutogrow(); cwFocus(); }, 0); });
       var cwClose = wgId('cwClose'); if (cwClose && holder) cwClose.addEventListener('click', function(){ holder.classList.remove('is-open'); });
 
       // Menú 3 puntos -> hoja de ajustes
@@ -2394,13 +2395,16 @@
       var cwCurId = cwNewId();
       var cwLsOk = (function(){ try{ localStorage.setItem('wu_t','1'); localStorage.removeItem('wu_t'); return true; }catch(e){ return false; } })();
 
-      function cwPickTitle(){ if (WG_EMPTY_TITLES.length <= 1) return 0; var n; do { n = Math.floor(Math.random()*WG_EMPTY_TITLES.length); } while (n === cwLastTitle); cwLastTitle = n; return n; }
-      function cwStartTitles(){
-        var h = wgId('cwHeroTitle'); if (!h || cwReduce || cwTitleTimer) return;
-        cwTitleTimer = setInterval(function(){ h.classList.add('fade'); setTimeout(function(){ h.textContent = WG_EMPTY_TITLES[cwPickTitle()]; h.classList.remove('fade'); }, 240); }, 4000);
+      // Título del estado vacío: ESTÁTICO. Se elige uno al azar solo al mostrar el chat
+      // vacío o al empezar uno nuevo; no se repite el último (localStorage).
+      var CW_TITLE_KEY = 'wu_title_preview';
+      function cwPickNewTitle(){
+        var last=-1; try{ var v=parseInt(localStorage.getItem(CW_TITLE_KEY),10); if(!isNaN(v)) last=v; }catch(e){}
+        var n=0; if (WG_EMPTY_TITLES.length>1){ do{ n=Math.floor(Math.random()*WG_EMPTY_TITLES.length); }while(n===last); }
+        try{ localStorage.setItem(CW_TITLE_KEY, String(n)); }catch(e){}
+        var h=wgId('cwHeroTitle'); if (h) h.textContent=WG_EMPTY_TITLES[n];
       }
-      function cwStopTitles(){ if (cwTitleTimer){ clearInterval(cwTitleTimer); cwTitleTimer = null; } }
-      function cwSyncHero(){ var cw = wgId('wgCw'); if (!cw) return; var empty = cwUserMsgs === 0; cw.classList.toggle('has-hero', empty); if (empty) cwStartTitles(); else cwStopTitles(); }
+      function cwSyncHero(){ var cw = wgId('wgCw'); if (!cw) return; cw.classList.toggle('has-hero', cwUserMsgs === 0); }
 
       function cwAutogrow(){ if (!cwInput) return; cwInput.style.height = 'auto'; var h = Math.min(cwInput.scrollHeight, 132); cwInput.style.height = h + 'px'; cwInput.style.overflowY = (cwInput.scrollHeight > 132) ? 'auto' : 'hidden'; }
       function cwCanSend(){ return (!!cwInput && cwInput.value.trim().length > 0) || cwAtts.length > 0; }
@@ -2584,7 +2588,6 @@
         if (!c){ cwCloseHistory(); return; }
         cwCurId=id; cwHist=c.msgs.map(function(m){ return {x:m.x,o:m.o,g:m.g?1:0}; });
         cwClearAtts(); cwSetState('idle'); cwRenderMsgs();
-        cwLastTitle=-1; var h=wgId('cwHeroTitle'); if (h) h.textContent=WG_EMPTY_TITLES[cwPickTitle()];
         cwCloseHistory(); cwSyncHero(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
       }
       function cwDeleteChat(id){ cwSaveLog(cwLoadLog().filter(function(c){ return c.id!==id; })); if (id===cwCurId) cwFreshChat(); cwRenderHist(cwHSearch.value); }
@@ -2592,7 +2595,7 @@
       function cwFreshChat(){
         if (cwTimer){ clearTimeout(cwTimer); cwTimer=null; } cwSetState('idle');
         cwCurId=cwNewId(); cwHist=[]; cwRenderMsgs(); cwClearAtts();
-        cwLastTitle=-1; var h=wgId('cwHeroTitle'); if (h) h.textContent=WG_EMPTY_TITLES[cwPickTitle()];
+        cwPickNewTitle();
         cwSyncHero(); if (cwBody) cwBody.scrollTop=0; if (cwInput){ cwInput.value=''; cwAutogrow(); cwSyncSend(); }
       }
       function cwDoNewChat(){ cwLogUpsert(); cwFreshChat(); }
@@ -2613,7 +2616,7 @@
       }
       if (cwHClearBtn) cwHClearBtn.addEventListener('click', function(){ cwAsk('¿Borrar todo el historial?','Se eliminarán todos los chats guardados en este dispositivo.', function(){ cwClearHistory(); setTimeout(function(){ try{ wgId('cwHBack').focus(); }catch(e){} },0); }); });
 
-      cwSyncHero(); cwAutogrow();
+      cwPickNewTitle(); cwSyncHero(); cwAutogrow();
 
       // pintar los avatares preset una vez
       Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id]; });
