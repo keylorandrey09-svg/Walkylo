@@ -248,28 +248,25 @@
 
     function userMsgCount() { for (var k = 0; k < hist.length; k++) { if (hist[k].o) return 1; } return 0; }
 
-    // ---- Estado vacío: título grande que rota ----
-    var lastTitleIdx = -1;
-    function pickTitle() {
-      if (EMPTY_TITLES.length <= 1) return 0;
-      var n; do { n = Math.floor(Math.random() * EMPTY_TITLES.length); } while (n === lastTitleIdx);
-      lastTitleIdx = n; return n;
+    // ---- Estado vacío: título grande ESTÁTICO (no rota) ----
+    // Se elige uno al azar SOLO al abrir el chat vacío o al empezar un chat nuevo;
+    // queda fijo hasta el próximo de esos momentos. No se repite el último (localStorage),
+    // así varía por visita, por día y por chat. Al recargar, se mantiene (sessionStorage).
+    var TITLE_KEY = "wu_title_" + dataId;
+    var currentTitle = "";
+    function readLastTitle() { try { var v = parseInt(localStorage.getItem(TITLE_KEY), 10); return isNaN(v) ? -1 : v; } catch (e) { return -1; } }
+    function pickNewTitle() {
+      var last = readLastTitle(), n = 0;
+      if (EMPTY_TITLES.length > 1) { do { n = Math.floor(Math.random() * EMPTY_TITLES.length); } while (n === last); }
+      try { localStorage.setItem(TITLE_KEY, String(n)); } catch (e) {}
+      currentTitle = EMPTY_TITLES[n]; heroTitle.textContent = currentTitle; return currentTitle;
     }
-    heroTitle.textContent = EMPTY_TITLES[pickTitle()];
-    var titleTimer = null;
-    function startTitles() {
-      if (reduceMotion || titleTimer) return;
-      titleTimer = setInterval(function () {
-        heroTitle.classList.add("fade");
-        setTimeout(function () { heroTitle.textContent = EMPTY_TITLES[pickTitle()]; heroTitle.classList.remove("fade"); }, 240);
-      }, 4000);
-    }
-    function stopTitles() { if (titleTimer) { clearInterval(titleTimer); titleTimer = null; } }
-    function syncHero() {
-      var empty = userMsgCount() === 0;
-      panel.classList.toggle("has-hero", empty);
-      if (empty && panel.classList.contains("open")) startTitles(); else stopTitles();
-    }
+    (function () {
+      var u0 = readUI();
+      if (u0 && typeof u0.title === "string" && u0.title) { currentTitle = u0.title; heroTitle.textContent = currentTitle; }
+      else { pickNewTitle(); }
+    })();
+    function syncHero() { panel.classList.toggle("has-hero", userMsgCount() === 0); }
 
     // ---- Burbujas ----
     function bubble(text, out, atts, hadImg) {
@@ -302,7 +299,7 @@
 
     // ---- Estado de la interfaz (sobrevive recargas) ----
     function saveUI() {
-      try { sessionStorage.setItem(UI_KEY, JSON.stringify({ open: panel.classList.contains("open"), text: ta.value, scroll: body.scrollTop })); } catch (e) {}
+      try { sessionStorage.setItem(UI_KEY, JSON.stringify({ open: panel.classList.contains("open"), text: ta.value, scroll: body.scrollTop, title: currentTitle })); } catch (e) {}
     }
     function readUI() { try { return JSON.parse(sessionStorage.getItem(UI_KEY)) || null; } catch (e) { return null; } }
 
@@ -325,6 +322,8 @@
     }
     function open(noAnim) {
       lastFocus = document.activeElement;
+      // Al abrir (cerrado -> abierto) en estado vacío, se elige UN título nuevo y queda fijo.
+      if (!noAnim && userMsgCount() === 0) pickNewTitle();
       if (noAnim) panel.classList.add("no-anim");
       panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); fab.style.display = "none";
       document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc);
@@ -336,7 +335,6 @@
     function close() {
       panel.classList.remove("open", "sheet-open"); panel.setAttribute("aria-hidden", "true"); fab.style.display = hideFab ? "none" : "";
       document.removeEventListener("click", onOutside); document.removeEventListener("keydown", onEsc);
-      stopTitles();
       var back = (!hideFab) ? fab : lastFocus;
       try { if (back && back.focus) back.focus(); } catch (e) {}
       saveUI();
@@ -630,7 +628,6 @@
       clearAttachments(); setState("idle");
       msgs.innerHTML = ""; msgs.appendChild(bubble(welcome, false));
       hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, null, !!m.g)); });
-      lastTitleIdx = -1; heroTitle.textContent = EMPTY_TITLES[pickTitle()];
       closeHistory(); syncHero(); scroll(); saveUI();
     }
     function deleteChat(id) {
@@ -648,7 +645,7 @@
       hist = []; persist();
       msgs.innerHTML = ""; msgs.appendChild(bubble(welcome, false));
       clearAttachments();
-      lastTitleIdx = -1; heroTitle.textContent = EMPTY_TITLES[pickTitle()];
+      pickNewTitle();
       syncHero(); scroll(); saveUI();
     }
     // "Nuevo chat": guarda el actual al historial (si hay) y empieza uno nuevo
@@ -765,9 +762,10 @@
     // ----- Estado vacío -----
     '.hero{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;min-height:150px;}' +
     '.panel.has-hero .hero{display:flex;}' +
-    '.herotitle{margin:0;font-size:1.6rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);transition:opacity .24s ease;}' +
-    '.herotitle.fade{opacity:0;}' +
-    '@media(prefers-reduced-motion:reduce){.herotitle{transition:none;}}' +
+    '.herotitle{margin:0;font-size:1.6rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);}' +
+    '.panel.has-hero .herotitle{animation:wu-title-in .15s ease both;}' +
+    '@keyframes wu-title-in{from{opacity:0}to{opacity:1}}' +
+    '@media(prefers-reduced-motion:reduce){.panel.has-hero .herotitle{animation:none;}}' +
     // ----- Mensajes -----
     '.msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}' +
     '.msg{max-width:85%;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}' +
