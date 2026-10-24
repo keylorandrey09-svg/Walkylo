@@ -89,7 +89,7 @@
         '</div>' +
         '<div class="inputbar"><input class="inp" type="text" placeholder="Escribí tu mensaje…" autocomplete="off"/>' +
           '<button class="send" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>' +
-        '<div class="foot">AI Agent powered by · <a href="https://walkyup.app" target="_blank" rel="noopener">WalkyUp</a></div>' +
+        '<div class="foot">AI Agent powered by · <a href="https://walkyup.app" target="_blank" rel="noopener">Walkylet</a></div>' +
         '<div class="scrim"></div>' +
         '<div class="sheet"><div class="shead"><b>Ajustes</b><button class="sx" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>' +
           '<a class="row mail"><svg class="rico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>' +
