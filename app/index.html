@@ -2609,34 +2609,40 @@
       function cwDetachAtts(){ cwAtts=[]; cwRenderThumbs(); }
       // Libera las fotos enviadas (al empezar un chat nuevo o al descargar la página).
       function cwRevokeLive(){ cwLive.forEach(function(u){ try { if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
-      // Mismo criterio que w.js: la foto se devuelve como DATA URL (incrustada), no como blob
-      // temporal, para que se vea siempre. createImageBitmap (respeta rotación) con respaldo
-      // FileReader->Image. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
+      // ¿Es una imagen que aceptamos? No dependemos solo del type (hay galerías que lo mandan vacío);
+      // si no sirve, se deduce por la extensión y, sin extensión, decide el decodificador.
+      function cwIsImageFile(f){
+        if (CW_ATT_TYPES[f.type]) return true;
+        var m=/\.([a-z0-9]+)$/i.exec(f.name||''); var ext=m?m[1].toLowerCase():'';
+        if (ext) return ext==='jpg'||ext==='jpeg'||ext==='png'||ext==='webp';
+        return !f.type || f.type.indexOf('image/')===0;
+      }
+      // Igual que w.js: data URL (incrustada), con reintentos de lectura (en móvil la primera
+      // lectura puede fallar) y solo devuelve null tras agotarlos. Nota Fase 8: `blob` null.
       function cwDownscale(file, cb){
-        function cwFromFile(){ try { var r=new FileReader(); r.onload=function(){ cb({ url:r.result, blob:null }); }; r.onerror=function(){ cb(null); }; r.readAsDataURL(file); } catch(e){ cb(null); } }
-        function toCanvas(src, w, h){
+        var tries=0, MAX_TRIES=3;
+        function toCanvas(src, w, h, onFail){
           try {
             var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
             var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
             var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
             var durl=cv.toDataURL('image/jpeg', CW_ATT_Q);
             if (durl && durl.indexOf('data:image')===0) cb({ url:durl, blob:null });
-            else cwFromFile();
-          } catch(e){ cwFromFile(); }
+            else onFail();
+          } catch(e){ onFail(); }
         }
-        function viaReader(){
-          try {
-            var reader=new FileReader();
-            reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height); }; img.onerror=function(){ cb({ url:reader.result, blob:null }); }; img.src=reader.result; };
-            reader.onerror=function(){ cb(null); };
-            reader.readAsDataURL(file);
-          } catch(e){ cwFromFile(); }
+        function readThenDraw(){
+          var reader=new FileReader();
+          reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, function(){ cb({ url:reader.result, blob:null }); }); }; img.onerror=function(){ cb({ url:reader.result, blob:null }); }; img.src=reader.result; };
+          reader.onerror=retry;
+          try { reader.readAsDataURL(file); } catch(e){ retry(); }
         }
+        function retry(){ tries++; if (tries>=MAX_TRIES){ cb(null); return; } setTimeout(readThenDraw, 120*tries); }
         if (window.createImageBitmap){
           var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
-          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height); try { bmp.close(); } catch(e){} }, viaReader);
-          else viaReader();
-        } else viaReader();
+          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, readThenDraw);
+          else readThenDraw();
+        } else readThenDraw();
       }
       if (cwPlus && cwFile){
         cwPlus.addEventListener('click', function(){ cwFile.click(); });
@@ -2644,7 +2650,7 @@
           var files=Array.prototype.slice.call(cwFile.files||[]); cwFile.value='';
           files.forEach(function(f){
             if (cwAtts.length >= CW_ATT_MAX){ cwShowErr('Hasta '+CW_ATT_MAX+' fotos.'); return; }
-            if (!CW_ATT_TYPES[f.type]){ cwShowErr('Solo JPG, PNG o WEBP.'); return; }
+            if (!cwIsImageFile(f)){ cwShowErr('Solo JPG, PNG o WEBP.'); return; }
             if (f.size > CW_ATT_MB*1024*1024){ cwShowErr('Cada foto hasta '+CW_ATT_MB+' MB.'); return; }
             cwDownscale(f, function(a){ if (!a){ cwShowErr('No se pudo procesar esa foto.'); return; } if (cwAtts.length >= CW_ATT_MAX){ try { URL.revokeObjectURL(a.url); } catch(e){} return; } cwAtts.push(a); cwRenderThumbs(); });
           });
