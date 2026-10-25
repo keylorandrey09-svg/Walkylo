@@ -2609,28 +2609,32 @@
       function cwDetachAtts(){ cwAtts=[]; cwRenderThumbs(); }
       // Libera las fotos enviadas (al empezar un chat nuevo o al descargar la página).
       function cwRevokeLive(){ cwLive.forEach(function(u){ try { if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
-      // Mismo criterio que w.js: createImageBitmap (confiable, respeta rotación) con respaldo
-      // FileReader->Image; una foto válida nunca devuelve null (si falla, usa el original).
+      // Mismo criterio que w.js: la foto se devuelve como DATA URL (incrustada), no como blob
+      // temporal, para que se vea siempre. createImageBitmap (respeta rotación) con respaldo
+      // FileReader->Image. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
       function cwDownscale(file, cb){
-        function toCanvas(src, w, h, done){
+        function cwFromFile(){ try { var r=new FileReader(); r.onload=function(){ cb({ url:r.result, blob:null }); }; r.onerror=function(){ cb(null); }; r.readAsDataURL(file); } catch(e){ cb(null); } }
+        function toCanvas(src, w, h){
           try {
             var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
             var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
             var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
-            cv.toBlob(function(b){ done(b ? { url:URL.createObjectURL(b), blob:b } : { url:URL.createObjectURL(file), blob:file }); }, 'image/jpeg', CW_ATT_Q);
-          } catch(e){ done({ url:URL.createObjectURL(file), blob:file }); }
+            var durl=cv.toDataURL('image/jpeg', CW_ATT_Q);
+            if (durl && durl.indexOf('data:image')===0) cb({ url:durl, blob:null });
+            else cwFromFile();
+          } catch(e){ cwFromFile(); }
         }
         function viaReader(){
           try {
             var reader=new FileReader();
-            reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, cb); }; img.onerror=function(){ cb({ url:URL.createObjectURL(file), blob:file }); }; img.src=reader.result; };
-            reader.onerror=function(){ cb({ url:URL.createObjectURL(file), blob:file }); };
+            reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height); }; img.onerror=function(){ cb({ url:reader.result, blob:null }); }; img.src=reader.result; };
+            reader.onerror=function(){ cb(null); };
             reader.readAsDataURL(file);
-          } catch(e){ cb({ url:URL.createObjectURL(file), blob:file }); }
+          } catch(e){ cwFromFile(); }
         }
         if (window.createImageBitmap){
           var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
-          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height, function(a){ try { bmp.close(); } catch(e){} cb(a); }); }, viaReader);
+          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height); try { bmp.close(); } catch(e){} }, viaReader);
           else viaReader();
         } else viaReader();
       }
