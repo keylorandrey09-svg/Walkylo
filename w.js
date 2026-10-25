@@ -1082,6 +1082,7 @@
     '.hsearch-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:50%;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;} .hsearch-clear:hover{background:var(--surface2);} .hsearch-clear svg{width:15px;height:15px;} .hsearch-clear[hidden]{display:none;}' +
     '.hnew{display:flex;align-items:center;gap:10px;margin:0 10px 6px;padding:11px 12px;width:calc(100% - 20px);border:0;border-radius:12px;background:none;color:var(--ink);font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;flex-shrink:0;} .hnew:hover{background:var(--surface);} .hnew svg{width:19px;height:19px;color:var(--ink2);}' +
     '.hlist{flex:1;overflow-y:auto;padding:2px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
+    '.hlist:empty{flex:0 0 auto;}' +   // sin chats: no crecer, para que el estado vacío quede centrado
     '.hlist::-webkit-scrollbar{width:7px;} .hlist::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;}' +
     '.hgroup{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--ink2);text-transform:uppercase;padding:12px 8px 4px;}' +
     '.hrow{position:relative;display:flex;align-items:center;border-radius:12px;} .hrow:hover{background:var(--surface);}' +
