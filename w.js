@@ -671,41 +671,44 @@
       liveUrls.forEach(function (u) { try { if (u && u.indexOf("blob:") === 0) URL.revokeObjectURL(u); } catch (e) {} });
       liveUrls = [];
     }
-    // Reduce la foto en el navegador. Usa createImageBitmap (confiable y respeta la rotación
-    // EXIF del teléfono); si no está, cae a FileReader->Image, que evita la carrera del
-    // objectURL que hacía fallar el primer intento. Una foto válida nunca devuelve null:
-    // si algo falla, se usa el archivo original tal cual.
+    // Reduce la foto en el navegador y la devuelve como DATA URL (imagen incrustada), no como
+    // blob temporal: así la vista previa y el mensaje se ven SIEMPRE, sin depender de una URL
+    // que se pueda romper o liberar al cambiar de chat. Usa createImageBitmap (confiable y
+    // respeta la rotación EXIF); si no, FileReader->Image. Una foto válida nunca devuelve null.
+    // Nota Fase 8: `blob` queda null; para subir, reconstruirlo desde la data URL.
     function downscale(file, cb) {
-      function toCanvas(src, w, h, done) {
+      function fromFile() {
+        try { var r = new FileReader(); r.onload = function () { cb({ url: r.result, blob: null }); }; r.onerror = function () { cb(null); }; r.readAsDataURL(file); }
+        catch (e) { cb(null); }
+      }
+      function toCanvas(src, w, h) {
         try {
           var scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
           var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
           var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
           cv.getContext("2d").drawImage(src, 0, 0, cw, ch);
-          cv.toBlob(function (blob) {
-            done(blob ? { url: URL.createObjectURL(blob), blob: blob } : { url: URL.createObjectURL(file), blob: file });
-          }, "image/jpeg", ATT_QUALITY);
-        } catch (e) { done({ url: URL.createObjectURL(file), blob: file }); }
+          var durl = cv.toDataURL("image/jpeg", ATT_QUALITY);
+          if (durl && durl.indexOf("data:image") === 0) cb({ url: durl, blob: null });
+          else fromFile();   // canvas vacío (p. ej. imagen enorme): usa el archivo original
+        } catch (e) { fromFile(); }
       }
       function viaReader() {
         try {
           var reader = new FileReader();
           reader.onload = function () {
             var img = new Image();
-            img.onload = function () { toCanvas(img, img.width, img.height, cb); };
-            img.onerror = function () { cb({ url: URL.createObjectURL(file), blob: file }); };
+            img.onload = function () { toCanvas(img, img.width, img.height); };
+            img.onerror = function () { cb({ url: reader.result, blob: null }); }; // el original ya es una data URL válida
             img.src = reader.result;
           };
-          reader.onerror = function () { cb({ url: URL.createObjectURL(file), blob: file }); };
+          reader.onerror = function () { cb(null); };
           reader.readAsDataURL(file);
-        } catch (e) { cb({ url: URL.createObjectURL(file), blob: file }); }
+        } catch (e) { fromFile(); }
       }
       if (window.createImageBitmap) {
-        var opt = { imageOrientation: "from-image" };
-        var p; try { p = createImageBitmap(file, opt); } catch (e) { p = null; }
-        if (p && p.then) {
-          p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height, function (a) { try { bmp.close(); } catch (e) {} cb(a); }); }, viaReader);
-        } else viaReader();
+        var p; try { p = createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) { p = null; }
+        if (p && p.then) p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height); try { bmp.close(); } catch (e) {} }, viaReader);
+        else viaReader();
       } else viaReader();
     }
     if (ATTACHMENTS_ENABLED) {
