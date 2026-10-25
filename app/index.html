@@ -2621,7 +2621,7 @@
       // watchdog si createImageBitmap se cuelga, y guarda para no entregar dos resultados.
       // Solo devuelve null tras agotar los reintentos. Nota Fase 8: `blob` null.
       function cwDownscale(file, cb){
-        var tries=0, MAX_TRIES=4, done=false;
+        var tries=0, MAX_TRIES=3, done=false;
         function finish(a){ if (done) return; done=true; cb(a); }
         function toCanvas(src, w, h, onFail){
           try {
@@ -2640,11 +2640,11 @@
           reader.onerror=retry;
           try { reader.readAsDataURL(file); } catch(e){ retry(); }
         }
-        function retry(){ if (done) return; tries++; if (tries>=MAX_TRIES){ finish(null); return; } setTimeout(readThenDraw, 200*tries); }
+        function retry(){ if (done) return; tries++; if (tries>=MAX_TRIES){ finish(null); return; } setTimeout(readThenDraw, 120*tries); }
         if (window.createImageBitmap){
           var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
           if (p && p.then){
-            var wd=setTimeout(readThenDraw, 2500);
+            var wd=setTimeout(readThenDraw, 800);
             p.then(function(bmp){ clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, function(){ clearTimeout(wd); readThenDraw(); });
           } else readThenDraw();
         } else readThenDraw();
