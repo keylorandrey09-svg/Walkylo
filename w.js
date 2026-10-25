@@ -690,7 +690,7 @@
     // a veces fallan o tardan en el primer intento) y solo devuelve null tras agotarlas. Una guarda
     // evita entregar dos resultados. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
     function downscale(file, cb) {
-      var tries = 0, MAX_TRIES = 4, done = false;
+      var tries = 0, MAX_TRIES = 3, done = false;
       function finish(a) { if (done) return; done = true; cb(a); }
       function toCanvas(src, w, h, onFail) {
         try {
@@ -720,12 +720,12 @@
         if (done) return;
         tries++;
         if (tries >= MAX_TRIES) { finish(null); return; }   // error real recién tras agotar los reintentos
-        setTimeout(readThenDraw, 200 * tries);
+        setTimeout(readThenDraw, 120 * tries);
       }
       if (window.createImageBitmap) {
         var p; try { p = createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) { p = null; }
         if (p && p.then) {
-          var wd = setTimeout(readThenDraw, 2500);   // si createImageBitmap se cuelga, seguimos por el otro camino
+          var wd = setTimeout(readThenDraw, 800);   // si createImageBitmap tarda/se cuelga, arrancamos el otro camino en paralelo
           p.then(function (bmp) { clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch (e) {} },
                  function () { clearTimeout(wd); readThenDraw(); });
         } else readThenDraw();
