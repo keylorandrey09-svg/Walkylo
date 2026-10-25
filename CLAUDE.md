@@ -18,6 +18,17 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 4. Cada botón o flujo debe funcionar, o no existir.
 5. Marca: azul #0164FD. El verde se usa solo para estados confirmados.
 
+## Reglas del widget
+(Para no repetirlas en cada sesión. Aplican a `w.js` y a la vista previa del panel `app/index.html`.)
+- Contrato público de `w.js`: el nombre del archivo, su URL, los atributos `data-*`, las claves de storage y las llamadas a Supabase NO cambian. Un solo archivo autónomo, con Shadow DOM, sin dependencias ni recursos remotos.
+- Blanco y negro con variables de tema (Predeterminado/Claro y Oscuro). Nunca `#0164FD` ni colores sueltos; el rojo solo para acciones destructivas.
+- En pantallas táctiles nunca llamar a `textarea.focus()` de forma automática (única excepción: al tocar "Editar" un mensaje). En laptop sí se enfoca al abrir.
+- El título del estado vacío es estático: se elige uno al azar al abrir el chat o al empezar un chat nuevo, sin repetir el último, y no rota.
+- Fotos: máximo 4, solo en el navegador, sin llamadas de red (queda el TODO `onSendAttachments`).
+- Historial local en localStorage por widget: máximo 30 chats, 100 mensajes por chat y 30 días, solo texto.
+- El widget aparece junto con la página al recargar (config en caché y estado restaurado sin animación).
+- Accesibilidad y `prefers-reduced-motion` en todo lo nuevo.
+
 ## Cómo trabajar con Keylor
 - Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
 - Un cambio pequeño por vez, siempre en una rama. Nunca commit directo a main. El push a ramas de trabajo está autorizado, nunca a main.
@@ -46,3 +57,4 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 ## Pendientes antes de lanzar a clientes
 - **Fotos del widget (`+`)**: hoy `ATTACHMENTS_ENABLED = true` en `w.js`, pero las fotos son SOLO del lado del navegador (vista local, sin red ni Supabase; el enganche real está marcado con el TODO `onSendAttachments` para la Fase 8). Antes de habilitarlas para clientes reales hay que definir el lado servidor: bucket privado con límites (cantidad/tamaño/ritmo contra abuso); subida por la función `chat`; columna de adjuntos; `widget_id` y `visitor_id` en `conversations`; visión de la IA sobre las imágenes; retención y borrado; y política de privacidad. Si eso no está listo al lanzar, poné `ATTACHMENTS_ENABLED = false`.
 - **Historial del chat**: hoy es SOLO local en el dispositivo (localStorage, namespaced por id del widget; sin red). No se sincroniza entre dispositivos ni con el servidor. La sincronización con el servidor queda para la Fase 8.
+- **Regenerar y editar mensajes**: hoy "Generar otra respuesta" (en los mensajes de la IA) y "Editar" (en los del usuario) pasan por la misma función que genera respuestas, con un flag `regenerate` y un `AbortController`, pero la respuesta sigue siendo el mensaje fijo. En la Fase 8 hay que conectar esos dos flujos con la IA real (la función `chat`), respetando el flag y el aborto.
