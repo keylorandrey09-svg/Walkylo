@@ -1019,7 +1019,7 @@
     '.msg-atts img{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);cursor:pointer;display:block;}' +
     '.att-fail{width:88px;height:88px;border-radius:14px;border:1px solid var(--imgline);background:var(--surface);display:grid;place-items:center;color:var(--ink2);} .att-fail svg{width:26px;height:26px;}' +
     // Acciones debajo de los mensajes de la IA (copiar / generar otra respuesta)
-    '.msg-actions{display:flex;gap:2px;margin-top:2px;align-self:flex-start;}' +
+    '.msg-actions{display:flex;gap:2px;margin-top:2px;margin-left:-11px;align-self:flex-start;}' +
     '.msg-act{width:40px;height:40px;border:0;border-radius:9px;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .msg-act:hover{background:var(--surface);color:var(--ink);} .msg-act:active{background:var(--surface2);} .msg-act.ok{color:var(--ink);} .msg-act svg{width:18px;height:18px;} .msg-regen[hidden]{display:none;}' +
     // Menú al mantener presionado un mensaje del usuario
     '.msgmenu{position:absolute;z-index:7;min-width:150px;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.4);padding:5px;}' +
