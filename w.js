@@ -671,23 +671,42 @@
       liveUrls.forEach(function (u) { try { if (u && u.indexOf("blob:") === 0) URL.revokeObjectURL(u); } catch (e) {} });
       liveUrls = [];
     }
+    // Reduce la foto en el navegador. Usa createImageBitmap (confiable y respeta la rotación
+    // EXIF del teléfono); si no está, cae a FileReader->Image, que evita la carrera del
+    // objectURL que hacía fallar el primer intento. Una foto válida nunca devuelve null:
+    // si algo falla, se usa el archivo original tal cual.
     function downscale(file, cb) {
-      var url = URL.createObjectURL(file), img = new Image();
-      img.onload = function () {
-        var w = img.width, h = img.height, scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
-        var cw = Math.round(w * scale), ch = Math.round(h * scale);
+      function toCanvas(src, w, h, done) {
         try {
+          var scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
           var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
-          cv.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          cv.getContext("2d").drawImage(src, 0, 0, cw, ch);
           cv.toBlob(function (blob) {
-            try { URL.revokeObjectURL(url); } catch (e) {}
-            if (!blob) { cb(null); return; }
-            cb({ url: URL.createObjectURL(blob), blob: blob });
+            done(blob ? { url: URL.createObjectURL(blob), blob: blob } : { url: URL.createObjectURL(file), blob: file });
           }, "image/jpeg", ATT_QUALITY);
-        } catch (e) { try { URL.revokeObjectURL(url); } catch (_) {} cb({ url: URL.createObjectURL(file), blob: file }); }
-      };
-      img.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) {} cb(null); };
-      img.src = url;
+        } catch (e) { done({ url: URL.createObjectURL(file), blob: file }); }
+      }
+      function viaReader() {
+        try {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var img = new Image();
+            img.onload = function () { toCanvas(img, img.width, img.height, cb); };
+            img.onerror = function () { cb({ url: URL.createObjectURL(file), blob: file }); };
+            img.src = reader.result;
+          };
+          reader.onerror = function () { cb({ url: URL.createObjectURL(file), blob: file }); };
+          reader.readAsDataURL(file);
+        } catch (e) { cb({ url: URL.createObjectURL(file), blob: file }); }
+      }
+      if (window.createImageBitmap) {
+        var opt = { imageOrientation: "from-image" };
+        var p; try { p = createImageBitmap(file, opt); } catch (e) { p = null; }
+        if (p && p.then) {
+          p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height, function (a) { try { bmp.close(); } catch (e) {} cb(a); }); }, viaReader);
+        } else viaReader();
+      } else viaReader();
     }
     if (ATTACHMENTS_ENABLED) {
       $(".plus").addEventListener("click", function () { fileInp.click(); });
@@ -1047,7 +1066,7 @@
     '.thumbs[hidden]{display:none;}' +
     '.thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}' +
     '.thumb img{width:100%;height:100%;object-fit:cover;display:block;}' +
-    '.thumbx{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:7px;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;} .thumbx svg{width:13px;height:13px;}' +
+    '.thumbx{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;} .thumbx svg{width:12px;height:12px;display:block;}' +
     '.ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:7px 2px;min-height:36px;max-height:132px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
     '.ta::-webkit-scrollbar{width:6px;} .ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;} .ta::-webkit-scrollbar-track{background:transparent;}' +
     '.ta::placeholder{color:var(--ink2);}' +
