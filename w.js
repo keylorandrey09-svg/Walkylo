@@ -671,17 +671,26 @@
       liveUrls.forEach(function (u) { try { if (u && u.indexOf("blob:") === 0) URL.revokeObjectURL(u); } catch (e) {} });
       liveUrls = [];
     }
+    // ¿El archivo es una imagen que aceptamos? No dependemos solo del type: varias galerías
+    // de Android entregan la MISMA foto con type vacío. Si el type sirve, listo; si no, se
+    // deduce por la extensión (jpg/jpeg/png/webp); sin extensión, se deja que el decodificador valide.
+    function isImageFile(f) {
+      if (ATT_TYPES[f.type]) return true;
+      var m = /\.([a-z0-9]+)$/i.exec(f.name || "");
+      var ext = m ? m[1].toLowerCase() : "";
+      if (ext) return ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp";
+      return !f.type || f.type.indexOf("image/") === 0;
+    }
+
     // Reduce la foto en el navegador y la devuelve como DATA URL (imagen incrustada), no como
     // blob temporal: así la vista previa y el mensaje se ven SIEMPRE, sin depender de una URL
     // que se pueda romper o liberar al cambiar de chat. Usa createImageBitmap (confiable y
-    // respeta la rotación EXIF); si no, FileReader->Image. Una foto válida nunca devuelve null.
-    // Nota Fase 8: `blob` queda null; para subir, reconstruirlo desde la data URL.
+    // respeta la rotación EXIF); si no, FileReader->Image. La lectura reintenta un par de veces
+    // (en móvil, fotos de galería/nube a veces fallan en el primer intento) y solo devuelve null
+    // tras agotar los reintentos. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
     function downscale(file, cb) {
-      function fromFile() {
-        try { var r = new FileReader(); r.onload = function () { cb({ url: r.result, blob: null }); }; r.onerror = function () { cb(null); }; r.readAsDataURL(file); }
-        catch (e) { cb(null); }
-      }
-      function toCanvas(src, w, h) {
+      var tries = 0, MAX_TRIES = 3;
+      function toCanvas(src, w, h, onFail) {
         try {
           var scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
           var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
@@ -689,27 +698,30 @@
           cv.getContext("2d").drawImage(src, 0, 0, cw, ch);
           var durl = cv.toDataURL("image/jpeg", ATT_QUALITY);
           if (durl && durl.indexOf("data:image") === 0) cb({ url: durl, blob: null });
-          else fromFile();   // canvas vacío (p. ej. imagen enorme): usa el archivo original
-        } catch (e) { fromFile(); }
+          else onFail();
+        } catch (e) { onFail(); }
       }
-      function viaReader() {
-        try {
-          var reader = new FileReader();
-          reader.onload = function () {
-            var img = new Image();
-            img.onload = function () { toCanvas(img, img.width, img.height); };
-            img.onerror = function () { cb({ url: reader.result, blob: null }); }; // el original ya es una data URL válida
-            img.src = reader.result;
-          };
-          reader.onerror = function () { cb(null); };
-          reader.readAsDataURL(file);
-        } catch (e) { fromFile(); }
+      function readThenDraw() {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = new Image();
+          img.onload = function () { toCanvas(img, img.width, img.height, function () { cb({ url: reader.result, blob: null }); }); };
+          img.onerror = function () { cb({ url: reader.result, blob: null }); }; // el dataURL leído ya sirve para mostrar
+          img.src = reader.result;
+        };
+        reader.onerror = retry;
+        try { reader.readAsDataURL(file); } catch (e) { retry(); }
+      }
+      function retry() {
+        tries++;
+        if (tries >= MAX_TRIES) { cb(null); return; }   // error real recién tras reintentar
+        setTimeout(readThenDraw, 120 * tries);
       }
       if (window.createImageBitmap) {
         var p; try { p = createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) { p = null; }
-        if (p && p.then) p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height); try { bmp.close(); } catch (e) {} }, viaReader);
-        else viaReader();
-      } else viaReader();
+        if (p && p.then) p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch (e) {} }, readThenDraw);
+        else readThenDraw();
+      } else readThenDraw();
     }
     if (ATTACHMENTS_ENABLED) {
       $(".plus").addEventListener("click", function () { fileInp.click(); });
@@ -718,7 +730,7 @@
         fileInp.value = "";
         files.forEach(function (f) {
           if (attachments.length >= ATT_MAX) { showAttErr("Hasta " + ATT_MAX + " fotos."); return; }
-          if (!ATT_TYPES[f.type]) { showAttErr("Solo JPG, PNG o WEBP."); return; }
+          if (!isImageFile(f)) { showAttErr("Solo JPG, PNG o WEBP."); return; }
           if (f.size > ATT_MAX_MB * 1024 * 1024) { showAttErr("Cada foto hasta " + ATT_MAX_MB + " MB."); return; }
           downscale(f, function (a) { if (!a) { showAttErr("No se pudo procesar esa foto."); return; } if (attachments.length >= ATT_MAX) { try { URL.revokeObjectURL(a.url); } catch (e) {} return; } attachments.push(a); renderThumbs(); });
         });
