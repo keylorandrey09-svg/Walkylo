@@ -1169,8 +1169,6 @@
       '.grip{display:block;width:36px;height:4px;border-radius:999px;background:var(--ink2);opacity:.4;margin:9px auto 2px;flex-shrink:0;touch-action:none;}' +
       '.head{padding-top:16px;touch-action:none;}' +
       '.herotitle{font-size:1.5rem;}' +
-      '.composer{grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "text text text" "plus . send";padding:8px 10px 10px;border-radius:22px;}' +
-      '.ta{padding:10px 4px;margin-bottom:7px;}' +
       '.ico{width:44px;height:44px;}' +
       '.fab{right:16px;bottom:16px;}' +
     '}' +
