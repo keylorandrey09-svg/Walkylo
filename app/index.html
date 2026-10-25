@@ -2617,31 +2617,36 @@
         if (ext) return ext==='jpg'||ext==='jpeg'||ext==='png'||ext==='webp';
         return !f.type || f.type.indexOf('image/')===0;
       }
-      // Igual que w.js: data URL (incrustada), con reintentos de lectura (en móvil la primera
-      // lectura puede fallar) y solo devuelve null tras agotarlos. Nota Fase 8: `blob` null.
+      // Igual que w.js: data URL (incrustada), con reintentos de lectura (más espera cada vez),
+      // watchdog si createImageBitmap se cuelga, y guarda para no entregar dos resultados.
+      // Solo devuelve null tras agotar los reintentos. Nota Fase 8: `blob` null.
       function cwDownscale(file, cb){
-        var tries=0, MAX_TRIES=3;
+        var tries=0, MAX_TRIES=4, done=false;
+        function finish(a){ if (done) return; done=true; cb(a); }
         function toCanvas(src, w, h, onFail){
           try {
             var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
             var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
             var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
             var durl=cv.toDataURL('image/jpeg', CW_ATT_Q);
-            if (durl && durl.indexOf('data:image')===0) cb({ url:durl, blob:null });
+            if (durl && durl.indexOf('data:image')===0) finish({ url:durl, blob:null });
             else onFail();
           } catch(e){ onFail(); }
         }
         function readThenDraw(){
+          if (done) return;
           var reader=new FileReader();
-          reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, function(){ cb({ url:reader.result, blob:null }); }); }; img.onerror=function(){ cb({ url:reader.result, blob:null }); }; img.src=reader.result; };
+          reader.onload=function(){ if (done) return; var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, function(){ finish({ url:reader.result, blob:null }); }); }; img.onerror=function(){ finish({ url:reader.result, blob:null }); }; img.src=reader.result; };
           reader.onerror=retry;
           try { reader.readAsDataURL(file); } catch(e){ retry(); }
         }
-        function retry(){ tries++; if (tries>=MAX_TRIES){ cb(null); return; } setTimeout(readThenDraw, 120*tries); }
+        function retry(){ if (done) return; tries++; if (tries>=MAX_TRIES){ finish(null); return; } setTimeout(readThenDraw, 200*tries); }
         if (window.createImageBitmap){
           var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
-          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, readThenDraw);
-          else readThenDraw();
+          if (p && p.then){
+            var wd=setTimeout(readThenDraw, 2500);
+            p.then(function(bmp){ clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, function(){ clearTimeout(wd); readThenDraw(); });
+          } else readThenDraw();
         } else readThenDraw();
       }
       if (cwPlus && cwFile){
@@ -2652,7 +2657,7 @@
             if (cwAtts.length >= CW_ATT_MAX){ cwShowErr('Hasta '+CW_ATT_MAX+' fotos.'); return; }
             if (!cwIsImageFile(f)){ cwShowErr('Solo JPG, PNG o WEBP.'); return; }
             if (f.size > CW_ATT_MB*1024*1024){ cwShowErr('Cada foto hasta '+CW_ATT_MB+' MB.'); return; }
-            cwDownscale(f, function(a){ if (!a){ cwShowErr('No se pudo procesar esa foto.'); return; } if (cwAtts.length >= CW_ATT_MAX){ try { URL.revokeObjectURL(a.url); } catch(e){} return; } cwAtts.push(a); cwRenderThumbs(); });
+            cwDownscale(f, function(a){ if (!a){ cwShowErr('Esta imagen no se pudo procesar, intentá de nuevo.'); return; } if (cwAtts.length >= CW_ATT_MAX){ try { URL.revokeObjectURL(a.url); } catch(e){} return; } cwAtts.push(a); cwRenderThumbs(); });
           });
         });
       }

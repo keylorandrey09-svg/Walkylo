@@ -685,11 +685,13 @@
     // Reduce la foto en el navegador y la devuelve como DATA URL (imagen incrustada), no como
     // blob temporal: así la vista previa y el mensaje se ven SIEMPRE, sin depender de una URL
     // que se pueda romper o liberar al cambiar de chat. Usa createImageBitmap (confiable y
-    // respeta la rotación EXIF); si no, FileReader->Image. La lectura reintenta un par de veces
-    // (en móvil, fotos de galería/nube a veces fallan en el primer intento) y solo devuelve null
-    // tras agotar los reintentos. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
+    // respeta la rotación EXIF); si no, o si se queda colgado (watchdog), cae a FileReader->Image.
+    // La lectura reintenta varias veces con más espera cada vez (en móvil, fotos de galería/nube
+    // a veces fallan o tardan en el primer intento) y solo devuelve null tras agotarlas. Una guarda
+    // evita entregar dos resultados. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
     function downscale(file, cb) {
-      var tries = 0, MAX_TRIES = 3;
+      var tries = 0, MAX_TRIES = 4, done = false;
+      function finish(a) { if (done) return; done = true; cb(a); }
       function toCanvas(src, w, h, onFail) {
         try {
           var scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
@@ -697,30 +699,36 @@
           var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
           cv.getContext("2d").drawImage(src, 0, 0, cw, ch);
           var durl = cv.toDataURL("image/jpeg", ATT_QUALITY);
-          if (durl && durl.indexOf("data:image") === 0) cb({ url: durl, blob: null });
+          if (durl && durl.indexOf("data:image") === 0) finish({ url: durl, blob: null });
           else onFail();
         } catch (e) { onFail(); }
       }
       function readThenDraw() {
+        if (done) return;
         var reader = new FileReader();
         reader.onload = function () {
+          if (done) return;
           var img = new Image();
-          img.onload = function () { toCanvas(img, img.width, img.height, function () { cb({ url: reader.result, blob: null }); }); };
-          img.onerror = function () { cb({ url: reader.result, blob: null }); }; // el dataURL leído ya sirve para mostrar
+          img.onload = function () { toCanvas(img, img.width, img.height, function () { finish({ url: reader.result, blob: null }); }); };
+          img.onerror = function () { finish({ url: reader.result, blob: null }); }; // el dataURL leído ya sirve para mostrar
           img.src = reader.result;
         };
         reader.onerror = retry;
         try { reader.readAsDataURL(file); } catch (e) { retry(); }
       }
       function retry() {
+        if (done) return;
         tries++;
-        if (tries >= MAX_TRIES) { cb(null); return; }   // error real recién tras reintentar
-        setTimeout(readThenDraw, 120 * tries);
+        if (tries >= MAX_TRIES) { finish(null); return; }   // error real recién tras agotar los reintentos
+        setTimeout(readThenDraw, 200 * tries);
       }
       if (window.createImageBitmap) {
         var p; try { p = createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) { p = null; }
-        if (p && p.then) p.then(function (bmp) { toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch (e) {} }, readThenDraw);
-        else readThenDraw();
+        if (p && p.then) {
+          var wd = setTimeout(readThenDraw, 2500);   // si createImageBitmap se cuelga, seguimos por el otro camino
+          p.then(function (bmp) { clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch (e) {} },
+                 function () { clearTimeout(wd); readThenDraw(); });
+        } else readThenDraw();
       } else readThenDraw();
     }
     if (ATTACHMENTS_ENABLED) {
@@ -732,7 +740,7 @@
           if (attachments.length >= ATT_MAX) { showAttErr("Hasta " + ATT_MAX + " fotos."); return; }
           if (!isImageFile(f)) { showAttErr("Solo JPG, PNG o WEBP."); return; }
           if (f.size > ATT_MAX_MB * 1024 * 1024) { showAttErr("Cada foto hasta " + ATT_MAX_MB + " MB."); return; }
-          downscale(f, function (a) { if (!a) { showAttErr("No se pudo procesar esa foto."); return; } if (attachments.length >= ATT_MAX) { try { URL.revokeObjectURL(a.url); } catch (e) {} return; } attachments.push(a); renderThumbs(); });
+          downscale(f, function (a) { if (!a) { showAttErr("Esta imagen no se pudo procesar, intentá de nuevo."); return; } if (attachments.length >= ATT_MAX) { try { URL.revokeObjectURL(a.url); } catch (e) {} return; } attachments.push(a); renderThumbs(); });
         });
       });
     }
