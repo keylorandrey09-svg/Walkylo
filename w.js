@@ -489,14 +489,19 @@
 
     // ---- Estado de la interfaz (sobrevive recargas) ----
     function saveUI() {
-      try { sessionStorage.setItem(UI_KEY, JSON.stringify({ open: panel.classList.contains("open"), text: ta.value, scroll: body.scrollTop, title: currentTitle })); } catch (e) {}
+      try { sessionStorage.setItem(UI_KEY, JSON.stringify({ open: isOpen, text: ta.value, scroll: body.scrollTop, title: currentTitle })); } catch (e) {}
     }
     function readUI() { try { return JSON.parse(sessionStorage.getItem(UI_KEY)) || null; } catch (e) { return null; } }
 
     // ---- Abrir / cerrar ----
+    // Una sola fuente de verdad (isOpen). open() y close() son idempotentes y de ahí se deriva
+    // TODA la interfaz (clases, aria-hidden, inert, transform, foco y visibilidad del botón).
     var hideFab = (launcher === "none" || launcher === "off");
     if (hideFab) fab.style.display = "none";
     var lastFocus = null;
+    var isOpen = false;        // verdad del estado abierto/cerrado
+    var closeTimer = null;     // respaldo por si transitionend no llega en el cierre animado
+    var dragRaf = null;        // cuadro de animación del arrastre en curso (ver más abajo)
     function onOutside(e) {
       if (host.contains(e.target)) return;
       if (e.target && e.target.closest && e.target.closest("[data-walkyup-open]")) return;
@@ -511,65 +516,159 @@
       if (panel.classList.contains("sheet-open")) { panel.classList.remove("sheet-open"); return; }
       close();
     }
+    // Deja la hoja sin rastros de un arrastre o un cierre a medias (translateY a 0, clases fuera).
+    function clearDrag() {
+      if (dragRaf != null) { cancelAnimationFrame(dragRaf); dragRaf = null; }
+      panel.classList.remove("dragging", "closing");
+      panel.style.transform = "";
+    }
     function open(noAnim) {
-      lastFocus = document.activeElement;
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      var wasOpen = isOpen;
+      isOpen = true;                                   // estado PRIMERO
+      clearDrag();                                     // cancela cualquier cierre/arrastre en curso
+      if (!wasOpen) lastFocus = document.activeElement;
       // Al abrir (cerrado -> abierto) en estado vacío, se elige UN título nuevo y queda fijo.
-      if (!noAnim && userMsgCount() === 0) pickNewTitle();
+      if (!noAnim && !wasOpen && userMsgCount() === 0) pickNewTitle();
       if (noAnim) panel.classList.add("no-anim");
-      panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); fab.style.display = "none";
+      panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); panel.removeAttribute("inert");
+      fab.style.display = "none";
       document.addEventListener("click", onOutside); document.addEventListener("keydown", onEsc);
       syncHero(); autogrow();
       if (noAnim) { scroll(); setTimeout(function () { panel.classList.remove("no-anim"); }, 60); }
-      else { setTimeout(function () { focusInput(); autogrow(); scroll(); }, 250); }
+      else { setTimeout(function () { if (isOpen) { focusInput(); autogrow(); scroll(); } }, 250); }
       saveUI();
     }
-    function close() {
-      closeMsgMenu();
-      panel.classList.remove("open", "sheet-open", "dragging"); panel.style.transform = ""; panel.setAttribute("aria-hidden", "true"); fab.style.display = hideFab ? "none" : "";
+    // Pasa la interfaz a "cerrado" y deja el botón flotante disponible YA (sin esperar animación).
+    function markClosed() {
+      isOpen = false;                                  // estado PRIMERO
+      panel.setAttribute("aria-hidden", "true");
       document.removeEventListener("click", onOutside); document.removeEventListener("keydown", onEsc);
+      fab.style.display = hideFab ? "none" : "";
       var back = (!hideFab) ? fab : lastFocus;
       try { if (back && back.focus) back.focus(); } catch (e) {}
+    }
+    function close() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      closeMsgMenu();
+      markClosed();
+      panel.classList.remove("open", "sheet-open");
+      clearDrag();                                     // cierre instantáneo (X / Esc / afuera)
+      try { panel.inert = true; } catch (e) {}
       saveUI();
     }
-    function toggle() { panel.classList.contains("open") ? close() : open(); }
+    // Cierre animado al soltar el arrastre: el botón ya está, así que un toque reabre sin esperar.
+    function closeBySlide() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      closeMsgMenu();
+      markClosed();                                    // estado y botón listos primero
+      if (reduceMotion || !isSheet()) { panel.classList.remove("open", "sheet-open"); clearDrag(); try { panel.inert = true; } catch (e) {} saveUI(); return; }
+      panel.classList.remove("open", "sheet-open", "dragging");
+      panel.classList.add("closing");                  // mantiene display:flex y la transición
+      panel.style.transform = "translateY(100%)";
+      var done = function () {
+        panel.removeEventListener("transitionend", done);
+        if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+        if (isOpen) return;                            // reabrieron mientras animaba: no tocar nada
+        panel.classList.remove("closing"); panel.style.transform = "";
+        try { panel.inert = true; } catch (e) {}
+      };
+      panel.addEventListener("transitionend", done);
+      closeTimer = setTimeout(done, 360);              // respaldo si transitionend no llega
+      saveUI();
+    }
+    function toggle() { isOpen ? close() : open(); }
+    // El botón flotante SIEMPRE abre (nunca alterna) y con un solo toque, aun durante el cierre.
     fab.addEventListener("click", function () { open(); });
-    $(".close").addEventListener("click", close);
+    $(".close").addEventListener("click", function () { close(); });
 
     // ---- Arrastrar para cerrar (solo hoja móvil ≤640px) ----
-    // Desde el agarre o el encabezado (NO desde la lista de mensajes, para no pelear con el scroll).
+    // Banda superior de ancho completo (agarre + encabezado), con touch-action:none y captura de
+    // puntero. Umbral de ~4px para distinguir un toque de un arrastre: así los botones del encabezado
+    // siguen respondiendo al toque, y si hubo arrastre NO se dispara su acción.
     var grip = $(".grip"), head = $(".head");
-    var dragging = false, dragStartY = 0, dragLastY = 0, dragLastT = 0, dragV = 0;
+    var DRAG_THRESH = 4, DRAG_CLOSE_PX = 100, DRAG_CLOSE_V = 0.5;
+    var drag = null;
     function isSheet() { try { return window.matchMedia("(max-width:640px)").matches; } catch (e) { return false; } }
-    function onDragMove(e) {
-      if (!dragging) return;
-      var dy = e.clientY - dragStartY; if (dy < 0) dy = 0;
-      var now = Date.now(); dragV = (e.clientY - dragLastY) / Math.max(1, now - dragLastT); dragLastY = e.clientY; dragLastT = now;
-      panel.style.transform = "translateY(" + dy + "px)";
-      if (e.cancelable) e.preventDefault();
+    function dragBlocked() {
+      return panel.classList.contains("sheet-open") || !historyEl.hidden || !confirmEl.hidden || !viewerEl.hidden || msgMenuEl;
     }
-    function onDragEnd() {
-      if (!dragging) return; dragging = false;
-      document.removeEventListener("pointermove", onDragMove); document.removeEventListener("pointerup", onDragEnd); document.removeEventListener("pointercancel", onDragEnd);
+    function dragVelocity() {   // px/ms con las últimas muestras (positivo = hacia abajo)
+      if (!drag || drag.samples.length < 2) return 0;
+      var s = drag.samples, a = s[s.length - 1], b = s[0];
+      for (var i = s.length - 2; i >= 0; i--) { b = s[i]; if (a.t - s[i].t >= 50) break; }
+      var dt = a.t - b.t; if (dt <= 0) return 0;
+      return (a.y - b.y) / dt;
+    }
+    function dragFollow() {     // seguimiento 1 a 1 del dedo con requestAnimationFrame
+      dragRaf = null;
+      if (!drag || !drag.active) return;
+      panel.style.transform = "translateY(" + (drag.dy < 0 ? 0 : drag.dy) + "px)";
+    }
+    function dragSchedule() { if (dragRaf == null) dragRaf = requestAnimationFrame(dragFollow); }
+    function springBack() { panel.style.transform = ""; }   // el resorte de la transición la devuelve
+    function suppressNextClick() {
+      // Si hubo arrastre, cancelá el próximo click sobre un botón del encabezado (su acción no corre).
+      var cleanup = function () { head.removeEventListener("click", supp, true); if (grip) grip.removeEventListener("click", supp, true); };
+      var supp = function (e) {
+        if (e.target && e.target.closest && e.target.closest("button,a")) { e.preventDefault(); e.stopPropagation(); }
+        cleanup();
+      };
+      head.addEventListener("click", supp, true); if (grip) grip.addEventListener("click", supp, true);
+      setTimeout(cleanup, 400);
+    }
+    // Termina SIEMPRE el gesto y deja la hoja en un estado consistente (cierra o vuelve a su lugar).
+    function dragEnd(action) {
+      if (!drag) return;
+      var el = drag.el, id = drag.id, active = drag.active, moved = drag.moved;
+      drag = null;
+      if (dragRaf != null) { cancelAnimationFrame(dragRaf); dragRaf = null; }
+      try { if (el && el.releasePointerCapture) el.releasePointerCapture(id); } catch (e) {}
       panel.classList.remove("dragging");
-      var dy = Math.max(0, dragLastY - dragStartY);
-      if (dy > 110 || dragV > 0.5) {
-        if (reduceMotion) { panel.style.transform = ""; close(); return; }
-        panel.style.transform = "translateY(100%)";
-        var done = function () { panel.removeEventListener("transitionend", done); clearTimeout(tm); panel.style.transform = ""; close(); };
-        var tm = setTimeout(done, 340); panel.addEventListener("transitionend", done);
-      } else { panel.style.transform = ""; } // vuelve a su lugar con el resorte del CSS
+      if (!active) return;            // fue un toque: el botón recibe su click normal
+      if (moved) suppressNextClick();
+      if (action === "close") closeBySlide(); else springBack();
     }
-    function onDragStart(e) {
-      if (dragging || !isSheet() || !panel.classList.contains("open")) return;
-      if (e.target && e.target.closest && e.target.closest("button,a,input,textarea,.msgmenu")) return;
-      if (panel.classList.contains("sheet-open") || !historyEl.hidden || !confirmEl.hidden || !viewerEl.hidden || msgMenuEl) return;
-      dragging = true; dragStartY = e.clientY; dragLastY = e.clientY; dragLastT = Date.now(); dragV = 0;
-      panel.classList.add("dragging");
-      document.addEventListener("pointermove", onDragMove, { passive: false });
-      document.addEventListener("pointerup", onDragEnd); document.addEventListener("pointercancel", onDragEnd);
+    function onZoneDown(e) {
+      if (drag || !isSheet() || !isOpen || dragBlocked()) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      drag = { id: e.pointerId, el: e.currentTarget, startX: e.clientX, startY: e.clientY, dy: 0,
+               active: false, moved: false, samples: [{ y: e.clientY, t: e.timeStamp || Date.now() }] };
     }
-    if (grip) grip.addEventListener("pointerdown", onDragStart);
-    if (head) head.addEventListener("pointerdown", onDragStart);
+    function onZoneMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.dy = e.clientY - drag.startY;
+      drag.samples.push({ y: e.clientY, t: e.timeStamp || Date.now() });
+      while (drag.samples.length > 6) drag.samples.shift();
+      if (!drag.active) {
+        var adx = Math.abs(e.clientX - drag.startX), ady = Math.abs(drag.dy);
+        if (ady < DRAG_THRESH && adx < DRAG_THRESH) return;       // todavía parece un toque
+        if (drag.dy <= 0 || adx > ady) { drag = null; return; }   // hacia arriba o lateral: no es cierre
+        drag.active = true; drag.moved = true;
+        try { if (drag.el.setPointerCapture) drag.el.setPointerCapture(drag.id); } catch (e2) {}
+        panel.classList.add("dragging");
+      }
+      if (e.cancelable) e.preventDefault();
+      dragSchedule();
+    }
+    function onZoneUp(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.samples.push({ y: e.clientY, t: e.timeStamp || Date.now() });
+      var dy = drag.dy < 0 ? 0 : drag.dy, v = dragVelocity(), active = drag.active;
+      dragEnd((active && (dy > DRAG_CLOSE_PX || v > DRAG_CLOSE_V)) ? "close" : "spring");
+    }
+    function onZoneCancel(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      dragEnd("spring");              // pointercancel / lostpointercapture: vuelve a su lugar
+    }
+    [grip, head].forEach(function (z) {
+      if (!z) return;
+      z.addEventListener("pointerdown", onZoneDown);
+      z.addEventListener("pointermove", onZoneMove, { passive: false });
+      z.addEventListener("pointerup", onZoneUp);
+      z.addEventListener("pointercancel", onZoneCancel);
+      z.addEventListener("lostpointercapture", onZoneCancel);
+    });
 
     // API pública: el dueño abre el chat desde su propio botón, donde quiera.
     window.WalkyUp = { open: function () { open(); }, close: close, toggle: toggle };
@@ -983,7 +1082,7 @@
     window.addEventListener("pageshow", function (e) {
       if (!e.persisted) return; // bfcache: re-sincronizar sin animación
       var u = readUI(); if (!u) return;
-      if (u.open && !panel.classList.contains("open") && !hideFab) { open(true); if (typeof u.scroll === "number") body.scrollTop = u.scroll; }
+      if (u.open && !isOpen && !hideFab) { open(true); if (typeof u.scroll === "number") body.scrollTop = u.scroll; }
     });
   }
 
@@ -1011,7 +1110,7 @@
     '.ta:focus,.panel:focus{outline:none;}' +
     '.no-anim,.no-anim *{animation:none!important;transition:none!important;}' +
     // ----- Launcher -----
-    '.fab{position:fixed;right:20px;bottom:20px;width:52px;height:52px;border:0;border-radius:16px;cursor:pointer;display:grid;place-items:center;background:#111;color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.26);overflow:hidden;padding:0;}' +
+    '.fab{position:fixed;right:20px;bottom:20px;width:52px;height:52px;border:0;border-radius:16px;cursor:pointer;display:grid;place-items:center;background:#111;color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.26);overflow:hidden;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}' +
     '.fab img{width:100%;height:100%;object-fit:cover;display:block;} .fab svg{width:24px;height:24px;}' +
     '.fab.fab-in{animation:wu-fab-in .15s ease both;}' +
     '@keyframes wu-fab-in{from{opacity:0}to{opacity:1}}' +
@@ -1027,6 +1126,7 @@
       '--send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);' +
       '--imgline:rgba(0,0,0,.08);--danger:#dc2626;--danger-bg:rgba(220,38,38,.08);}' +
     '.panel.open{display:flex;animation:wu-pop .26s cubic-bezier(.2,.8,.2,1);}' +
+    '.panel.closing{display:flex;}' +   // visible durante el deslizamiento de cierre (arrastre)
     '@keyframes wu-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
     // ----- Agarre (arrastrar para cerrar, solo móvil) -----
     '.grip{display:none;}' +
@@ -1166,8 +1266,10 @@
       '.panel.dragging{transition:none;}' +
       '.panel.open{animation:wu-up .28s cubic-bezier(.2,.8,.2,1);}' +
       '@keyframes wu-up{from{transform:translateY(100%)}to{transform:none}}' +
-      '.grip{display:block;width:36px;height:4px;border-radius:999px;background:var(--ink2);opacity:.4;margin:9px auto 2px;flex-shrink:0;touch-action:none;}' +
-      '.head{padding-top:16px;touch-action:none;}' +
+      // Banda de arrastre de ancho completo (la píldora es solo visual, va en ::before).
+      '.grip{display:block;position:relative;width:100%;height:22px;margin:0;flex-shrink:0;touch-action:none;cursor:grab;}' +
+      '.grip::before{content:"";position:absolute;left:50%;top:9px;width:36px;height:4px;margin-left:-18px;border-radius:999px;background:var(--ink2);opacity:.4;}' +
+      '.head{padding-top:6px;touch-action:none;}' +
       '.herotitle{font-size:1.5rem;}' +
       '.ico{width:44px;height:44px;}' +
       '.fab{right:16px;bottom:16px;}' +
