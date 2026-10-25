@@ -129,6 +129,7 @@
       '<style>' + wuCSS() + '</style>' +
       '<button class="fab" part="fab" aria-label="Abrir chat">' + avaMarkup(avatar) + '</button>' +
       '<div class="panel" tabindex="-1" data-theme="dark" role="dialog" aria-modal="true" aria-label="Chat de ' + esc(name) + '" aria-hidden="true">' +
+        '<div class="grip" aria-hidden="true"></div>' +
         '<div class="head">' +
           '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
           '<span class="ava sm">' + avaMarkup(avatar) + '</span>' +
@@ -184,6 +185,7 @@
           '<img class="viewer-img" alt="">' +
           '<button class="viewer-nav viewer-next" aria-label="Imagen siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>' +
         '</div>' +
+        '<div class="copylive sr" role="status" aria-live="polite"></div>' +
       '</div>';
 
     var $ = function (s) { return root.querySelector(s); };
@@ -238,13 +240,23 @@
     try { hist = JSON.parse(sessionStorage.getItem(STORE_KEY)) || []; } catch (e) { hist = []; }
     var currentId = null; try { currentId = sessionStorage.getItem(CUR_KEY); } catch (e) {}
     if (!currentId) { currentId = genId(); try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {} }
-    function persist() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(hist)); } catch (e) {} }
+    // Solo texto en el storage (las URLs de fotos viven en memoria, no se serializan).
+    function persist() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(hist.map(function (m) { return { x: m.x, o: m.o, g: m.g ? 1 : 0 }; }))); } catch (e) {} }
 
     var msgs = $(".msgs"), body = $(".body"), heroTitle = $(".herotitle");
 
+    // ---- Íconos de las acciones (trazo 1,75; tipo ChatGPT) ----
+    // Se declaran ANTES de pintar los mensajes restaurados (evita íconos "undefined").
+    var ICO_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>';
+    var ICO_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 6.5"/></svg>';
+    var ICO_REGEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3v5h-5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 21v-5h5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>';
+    var ICO_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+    var ICO_IMG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg>';
+
     // Bienvenida (no se guarda) + mensajes del chat actual
-    msgs.appendChild(bubble(welcome, false));
-    hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, null, !!m.g)); });
+    msgs.appendChild(bubble(welcome, false, null, false, { welcome: true }));
+    hist.forEach(function (m, idx) { msgs.appendChild(bubble(m.x, !!m.o, m._atts || null, !!m.g, { idx: idx })); });
+    refreshActions();
 
     function userMsgCount() { for (var k = 0; k < hist.length; k++) { if (hist[k].o) return 1; } return 0; }
 
@@ -268,28 +280,206 @@
     })();
     function syncHero() { panel.classList.toggle("has-hero", userMsgCount() === 0); }
 
-    // ---- Burbujas ----
-    function bubble(text, out, atts, hadImg) {
-      var el = document.createElement("div");
-      el.className = "msg " + (out ? "out" : "in");
-      if (atts && atts.length) {
-        var g = document.createElement("div"); g.className = "msg-atts";
-        atts.forEach(function (src, i) {
-          var im = document.createElement("img"); im.src = src; im.alt = "Imagen adjunta " + (i + 1) + " de " + atts.length;
-          im.setAttribute("role", "button"); im.setAttribute("tabindex", "0");
-          im.onerror = function () { im.style.display = "none"; };
-          im.addEventListener("click", function () { openViewer(atts, i, im); });
-          im.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openViewer(atts, i, im); } });
-          g.appendChild(im);
-        });
-        el.appendChild(g);
-      } else if (hadImg) {
-        var note = document.createElement("div"); note.className = "noimg"; note.textContent = "Imagen no guardada"; el.appendChild(note);
+    // ---- Copiar al portapapeles (con respaldo para navegadores viejos) ----
+    var copylive = $(".copylive");
+    function announceCopied() { if (!copylive) return; copylive.textContent = ""; setTimeout(function () { copylive.textContent = "Copiado"; }, 30); }
+    function copyText(text, cb) {
+      function fallback() {
+        try {
+          var t = document.createElement("textarea"); t.value = text || "";
+          t.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none;";
+          document.body.appendChild(t); t.focus(); t.select();
+          var ok = document.execCommand("copy"); document.body.removeChild(t); cb(ok);
+        } catch (e) { cb(false); }
       }
-      if (text) { var tx = document.createElement("div"); tx.className = "tx"; tx.textContent = text; el.appendChild(tx); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text || "").then(function () { cb(true); }, fallback);
+      } else fallback();
+    }
+    function copyAndFlash(text, btn) {
+      copyText(text, function (ok) {
+        if (!ok) return;
+        announceCopied();
+        if (btn) {
+          var prev = btn.innerHTML; btn.innerHTML = ICO_CHECK; btn.classList.add("ok"); btn.setAttribute("aria-label", "Copiado");
+          setTimeout(function () { btn.innerHTML = prev; btn.classList.remove("ok"); btn.setAttribute("aria-label", "Copiar"); }, 1500);
+        }
+      });
+    }
+
+    // ---- Burbujas ----
+    // Imagen adjunta dentro de una burbuja: si falla, muestra un recuadro neutro (nunca el alt suelto).
+    function attImg(list, i) {
+      var im = document.createElement("img"); im.src = list[i]; im.alt = "Imagen adjunta " + (i + 1) + " de " + list.length;
+      im.setAttribute("role", "button"); im.setAttribute("tabindex", "0");
+      im.onerror = function () {
+        var ph = document.createElement("div"); ph.className = "att-fail"; ph.setAttribute("role", "img"); ph.setAttribute("aria-label", "Imagen no disponible");
+        ph.innerHTML = ICO_IMG; if (im.parentNode) im.parentNode.replaceChild(ph, im);
+      };
+      im.addEventListener("click", function () { openViewer(list, i, im); });
+      im.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openViewer(list, i, im); } });
+      return im;
+    }
+    function attRow(list) {
+      var g = document.createElement("div"); g.className = "msg-atts";
+      for (var i = 0; i < list.length; i++) g.appendChild(attImg(list, i));
+      return g;
+    }
+    function actionBtn(icon, label, cls) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "msg-act" + (cls ? " " + cls : "");
+      b.setAttribute("aria-label", label); b.innerHTML = icon; return b;
+    }
+    function aiActions(idx) {
+      var row = document.createElement("div"); row.className = "msg-actions";
+      var copyB = actionBtn(ICO_COPY, "Copiar");
+      copyB.addEventListener("click", function () { copyAndFlash(hist[idx] ? hist[idx].x : "", copyB); });
+      var regen = actionBtn(ICO_REGEN, "Generar otra respuesta", "msg-regen"); regen.hidden = true;
+      regen.addEventListener("click", function () { regenerateLast(); });
+      row.appendChild(copyB); row.appendChild(regen);
+      return row;
+    }
+    function bubble(text, out, atts, hadImg, opts) {
+      opts = opts || {};
+      var el = document.createElement("div");
+      el.className = "msg " + (out ? "out" : "in") + (opts.welcome ? " welcome" : "");
+      if (typeof opts.idx === "number") el.setAttribute("data-idx", opts.idx);
+      if (atts && atts.length) el.appendChild(attRow(atts));
+      else if (hadImg) { var note = document.createElement("div"); note.className = "noimg"; note.textContent = "Imagen no guardada"; el.appendChild(note); }
+      if (text) {
+        var tx = document.createElement("div"); tx.className = "tx"; tx.textContent = text;
+        if (out) {
+          var bub = document.createElement("div"); bub.className = "bubble"; bub.appendChild(tx); el.appendChild(bub);
+          if (typeof opts.idx === "number") wireUserMenu(bub, opts.idx);
+        } else el.appendChild(tx);
+      }
+      if (!out && !opts.welcome && typeof opts.idx === "number") el.appendChild(aiActions(opts.idx));
       return el;
     }
+    // Reconstruye toda la lista desde `hist` (bienvenida + mensajes), con sus acciones.
+    function rebuildMessages() {
+      closeMsgMenu();
+      msgs.innerHTML = "";
+      msgs.appendChild(bubble(welcome, false, null, false, { welcome: true }));
+      hist.forEach(function (m, idx) { msgs.appendChild(bubble(m.x, !!m.o, m._atts || null, !!m.g, { idx: idx })); });
+      refreshActions();
+    }
+    // Muestra "Copiar" en todas las respuestas de la IA y "Generar otra respuesta" solo en la última.
+    // Oculta las acciones mientras se está generando una respuesta.
+    function refreshActions() {
+      var busy = (state === "thinking" || state === "responding");
+      Array.prototype.forEach.call(msgs.querySelectorAll(".msg-actions"), function (a) { a.style.display = busy ? "none" : ""; });
+      var ins = msgs.querySelectorAll(".msg.in:not(.welcome)");
+      var lastAi = ins.length ? ins[ins.length - 1] : null;
+      Array.prototype.forEach.call(msgs.querySelectorAll(".msg-regen"), function (r) {
+        r.hidden = busy || !(lastAi && lastAi.contains(r));
+      });
+    }
     function scroll() { body.scrollTop = body.scrollHeight; }
+
+    // ---- Menú de mensaje del usuario (mantener presionado / clic derecho / teclado) ----
+    var msgMenuEl = null, msgMenuReturn = null;
+    function closeMsgMenu() {
+      if (!msgMenuEl) return;
+      var ret = msgMenuReturn; if (msgMenuEl.parentNode) msgMenuEl.parentNode.removeChild(msgMenuEl);
+      msgMenuEl = null; msgMenuReturn = null;
+      root.removeEventListener("click", onRootMenuOutside); document.removeEventListener("click", onDocMenuOutside);
+      try { if (ret && ret.focus) ret.focus(); } catch (e) {}
+    }
+    // Dentro del Shadow DOM el target real llega al root; a nivel de documento todo se reporta como el host.
+    function onRootMenuOutside(e) { if (msgMenuEl && !msgMenuEl.contains(e.target)) closeMsgMenu(); }
+    function onDocMenuOutside(e) { if (msgMenuEl && !host.contains(e.target)) closeMsgMenu(); }
+    function openMsgMenu(anchor, idx) {
+      closeMsgMenu();
+      var menu = document.createElement("div"); menu.className = "msgmenu"; menu.setAttribute("role", "menu");
+      var copyB = document.createElement("button"); copyB.type = "button"; copyB.className = "msgmenu-item"; copyB.setAttribute("role", "menuitem"); copyB.innerHTML = ICO_COPY + "<span>Copiar</span>";
+      var editB = document.createElement("button"); editB.type = "button"; editB.className = "msgmenu-item"; editB.setAttribute("role", "menuitem"); editB.innerHTML = ICO_EDIT + "<span>Editar</span>";
+      menu.appendChild(copyB); menu.appendChild(editB); panel.appendChild(menu);
+      var pr = panel.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+      var top = Math.min(ar.bottom - pr.top + 6, pr.height - menu.offsetHeight - 10);
+      menu.style.top = Math.max(8, top) + "px";
+      menu.style.right = Math.max(8, pr.right - ar.right) + "px";
+      msgMenuEl = menu; msgMenuReturn = anchor;
+      copyB.addEventListener("click", function () { var t = hist[idx] ? hist[idx].x : ""; closeMsgMenu(); copyAndFlash(t, null); });
+      editB.addEventListener("click", function () { closeMsgMenu(); enterEdit(idx); });
+      setTimeout(function () { try { copyB.focus(); } catch (e) {} }, 0);
+      setTimeout(function () { root.addEventListener("click", onRootMenuOutside); document.addEventListener("click", onDocMenuOutside); }, 0);
+    }
+    function wireUserMenu(bub, idx) {
+      bub.setAttribute("tabindex", "0"); bub.setAttribute("role", "button"); bub.setAttribute("aria-haspopup", "menu"); bub.setAttribute("aria-label", "Mensaje enviado. Mantené presionado para opciones.");
+      var pressT = null, startX = 0, startY = 0, moved = false;
+      function clearPress() { if (pressT) { clearTimeout(pressT); pressT = null; } }
+      bub.addEventListener("pointerdown", function (e) {
+        if (e.button && e.button !== 0) return;
+        moved = false; startX = e.clientX; startY = e.clientY;
+        clearPress(); pressT = setTimeout(function () { pressT = null; openMsgMenu(bub, idx); }, 450);
+      });
+      bub.addEventListener("pointermove", function (e) {
+        if (!pressT) return;
+        if (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8) { moved = true; clearPress(); }
+      });
+      bub.addEventListener("pointerup", clearPress);
+      bub.addEventListener("pointercancel", clearPress);
+      bub.addEventListener("pointerleave", clearPress);
+      bub.addEventListener("contextmenu", function (e) { e.preventDefault(); openMsgMenu(bub, idx); });
+      bub.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || (e.shiftKey && e.key === "F10")) { e.preventDefault(); openMsgMenu(bub, idx); }
+      });
+    }
+
+    // ---- Editar un mensaje del usuario en el lugar ----
+    function enterEdit(idx) {
+      if (state !== "idle") return;
+      var m = hist[idx]; if (!m || !m.o) return;
+      var msgEl = msgs.querySelector('.msg[data-idx="' + idx + '"]'); if (!msgEl) return;
+      msgEl.classList.add("editing"); msgEl.innerHTML = "";
+      var box = document.createElement("div"); box.className = "editbox";
+      var tarea = document.createElement("textarea"); tarea.className = "editta"; tarea.value = m.x || ""; tarea.setAttribute("aria-label", "Editar mensaje");
+      var btns = document.createElement("div"); btns.className = "editbtns";
+      var cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "editbtn sec"; cancel.textContent = "Cancelar";
+      var save = document.createElement("button"); save.type = "button"; save.className = "editbtn pri"; save.textContent = "Enviar";
+      btns.appendChild(cancel); btns.appendChild(save); box.appendChild(tarea); box.appendChild(btns); msgEl.appendChild(box);
+      function grow() { tarea.style.height = "auto"; tarea.style.height = Math.min(tarea.scrollHeight, 160) + "px"; }
+      tarea.addEventListener("input", grow);
+      tarea.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.preventDefault(); rebuildMessages(); } });
+      cancel.addEventListener("click", function () { rebuildMessages(); });
+      save.addEventListener("click", function () { var nv = tarea.value.trim(); if (!nv) { tarea.focus(); return; } submitEdit(idx, nv); });
+      // Excepción a la regla táctil: el usuario pidió editar, así que SÍ enfocamos el textarea.
+      setTimeout(function () { try { tarea.focus(); grow(); var L = tarea.value.length; tarea.setSelectionRange(L, L); } catch (e) {} }, 0);
+      scroll();
+    }
+    function submitEdit(idx, newText) {
+      var old = hist[idx];
+      var keepAtts = (old && old._atts && old._atts.length) ? old._atts.slice() : null;
+      hist = hist.slice(0, idx);
+      hist.push({ x: newText, o: 1, g: keepAtts ? 1 : 0, _atts: keepAtts });
+      persist(); logUpsert();
+      rebuildMessages(); syncHero(); scroll(); saveUI();
+      generateReply({ regenerate: false });
+    }
+
+    // ---- Generar / regenerar respuesta (una sola función; Fase 8 conecta la IA real) ----
+    function generateReply(opts) {
+      opts = opts || {};
+      var regenerate = !!opts.regenerate;   // la Fase 8 lo usa para rehacer la última respuesta
+      setState("thinking");
+      try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
+      // TODO Fase 8: en vez de este setTimeout, llamar a la Edge Function `chat`
+      //   pasando { regenerate: regenerate, signal: ctrl && ctrl.signal } y transmitir la respuesta real.
+      pendingTimer = setTimeout(function () {
+        setState("responding");
+        hist.push({ x: PENDING_REPLY, o: 0, g: 0 });
+        msgs.appendChild(bubble(PENDING_REPLY, false, null, false, { idx: hist.length - 1 }));
+        persist(); logUpsert(); scroll();
+        setState("idle"); refreshActions(); focusInput();
+      }, 1200);
+    }
+    function regenerateLast() {
+      if (state !== "idle") return;
+      if (!hist.length || hist[hist.length - 1].o) return; // la última debe ser una respuesta de la IA
+      hist.pop(); persist(); logUpsert();
+      rebuildMessages(); scroll(); saveUI();
+      generateReply({ regenerate: true });
+    }
 
     // ---- Foco: en táctil nunca abrir el teclado (no enfocar el textarea) ----
     function focusInput() {
@@ -314,6 +504,7 @@
     }
     function onEsc(e) {
       if (e.key !== "Escape" && e.key !== "Esc") return;
+      if (msgMenuEl) { closeMsgMenu(); return; }
       if (!viewerEl.hidden) { closeViewer(); return; }
       if (!confirmEl.hidden) { cancelConfirm(); return; }
       if (!historyEl.hidden) { closeHistory(); return; }
@@ -333,7 +524,8 @@
       saveUI();
     }
     function close() {
-      panel.classList.remove("open", "sheet-open"); panel.setAttribute("aria-hidden", "true"); fab.style.display = hideFab ? "none" : "";
+      closeMsgMenu();
+      panel.classList.remove("open", "sheet-open", "dragging"); panel.style.transform = ""; panel.setAttribute("aria-hidden", "true"); fab.style.display = hideFab ? "none" : "";
       document.removeEventListener("click", onOutside); document.removeEventListener("keydown", onEsc);
       var back = (!hideFab) ? fab : lastFocus;
       try { if (back && back.focus) back.focus(); } catch (e) {}
@@ -342,6 +534,42 @@
     function toggle() { panel.classList.contains("open") ? close() : open(); }
     fab.addEventListener("click", function () { open(); });
     $(".close").addEventListener("click", close);
+
+    // ---- Arrastrar para cerrar (solo hoja móvil ≤640px) ----
+    // Desde el agarre o el encabezado (NO desde la lista de mensajes, para no pelear con el scroll).
+    var grip = $(".grip"), head = $(".head");
+    var dragging = false, dragStartY = 0, dragLastY = 0, dragLastT = 0, dragV = 0;
+    function isSheet() { try { return window.matchMedia("(max-width:640px)").matches; } catch (e) { return false; } }
+    function onDragMove(e) {
+      if (!dragging) return;
+      var dy = e.clientY - dragStartY; if (dy < 0) dy = 0;
+      var now = Date.now(); dragV = (e.clientY - dragLastY) / Math.max(1, now - dragLastT); dragLastY = e.clientY; dragLastT = now;
+      panel.style.transform = "translateY(" + dy + "px)";
+      if (e.cancelable) e.preventDefault();
+    }
+    function onDragEnd() {
+      if (!dragging) return; dragging = false;
+      document.removeEventListener("pointermove", onDragMove); document.removeEventListener("pointerup", onDragEnd); document.removeEventListener("pointercancel", onDragEnd);
+      panel.classList.remove("dragging");
+      var dy = Math.max(0, dragLastY - dragStartY);
+      if (dy > 110 || dragV > 0.5) {
+        if (reduceMotion) { panel.style.transform = ""; close(); return; }
+        panel.style.transform = "translateY(100%)";
+        var done = function () { panel.removeEventListener("transitionend", done); clearTimeout(tm); panel.style.transform = ""; close(); };
+        var tm = setTimeout(done, 340); panel.addEventListener("transitionend", done);
+      } else { panel.style.transform = ""; } // vuelve a su lugar con el resorte del CSS
+    }
+    function onDragStart(e) {
+      if (dragging || !isSheet() || !panel.classList.contains("open")) return;
+      if (e.target && e.target.closest && e.target.closest("button,a,input,textarea,.msgmenu")) return;
+      if (panel.classList.contains("sheet-open") || !historyEl.hidden || !confirmEl.hidden || !viewerEl.hidden || msgMenuEl) return;
+      dragging = true; dragStartY = e.clientY; dragLastY = e.clientY; dragLastT = Date.now(); dragV = 0;
+      panel.classList.add("dragging");
+      document.addEventListener("pointermove", onDragMove, { passive: false });
+      document.addEventListener("pointerup", onDragEnd); document.addEventListener("pointercancel", onDragEnd);
+    }
+    if (grip) grip.addEventListener("pointerdown", onDragStart);
+    if (head) head.addEventListener("pointerdown", onDragStart);
 
     // API pública: el dueño abre el chat desde su propio botón, donde quiera.
     window.WalkyUp = { open: function () { open(); }, close: close, toggle: toggle };
@@ -359,6 +587,10 @@
     ta.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (state === "idle") send(); }
     });
+    // El realce de la tarjeta solo reacciona al textarea, NO a los botones + / enviar.
+    var composerEl = $(".composer");
+    ta.addEventListener("focus", function () { composerEl.classList.add("focus"); });
+    ta.addEventListener("blur", function () { composerEl.classList.remove("focus"); });
     var scrollSaveT = null;
     body.addEventListener("scroll", function () { if (scrollSaveT) return; scrollSaveT = setTimeout(function () { scrollSaveT = null; saveUI(); }, 250); });
 
@@ -377,23 +609,17 @@
     function send() {
       if (!canSend()) return;
       var v = ta.value.trim();
+      // Las URLs pasan a ser del mensaje: se mantienen vivas (no se revocan al limpiar).
       var atts = attachments.map(function (a) { return a.url; });
       var hadImg = atts.length > 0;
-      msgs.appendChild(bubble(v, true, atts));
-      hist.push({ x: v, o: 1, g: hadImg ? 1 : 0 }); persist(); logUpsert();
+      if (hadImg) atts.forEach(function (u) { liveUrls.push(u); });
+      hist.push({ x: v, o: 1, g: hadImg ? 1 : 0, _atts: hadImg ? atts : null });
+      msgs.appendChild(bubble(v, true, hadImg ? atts : null, false, { idx: hist.length - 1 }));
+      persist(); logUpsert();
       // TODO Fase 8: onSendAttachments(attachments) -> subir/enviar al backend (hoy NO hay red)
-      clearAttachments();
+      detachAttachments();   // vacía el compositor SIN revocar (las URLs ya son del mensaje)
       ta.value = ""; autogrow(); syncHero(); scroll(); saveUI();
-
-      setState("thinking");
-      try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
-      pendingTimer = setTimeout(function () {
-        setState("responding");
-        msgs.appendChild(bubble(PENDING_REPLY, false)); hist.push({ x: PENDING_REPLY, o: 0, g: 0 }); persist(); logUpsert();
-        scroll();
-        setState("idle");
-        focusInput();
-      }, 1200);
+      generateReply({ regenerate: false });
     }
 
     function stop() {
@@ -405,12 +631,14 @@
         var tag = document.createElement("span"); tag.className = "stopped"; tag.textContent = " (detenido)"; last.appendChild(tag);
       }
       setState("idle");
+      refreshActions();
       focusInput();
     }
     sendBtn.addEventListener("click", function () { if (state === "idle") send(); else stop(); });
 
     // ---- Fotos (+): solo lado navegador ----
-    var attachments = [];
+    var attachments = [];     // fotos del compositor (aún sin enviar)
+    var liveUrls = [];        // URLs de fotos ya enviadas: vivas hasta chat nuevo o descarga
     var fileInp = $(".fileinp"), thumbs = $(".thumbs"), atterr = $(".atterr");
     function showAttErr(msg) { if (!atterr) return; atterr.textContent = msg; atterr.hidden = false; setTimeout(function () { atterr.hidden = true; }, 3500); }
     function renderThumbs() {
@@ -431,9 +659,17 @@
       try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {}
       attachments.splice(idx, 1); renderThumbs();
     }
+    // Vacía el compositor revocando las fotos NO enviadas (descartadas).
     function clearAttachments() {
       attachments.forEach(function (a) { try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {} });
       attachments = []; renderThumbs();
+    }
+    // Vacía el compositor SIN revocar (las fotos pasaron a un mensaje y siguen vivas).
+    function detachAttachments() { attachments = []; renderThumbs(); }
+    // Libera todas las fotos enviadas (al empezar un chat nuevo o al descargar la página).
+    function revokeLive() {
+      liveUrls.forEach(function (u) { try { if (u && u.indexOf("blob:") === 0) URL.revokeObjectURL(u); } catch (e) {} });
+      liveUrls = [];
     }
     function downscale(file, cb) {
       var url = URL.createObjectURL(file), img = new Image();
@@ -626,8 +862,7 @@
       currentId = id; try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {}
       hist = c.msgs.map(function (m) { return { x: m.x, o: m.o, g: m.g ? 1 : 0 }; }); persist();
       clearAttachments(); setState("idle");
-      msgs.innerHTML = ""; msgs.appendChild(bubble(welcome, false));
-      hist.forEach(function (m) { msgs.appendChild(bubble(m.x, !!m.o, null, !!m.g)); });
+      rebuildMessages();
       closeHistory(); syncHero(); scroll(); saveUI();
     }
     function deleteChat(id) {
@@ -643,8 +878,8 @@
       try { if (ctrl) ctrl.abort(); } catch (e) {} ctrl = null; setState("idle");
       currentId = genId(); try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {}
       hist = []; persist();
-      msgs.innerHTML = ""; msgs.appendChild(bubble(welcome, false));
-      clearAttachments();
+      clearAttachments(); revokeLive();   // chat nuevo: liberar las fotos del chat anterior
+      rebuildMessages();
       pickNewTitle();
       syncHero(); scroll(); saveUI();
     }
@@ -700,9 +935,9 @@
     // Primera visita (sin caché ni estado previo): aparición con un fundido breve.
     if (!fromCache && !ui) { fab.classList.add("fab-in"); }
 
-    // Guardar estado al salir / bfcache
-    window.addEventListener("pagehide", saveUI);
-    window.addEventListener("beforeunload", saveUI);
+    // Guardar estado al salir / bfcache (y liberar las fotos en memoria al descargar)
+    window.addEventListener("pagehide", function () { saveUI(); revokeLive(); });
+    window.addEventListener("beforeunload", function () { saveUI(); revokeLive(); });
     window.addEventListener("pageshow", function (e) {
       if (!e.persisted) return; // bfcache: re-sincronizar sin animación
       var u = readUI(); if (!u) return;
@@ -742,13 +977,17 @@
     '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);' +
       '--ubub:#2a2b31;--uink:#f4f5f7;--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--thumb:#26272c;' +
       '--send-bg:#f4f5f7;--send-ink:#0e0f12;--stop-bg:#3a3b41;--stop-ink:#f4f5f7;--dot:#52545b;--dot-on:#c9ccd1;--sb:rgba(255,255,255,.18);' +
-      'position:fixed;right:16px;top:16px;bottom:16px;width:420px;max-width:calc(100vw - 32px);background:var(--bg);color:var(--ink);' +
+      '--imgline:rgba(255,255,255,.1);--danger:#ff6b6b;--danger-bg:rgba(255,107,107,.12);' +
+      'position:fixed;right:16px;top:16px;bottom:16px;width:420px;max-width:calc(100vw - 32px);background:var(--bg);color:var(--ink);overscroll-behavior:contain;' +
       'border:1px solid var(--line);border-radius:18px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.32);}' +
     '.panel[data-theme=light]{--bg:#fff;--surface:#f6f6f7;--surface2:#ececed;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;' +
       '--ubub:#ededee;--uink:#0a0a0a;--ava-bg:#0a0a0a;--ava-ink:#fff;--thumb:#ececed;' +
-      '--send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);}' +
+      '--send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);' +
+      '--imgline:rgba(0,0,0,.08);--danger:#dc2626;--danger-bg:rgba(220,38,38,.08);}' +
     '.panel.open{display:flex;animation:wu-pop .26s cubic-bezier(.2,.8,.2,1);}' +
     '@keyframes wu-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
+    // ----- Agarre (arrastrar para cerrar, solo móvil) -----
+    '.grip{display:none;}' +
     // ----- Encabezado -----
     '.head{display:flex;align-items:center;gap:6px;padding:10px 8px 6px;flex-shrink:0;}' +
     '.ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;background:var(--ava-bg);color:var(--ava-ink);margin:0 2px;padding:0;}' +
@@ -757,7 +996,7 @@
     '.ico{width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;flex-shrink:0;}' +
     '.ico:hover{background:var(--surface);} .ico svg{width:20px;height:20px;}' +
     // ----- Cuerpo / scroll -----
-    '.body{flex:1;overflow-y:auto;padding:10px 16px 4px;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
+    '.body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 16px 4px;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
     '.body::-webkit-scrollbar{width:7px;} .body::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;} .body::-webkit-scrollbar-track{background:transparent;}' +
     // ----- Estado vacío -----
     '.hero{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;min-height:150px;}' +
@@ -771,10 +1010,25 @@
     '.msg{max-width:85%;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}' +
     '.msg .tx{white-space:pre-wrap;}' +
     '.in{align-self:flex-start;color:var(--ink);max-width:100%;}' +
-    '.out{align-self:flex-end;background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;}' +
+    '.out{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}' +
+    '.out .bubble{background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:default;}' +
+    '.out.editing{max-width:100%;width:100%;align-items:stretch;}' +
     '.stopped{color:var(--ink2);font-style:italic;} .noimg{font-size:.78rem;color:var(--ink2);font-style:italic;margin-bottom:4px;}' +
-    '.msg-atts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;justify-content:flex-end;max-width:100%;}' +
-    '.msg-atts img{width:72px;height:72px;object-fit:cover;border-radius:14px;border:1px solid var(--line);cursor:pointer;display:block;}' +
+    // Miniaturas en el chat: sin burbuja ni fondo, fila que envuelve, alineadas a la derecha.
+    '.msg-atts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%;}' +
+    '.msg-atts img{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);cursor:pointer;display:block;}' +
+    '.att-fail{width:88px;height:88px;border-radius:14px;border:1px solid var(--imgline);background:var(--surface);display:grid;place-items:center;color:var(--ink2);} .att-fail svg{width:26px;height:26px;}' +
+    // Acciones debajo de los mensajes de la IA (copiar / generar otra respuesta)
+    '.msg-actions{display:flex;gap:2px;margin-top:2px;align-self:flex-start;}' +
+    '.msg-act{width:40px;height:40px;border:0;border-radius:9px;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .msg-act:hover{background:var(--surface);color:var(--ink);} .msg-act:active{background:var(--surface2);} .msg-act.ok{color:var(--ink);} .msg-act svg{width:18px;height:18px;} .msg-regen[hidden]{display:none;}' +
+    // Menú al mantener presionado un mensaje del usuario
+    '.msgmenu{position:absolute;z-index:7;min-width:150px;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.4);padding:5px;}' +
+    '.msgmenu-item{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-size:.9rem;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;} .msgmenu-item:hover,.msgmenu-item:focus-visible{background:var(--surface);outline:none;} .msgmenu-item svg{width:17px;height:17px;color:var(--ink2);flex-shrink:0;}' +
+    // Editar un mensaje del usuario en el lugar
+    '.editbox{width:100%;display:flex;flex-direction:column;gap:8px;}' +
+    '.editta{width:100%;border:1px solid var(--ink2);background:var(--surface);color:var(--ink);border-radius:16px;padding:10px 13px;font:inherit;font-size:16px;line-height:1.4;resize:none;outline:none;min-height:42px;max-height:160px;}' +
+    '.editbtns{display:flex;justify-content:flex-end;gap:8px;}' +
+    '.editbtn{border-radius:11px;padding:7px 15px;font:inherit;font-size:.86rem;font-weight:600;cursor:pointer;} .editbtn.sec{border:1px solid var(--line);background:none;color:var(--ink);} .editbtn.sec:hover{background:var(--surface);} .editbtn.pri{border:0;background:var(--send-bg);color:var(--send-ink);} .editbtn.pri:hover{opacity:.9;}' +
     // ----- Puntos de carga -----
     '.typing{display:flex;align-items:center;gap:6px;padding:2px 2px 10px;align-self:flex-start;}' +
     '.typing[hidden]{display:none;}' +
@@ -788,7 +1042,7 @@
     '.composer-wrap{padding:6px 14px 8px;flex-shrink:0;}' +
     '.composer{display:grid;gap:7px 8px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:7px 8px 7px 12px;' +
       'grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "plus text send";}' +
-    '.composer:focus-within{border-color:var(--ink2);}' +
+    '.composer.focus{border-color:var(--ink2);}' +
     '.thumbs{grid-area:thumbs;display:flex;flex-wrap:wrap;gap:7px;padding:4px 2px 2px;}' +
     '.thumbs[hidden]{display:none;}' +
     '.thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}' +
@@ -797,8 +1051,8 @@
     '.ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:7px 2px;min-height:36px;max-height:132px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
     '.ta::-webkit-scrollbar{width:6px;} .ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;} .ta::-webkit-scrollbar-track{background:transparent;}' +
     '.ta::placeholder{color:var(--ink2);}' +
-    '.plus{grid-area:plus;align-self:end;width:36px;height:36px;border-radius:50%;border:0;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;} .plus:hover{background:var(--surface2);color:var(--ink);} .plus svg{width:20px;height:20px;} .plus[hidden]{display:none;}' +
-    '.send{grid-area:send;align-self:end;width:36px;height:36px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;cursor:pointer;transition:background .15s,opacity .15s;}' +
+    '.plus{grid-area:plus;align-self:end;width:44px;height:44px;border-radius:50%;border:0;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .plus:hover{color:var(--ink);} .plus:active{background:var(--surface2);color:var(--ink);} .plus svg{width:24px;height:24px;} .plus[hidden]{display:none;}' +
+    '.send{grid-area:send;align-self:end;width:44px;height:44px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:background .15s,opacity .15s,transform .1s;} .send:active:not(:disabled){transform:scale(.94);}' +
     '.send:disabled{opacity:.35;cursor:default;} .send svg{width:18px;height:18px;} .send .sqr{display:none;width:11px;height:11px;border-radius:3px;background:var(--stop-ink);}' +
     '.send.busy{background:var(--stop-bg);opacity:1;} .send.busy .sicon{display:none;} .send.busy .sqr{display:block;}' +
     // ----- Pie -----
@@ -840,8 +1094,10 @@
     '.hrow-menu{position:absolute;right:8px;top:calc(100% - 6px);z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);padding:4px;} .hrow-menu[hidden]{display:none;}' +
     '.hrow-del{border:0;background:none;color:var(--ink);font:inherit;font-size:.86rem;padding:8px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;} .hrow-del:hover{background:var(--surface);}' +
     '.hempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink2);font-size:.95rem;padding:20px;gap:6px;} .hempty span{font-size:.8rem;} .hempty[hidden]{display:none;}' +
-    '.hclear-wrap{flex-shrink:0;text-align:center;padding:8px 10px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);} .hclear-wrap[hidden]{display:none;}' +
-    '.hclear{border:0;background:none;color:var(--ink2);font:inherit;font-size:.8rem;padding:8px 14px;border-radius:8px;cursor:pointer;} .hclear:hover{color:var(--ink);background:var(--surface);}' +
+    // "Borrar historial": barra completa al fondo, toda tocable, se tiñe de rojo al interactuar.
+    '.hclear-wrap{flex-shrink:0;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);} .hclear-wrap[hidden]{display:none;}' +
+    '.hclear{display:block;width:100%;height:52px;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;font-weight:500;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .12s,color .12s;} ' +
+    '.hclear:hover,.hclear:focus-visible,.hclear:active{background:var(--danger-bg);color:var(--danger);outline:none;box-shadow:none;}' +
     // ----- Confirmación -----
     '.confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:22px;}' +
     '.confirm[hidden]{display:none;}' +
@@ -863,13 +1119,17 @@
     '.viewer-prev{left:10px;} .viewer-next{right:10px;}' +
     // ----- Móvil: hoja que sube desde abajo -----
     '@media(max-width:640px){' +
-      '.panel{left:0;right:0;top:auto;bottom:0;width:auto;max-width:100vw;height:92dvh;max-height:92dvh;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom);}' +
+      '.panel{left:0;right:0;top:auto;bottom:0;width:auto;max-width:100vw;height:92dvh;max-height:92dvh;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom);transition:transform .26s cubic-bezier(.2,.8,.2,1);}' +
+      '.panel.dragging{transition:none;}' +
       '.panel.open{animation:wu-up .28s cubic-bezier(.2,.8,.2,1);}' +
       '@keyframes wu-up{from{transform:translateY(100%)}to{transform:none}}' +
+      '.grip{display:block;width:36px;height:4px;border-radius:999px;background:var(--ink2);opacity:.4;margin:9px auto 2px;flex-shrink:0;touch-action:none;}' +
+      '.head{padding-top:16px;touch-action:none;}' +
       '.herotitle{font-size:1.5rem;}' +
       '.composer{grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "text text text" "plus . send";padding:8px 10px 10px;border-radius:22px;}' +
       '.ta{padding:6px 4px 2px;}' +
       '.ico{width:44px;height:44px;}' +
       '.fab{right:16px;bottom:16px;}' +
-    '}'); }
+    '}' +
+    '@media(prefers-reduced-motion:reduce){.panel{transition:none!important;}.panel.open{animation:none!important;}}'); }
 })();
