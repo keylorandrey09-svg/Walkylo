@@ -466,7 +466,7 @@
     .cw-thumbs[hidden]{display:none;}
     .cw-thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}
     .cw-thumb img{width:100%;height:100%;object-fit:cover;}
-    .cw-thumbx{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:7px;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;} .cw-thumbx svg{width:13px;height:13px;}
+    .cw-thumbx{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;touch-action:manipulation;} .cw-thumbx svg{width:12px;height:12px;display:block;}
     .cw-ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:7px 2px;min-height:36px;max-height:132px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}
     .cw-ta::-webkit-scrollbar{width:6px;} .cw-ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;}
     .cw-ta::placeholder{color:var(--ink2);}
@@ -2609,17 +2609,30 @@
       function cwDetachAtts(){ cwAtts=[]; cwRenderThumbs(); }
       // Libera las fotos enviadas (al empezar un chat nuevo o al descargar la página).
       function cwRevokeLive(){ cwLive.forEach(function(u){ try { if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
+      // Mismo criterio que w.js: createImageBitmap (confiable, respeta rotación) con respaldo
+      // FileReader->Image; una foto válida nunca devuelve null (si falla, usa el original).
       function cwDownscale(file, cb){
-        var url=URL.createObjectURL(file), img=new Image();
-        img.onload=function(){
-          var w=img.width, h=img.height, s=Math.min(1, CW_ATT_PX/Math.max(w,h));
-          var cw2=Math.round(w*s), ch=Math.round(h*s);
-          try { var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(img,0,0,cw2,ch);
-            cv.toBlob(function(b){ try { URL.revokeObjectURL(url); } catch(e){} if (!b){ cb(null); return; } cb({ url:URL.createObjectURL(b), blob:b }); }, 'image/jpeg', CW_ATT_Q);
-          } catch(e){ try { URL.revokeObjectURL(url); } catch(_){} cb({ url:URL.createObjectURL(file), blob:file }); }
-        };
-        img.onerror=function(){ try { URL.revokeObjectURL(url); } catch(e){} cb(null); };
-        img.src=url;
+        function toCanvas(src, w, h, done){
+          try {
+            var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
+            var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
+            var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
+            cv.toBlob(function(b){ done(b ? { url:URL.createObjectURL(b), blob:b } : { url:URL.createObjectURL(file), blob:file }); }, 'image/jpeg', CW_ATT_Q);
+          } catch(e){ done({ url:URL.createObjectURL(file), blob:file }); }
+        }
+        function viaReader(){
+          try {
+            var reader=new FileReader();
+            reader.onload=function(){ var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, cb); }; img.onerror=function(){ cb({ url:URL.createObjectURL(file), blob:file }); }; img.src=reader.result; };
+            reader.onerror=function(){ cb({ url:URL.createObjectURL(file), blob:file }); };
+            reader.readAsDataURL(file);
+          } catch(e){ cb({ url:URL.createObjectURL(file), blob:file }); }
+        }
+        if (window.createImageBitmap){
+          var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
+          if (p && p.then) p.then(function(bmp){ toCanvas(bmp, bmp.width, bmp.height, function(a){ try { bmp.close(); } catch(e){} cb(a); }); }, viaReader);
+          else viaReader();
+        } else viaReader();
       }
       if (cwPlus && cwFile){
         cwPlus.addEventListener('click', function(){ cwFile.click(); });
