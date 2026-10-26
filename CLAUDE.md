@@ -32,6 +32,20 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - La config se pide en la primera línea ejecutable (antes de construir el DOM/Shadow/CSS), con `<link rel="preconnect">` a Supabase, y la petición está aislada en `fetchConfig()` (para mover el origen a una CDN más adelante). La config se revalida SIEMPRE en cada carga (una vez por carga, sin compuerta de TTL) y también al volver de segundo plano tras más de 5 minutos oculta; si el avatar no cambió no se toca el DOM. El "TTL" ahora es la antigüedad máxima de la caché que se muestra sin revalidar antes: 30 días (más vieja = se trata como primera visita). Deuda a futuro: mover la config a una dirección cacheada en CDN cuando haya tráfico.
 - Accesibilidad y `prefers-reduced-motion` en todo lo nuevo.
 
+## Sistema visual web
+(Aplica a la landing `index.html`. Tokens, fuentes y componentes base en `/brand.css`, enlazado solo desde `index.html`. No aplica al widget ni al panel.)
+- Paleta (variables en `:root`): `--bg #FFFFFF`, `--surface #F6F7F8`, `--border #E5E7EA`, `--text-2 #6B7079`, `--text #0E1014`, `--accent #0164FD`.
+- Botón principal: fondo `--text` con texto blanco. Secundario: borde `--border`, sin relleno.
+- El azul solo para enlaces, foco (`focus-visible`) y estado activo/seleccionado. Máximo un elemento azul visible por pantalla. Nunca en títulos, íconos decorativos ni etiquetas.
+- Prohibido: gradientes, sombras, brillos, subrayados dibujados, fondos de color en íconos, píldoras.
+- Tipografía: Geist (sans) y Geist Mono (solo código y números chicos), autoalojadas en `/fonts/` (licencia OFL en `fonts/OFL.txt`). Nada de Google Fonts. Pesos 400 y 500, nunca más. Títulos con `letter-spacing: -0.02em`; la jerarquía sale del tamaño, no del grosor.
+- Escala: h1 `clamp(2.5rem, 6vw, 4.5rem)/1.05`; h2 `clamp(1.75rem, 3.5vw, 2.5rem)/1.15`; cuerpo `1rem/1.6`; secundario `0.875rem`; etiquetas `0.8125rem` peso 500, sin mayúsculas ni tracking ancho.
+- Forma: radios 6px (controles) y 10px (contenedores); bordes de 1px `--border`. Íconos SVG inline de línea, trazo 1.5px, sin relleno, clase `.icon`.
+- Espaciado en escala de 8px, contenedor de 1120px, texto alineado a la izquierda. No repetir el mismo molde en todas las secciones; cada elemento con una función.
+- Móvil primero (360px), objetivos táctiles de 44px o más, casi sin animaciones y siempre con `prefers-reduced-motion`.
+- La réplica del widget en el hero es estática y muestra solo el estado vacío: nunca inventar una conversación ni respuestas de la IA.
+- El snippet de instalación vive en un solo lugar (`#snippet` en `index.html`) y apunta a `https://walkylo.vercel.app/w.js` hasta que haya dominio propio.
+
 ## Cómo trabajar con Keylor
 - Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
 - Un cambio pequeño por vez, siempre en una rama. Nunca commit directo a main. El push a ramas de trabajo está autorizado, nunca a main.
