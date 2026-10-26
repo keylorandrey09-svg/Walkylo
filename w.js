@@ -578,8 +578,14 @@
       saveUI();
     }
     function toggle() { isOpen ? close() : open(); }
-    // El botón flotante SIEMPRE abre (nunca alterna) y con un solo toque, aun durante el cierre.
-    fab.addEventListener("click", function () { open(); });
+    // El botón flotante SIEMPRE abre (nunca alterna) y con UN solo toque, aun inmediatamente después
+    // de un arrastre. Respondemos a pointerup además de click: tras un gesto táctil muchos navegadores
+    // "se comen" el click sintético del primer toque siguiente, así que el pointerup garantiza la
+    // reapertura. open() es idempotente y un pequeño antirrebote evita abrir dos veces por el mismo toque.
+    var fabLastTap = 0;
+    function fabOpen() { var n = Date.now(); if (n - fabLastTap < 350) return; fabLastTap = n; open(); }
+    fab.addEventListener("pointerup", function (e) { if (e.pointerType === "mouse" && e.button !== 0) return; fabOpen(); });
+    fab.addEventListener("click", function () { fabOpen(); });
     $(".close").addEventListener("click", function () { close(); });
 
     // ---- Arrastrar para cerrar (solo hoja móvil ≤640px) ----
@@ -1126,7 +1132,7 @@
       '--send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);' +
       '--imgline:rgba(0,0,0,.08);--danger:#dc2626;--danger-bg:rgba(220,38,38,.08);}' +
     '.panel.open{display:flex;animation:wu-pop .26s cubic-bezier(.2,.8,.2,1);}' +
-    '.panel.closing{display:flex;}' +   // visible durante el deslizamiento de cierre (arrastre)
+    '.panel.closing{display:flex;pointer-events:none;}' +   // visible al deslizarse al cerrar, pero deja pasar el toque al botón
     '@keyframes wu-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
     // ----- Agarre (arrastrar para cerrar, solo móvil) -----
     '.grip{display:none;}' +
