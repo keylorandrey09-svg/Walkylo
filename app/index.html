@@ -442,7 +442,6 @@
     .cw-stopped{color:var(--ink2);font-style:italic;}
     .cw-atts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%;}
     .cw-atts img{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);cursor:pointer;display:block;}
-    .cw-att-canvas{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);display:block;}
     .cw-att-fail{width:88px;height:88px;border-radius:14px;border:1px solid var(--imgline);background:var(--surface);display:grid;place-items:center;color:var(--ink2);} .cw-att-fail svg{width:26px;height:26px;}
     .cw-msg-actions{display:flex;gap:2px;margin-top:2px;margin-left:-11px;align-self:flex-start;}
     .cw-msg-act{width:40px;height:40px;border:0;border-radius:9px;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .cw-msg-act:hover{background:var(--surface);color:var(--ink);} .cw-msg-act:active{background:var(--surface2);} .cw-msg-act.ok{color:var(--ink);} .cw-msg-act svg{width:18px;height:18px;} .cw-msg-regen[hidden]{display:none;}
@@ -465,15 +464,9 @@
     .cw-composer.focus{border-color:var(--ink2);}
     .cw-thumbs{grid-area:thumbs;display:flex;flex-wrap:wrap;gap:7px;padding:4px 2px 2px;margin-bottom:7px;}
     .cw-thumbs[hidden]{display:none;}
-    .cw-thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);display:grid;place-items:center;}
-    .cw-thumb img,.cw-thumb canvas.cw-thumb-canvas{width:100%;height:100%;object-fit:cover;display:block;grid-area:1/1;}
-    .cw-thumb-error{border-color:var(--danger,#dc2626);}
-    .cw-thumb-spin{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--ink2);animation:cw-spin .7s linear infinite;}
-    @media (prefers-reduced-motion: reduce){.cw-thumb-spin{animation:none;}}
-    @keyframes cw-spin{to{transform:rotate(360deg)}}
-    .cw-thumb-retry{width:100%;height:100%;border:0;background:var(--danger-bg,rgba(220,38,38,.08));color:var(--danger,#dc2626);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation;} .cw-thumb-retry svg{width:22px;height:22px;}
-    .cw-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
-    .cw-thumbx{position:absolute;top:3px;right:3px;z-index:2;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;touch-action:manipulation;} .cw-thumbx svg{width:12px;height:12px;display:block;}
+    .cw-thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}
+    .cw-thumb img{width:100%;height:100%;object-fit:cover;}
+    .cw-thumbx{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;touch-action:manipulation;} .cw-thumbx svg{width:12px;height:12px;display:block;}
     .cw-ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:10px 2px;min-height:44px;max-height:140px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}
     .cw-ta::-webkit-scrollbar{width:6px;} .cw-ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;}
     .cw-ta::placeholder{color:var(--ink2);}
@@ -2403,14 +2396,9 @@
       var cwReduce = false; try { cwReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
       var cwState = 'idle', cwTimer = null, cwCtrl = null, cwUserMsgs = 0, cwLastTitle = -1, cwTitleTimer = null;
       // Fotos en la vista previa (solo local, sin red). Mismos límites que w.js.
-      var CW_ATT_MAX = 4, CW_ATT_PX = 1600, CW_ATT_Q = 0.8;
-      var CW_IN_MAX_MB = 25, CW_IN_MAX = CW_IN_MAX_MB*1024*1024, CW_OUT_MAX = 1.5*1024*1024;
+      var CW_ATT_MAX = 4, CW_ATT_MB = 5, CW_ATT_PX = 1600, CW_ATT_Q = 0.8;
       var CW_ATT_TYPES = { 'image/jpeg':1, 'image/png':1, 'image/webp':1 };
-      // Modo diagnóstico de fotos (apagado por defecto): ?wdebug=1, localStorage.walkylet_debug="1",
-      // o widget-test.html. Solo metadatos (nunca el contenido de las fotos).
-      var CW_DEBUG = (function(){ try{ if (/(?:^|[?&])wdebug=1(?:&|$|#)/.test(location.search||'')) return true; }catch(e){} try{ if (localStorage.getItem('walkylet_debug')==='1') return true; }catch(e){} try{ if (/widget-test\.html$/i.test(location.pathname||'')) return true; }catch(e){} return false; })();
-      function cwLog(ev, data){ if (CW_DEBUG){ try{ console.debug('[WalkyUp preview]', ev, data||''); }catch(e){} } }
-      var cwAtts = [], cwAttSeq = 0, cwQueue = [], cwRunning = 0, CW_QUEUE_MAX = 2, cwWantSend = false;
+      var cwAtts = [];
       // Teclado: en táctil nunca enfocar el textarea (evita abrir el teclado solo).
       var cwIsTouch = false; try { cwIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches; } catch(e){}
       function cwFocus(){ if (cwIsTouch){ var cw2 = wgId('wgCw'); if (cw2){ cw2.setAttribute('tabindex','-1'); try{ cw2.focus(); }catch(e){} } } else if (cwInput){ try{ cwInput.focus(); }catch(e){} } }
@@ -2433,9 +2421,7 @@
       function cwSyncHero(){ var cw = wgId('wgCw'); if (!cw) return; cw.classList.toggle('has-hero', cwUserMsgs === 0); }
 
       function cwAutogrow(){ if (!cwInput) return; cwInput.style.height = 'auto'; var h = Math.min(cwInput.scrollHeight, 140); cwInput.style.height = h + 'px'; cwInput.style.overflowY = (cwInput.scrollHeight > 140) ? 'auto' : 'hidden'; }
-      function cwCanSend(){ return (!!cwInput && cwInput.value.trim().length > 0) || cwAtts.some(function(a){ return a.status !== 'error'; }); }
-      function cwProcessingCount(){ var n=0; cwAtts.forEach(function(a){ if (a.status==='reading'||a.status==='processing') n++; }); return n; }
-      function cwReadyAtts(){ return cwAtts.filter(function(a){ return a.status==='ready'; }); }
+      function cwCanSend(){ return (!!cwInput && cwInput.value.trim().length > 0) || cwAtts.length > 0; }
       function cwSyncSend(){ if (cwState === 'idle' && cwSend) cwSend.disabled = !cwCanSend(); }
       function cwSetState(s){
         cwState = s; var busy = (s !== 'idle');
@@ -2460,15 +2446,10 @@
           if (btn){ var prev=btn.innerHTML; btn.innerHTML=CWICO_CHECK; btn.classList.add('ok'); btn.setAttribute('aria-label','Copiado'); setTimeout(function(){ btn.innerHTML=prev; btn.classList.remove('ok'); btn.setAttribute('aria-label','Copiar'); }, 1500); }
         });
       }
-      function cwAssetUrl(a){ return (a && typeof a==='object') ? a.url : a; }
-      function cwAssetCanvas(a){ return (a && typeof a==='object') ? a.canvas : null; }
-      // Respaldo CSP: si blob: está bloqueado en img-src, dibujar desde el lienzo procesado.
-      function cwCspFallback(imgEl, a, cls){ var cv=cwAssetCanvas(a); if (cv){ try{ var c=cv.cloneNode(false); c.getContext('2d').drawImage(cv,0,0); c.className=cls||''; if (imgEl.parentNode) imgEl.parentNode.replaceChild(c, imgEl); cwLog('csp.redraw', cls||'att'); return true; }catch(e){} } return false; }
       function cwAttImg(list, i){
-        var a=list[i];
-        var im=document.createElement('img'); im.src=cwAssetUrl(a); im.alt='Imagen adjunta '+(i+1)+' de '+list.length;
+        var im=document.createElement('img'); im.src=list[i]; im.alt='Imagen adjunta '+(i+1)+' de '+list.length;
         im.setAttribute('role','button'); im.setAttribute('tabindex','0');
-        im.onerror=function(){ if (cwCspFallback(im, a, 'cw-att-canvas')) return; var ph=document.createElement('div'); ph.className='cw-att-fail'; ph.setAttribute('role','img'); ph.setAttribute('aria-label','Imagen no disponible'); ph.innerHTML=CWICO_IMG; if (im.parentNode) im.parentNode.replaceChild(ph, im); };
+        im.onerror=function(){ var ph=document.createElement('div'); ph.className='cw-att-fail'; ph.setAttribute('role','img'); ph.setAttribute('aria-label','Imagen no disponible'); ph.innerHTML=CWICO_IMG; if (im.parentNode) im.parentNode.replaceChild(ph, im); };
         im.addEventListener('click', function(){ cwOpenViewer(list, i, im); });
         im.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); cwOpenViewer(list, i, im); } });
         return im;
@@ -2574,23 +2555,16 @@
         cwHist.pop(); cwLogUpsert(); cwRenderMsgs(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
         cwGenerate({ regenerate:true });
       }
-      // Enviar: si hay fotos todavía procesándose, SOLO el envío espera.
-      function cwTrySend(){
-        if (cwState!=='idle' || !cwCanSend()) return;
-        if (cwProcessingCount() > 0){ cwWantSend=true; cwLog('send.wait', cwProcessingCount()); if (cwSend) { cwSend.classList.add('busy'); cwSend.setAttribute('aria-label','Enviando…'); } return; }
-        cwWantSend=false; if (cwSend) cwSend.classList.remove('busy'); cwDoSend();
-      }
       function cwDoSend(){
+        if (!cwCanSend()) return;
         var v = cwInput.value.trim();
-        var ready = cwReadyAtts();
-        if (!v && !ready.length) return;
-        var assets = ready.map(function(a){ return { url:a.url, canvas:a.canvas, w:a.w, h:a.h }; });
-        var hadImg = assets.length > 0;
-        if (hadImg) assets.forEach(function(as){ cwLive.push(as); });
-        cwHist.push({ x:v, o:1, g:hadImg?1:0, _atts:hadImg?assets:null }); cwUserMsgs++;
-        cwMsgs.appendChild(cwBubble(v, true, hadImg?assets:null, false, { idx:cwHist.length-1 }));
+        var atts = cwAtts.map(function(a){ return a.url; });
+        var hadImg = atts.length > 0;
+        if (hadImg) atts.forEach(function(u){ cwLive.push(u); });
+        cwHist.push({ x:v, o:1, g:hadImg?1:0, _atts:hadImg?atts:null }); cwUserMsgs++;
+        cwMsgs.appendChild(cwBubble(v, true, hadImg?atts:null, false, { idx:cwHist.length-1 }));
         cwLogUpsert();
-        // TODO Fase 8: onSendAttachments(ready) -> subir/enviar al backend (hoy NO hay red)
+        // TODO Fase 8: onSendAttachments(cwAtts) -> subir/enviar al backend (hoy NO hay red)
         cwDetachAtts();
         cwInput.value=''; cwAutogrow(); cwSyncHero();
         if (cwBody) cwBody.scrollTop = cwBody.scrollHeight;
@@ -2603,154 +2577,96 @@
         if (cwState === 'responding' && last && last.textContent){ var tag=document.createElement('span'); tag.className='cw-stopped'; tag.textContent=' (detenido)'; last.appendChild(tag); }
         cwSetState('idle'); cwRefreshActions(); cwFocus();
       }
-      if (cwSend) cwSend.addEventListener('click', function(){ if (cwState === 'idle') cwTrySend(); else cwStop(); });
+      if (cwSend) cwSend.addEventListener('click', function(){ if (cwState === 'idle') cwDoSend(); else cwStop(); });
       if (cwInput){
         cwInput.addEventListener('input', function(){ cwAutogrow(); cwSyncSend(); });
-        cwInput.addEventListener('keydown', function(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if (cwState==='idle') cwTrySend(); } });
+        cwInput.addEventListener('keydown', function(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if (cwState==='idle') cwDoSend(); } });
         // El realce de la tarjeta solo reacciona al textarea, no a los botones + / enviar.
         var cwComposerEl=document.querySelector('.cw-composer');
         if (cwComposerEl){ cwInput.addEventListener('focus', function(){ cwComposerEl.classList.add('focus'); }); cwInput.addEventListener('blur', function(){ cwComposerEl.classList.remove('focus'); }); }
       }
 
-      // ---- Fotos (+) en la vista previa: mismo pipeline robusto que w.js. ----
-      // Estado FUERA del DOM; el render se deriva de `cwAtts`.
+      // ---- Fotos (+) en la vista previa ----
       var cwThumbs = wgId('cwThumbs'), cwFile = wgId('cwFile'), cwPlus = wgId('cwPlus'), cwAttErr = wgId('cwAttErr');
-      function cwSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-      function cwAttError(code, cause){ this.name='AttError'; this.code=code; this.message=code; this.cause=cause; }
-      function cwErrText(code){ if (code==='unsupported') return 'Este formato no es compatible, elegí una foto JPG, PNG o WEBP.'; if (code==='toobig') return 'No pudimos reducir esta foto, probá con otra.'; if (code==='read') return 'No pudimos leer la foto, tocá reintentar.'; return 'Esta imagen no se pudo procesar, tocá reintentar.'; }
-      function cwShowErr(m){ if (!cwAttErr) return; cwAttErr.textContent=m; cwAttErr.hidden=false; clearTimeout(cwAttErr._t); cwAttErr._t=setTimeout(function(){ cwAttErr.hidden=true; }, 3500); }
-
-      // -- Pipeline puro (firma por bytes, dimensiones del encabezado, decode reducido, canvas blanco) --
-      function cwSniff(b){
-        if (!b || b.length<12) return 'unknown';
-        if (b[0]===0xFF&&b[1]===0xD8&&b[2]===0xFF) return 'jpeg';
-        if (b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0x47&&b[4]===0x0D&&b[5]===0x0A&&b[6]===0x1A&&b[7]===0x0A) return 'png';
-        if (b[0]===0x52&&b[1]===0x49&&b[2]===0x46&&b[3]===0x46&&b[8]===0x57&&b[9]===0x45&&b[10]===0x42&&b[11]===0x50) return 'webp';
-        if (b[0]===0x47&&b[1]===0x49&&b[2]===0x46&&b[3]===0x38) return 'gif';
-        if (b[4]===0x66&&b[5]===0x74&&b[6]===0x79&&b[7]===0x70) return 'heic';
-        return 'unknown';
-      }
-      function cwBe16(b,o){ return (b[o]<<8)|b[o+1]; }
-      function cwBe32(b,o){ return (b[o]*16777216)+(b[o+1]<<16)+(b[o+2]<<8)+b[o+3]; }
-      function cwDims(b, sig){
-        try {
-          if (sig==='png') return { w:cwBe32(b,16), h:cwBe32(b,20) };
-          if (sig==='jpeg'){ var i=2, n=b.length; while (i+9<n){ if (b[i]!==0xFF){ i++; continue; } var m=b[i+1]; if (m===0xD8||m===0xD9||(m>=0xD0&&m<=0xD7)||m===0x01){ i+=2; continue; } if (m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC) return { h:cwBe16(b,i+5), w:cwBe16(b,i+7) }; var len=cwBe16(b,i+2); if (len<2) break; i+=2+len; } }
-          if (sig==='webp'){ var f=String.fromCharCode(b[12],b[13],b[14],b[15]); if (f==='VP8X') return { w:(b[24]|(b[25]<<8)|(b[26]<<16))+1, h:(b[27]|(b[28]<<8)|(b[29]<<16))+1 }; if (f==='VP8 ') return { w:(b[26]|(b[27]<<8))&0x3FFF, h:(b[28]|(b[29]<<8))&0x3FFF }; if (f==='VP8L'&&b[20]===0x2F){ var w=1+(((b[22]&0x3F)<<8)|b[21]); var h=1+(((b[24]&0x0F)<<10)|(b[23]<<2)|((b[22]&0xC0)>>6)); return { w:w, h:h }; } }
-        } catch(e){}
-        return null;
-      }
-      function cwReadOwnBlob(file){
-        var delays=[200,500,1000];
-        function attempt(i){
-          cwLog('read.start', i);
-          var p; try { if (file.arrayBuffer) p=file.arrayBuffer(); else p=new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(r.result); }; r.onerror=function(){ rej(r.error||new Error('FileReader')); }; r.readAsArrayBuffer(file); }); } catch(e){ p=Promise.reject(e); }
-          return p.then(function(buf){ cwLog('read.ok', buf.byteLength); return new Blob([buf], { type:file.type||'application/octet-stream' }); }, function(err){ var nm=(err&&err.name)||'Error'; cwLog('read.err', nm); var tr=nm==='NotReadableError'||nm==='AbortError'||nm==='SecurityError'||nm==='Error'||nm==='TypeError'; if (i<delays.length && tr) return cwSleep(delays[i]).then(function(){ return attempt(i+1); }); throw new cwAttError('read', err); });
-        }
-        return attempt(0);
-      }
-      function cwReadHead(blob, n){ var part=blob.slice(0, Math.min(n, blob.size||n)); if (part.arrayBuffer) return part.arrayBuffer().then(function(buf){ return new Uint8Array(buf); }); return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(new Uint8Array(r.result)); }; r.onerror=function(){ rej(r.error); }; r.readAsArrayBuffer(part); }); }
-      function cwDecodeToSource(blob, dims){
-        var caps=[CW_ATT_PX,2048,1280,1024];
-        function viaBitmap(i){
-          if (!window.createImageBitmap || i>=caps.length) return Promise.reject(new Error('no-bitmap'));
-          var cap=caps[i], opts={ imageOrientation:'from-image' };
-          if (dims&&dims.w&&dims.h){ var big=Math.max(dims.w,dims.h); if (big>cap){ if (dims.w>=dims.h) opts.resizeWidth=cap; else opts.resizeHeight=cap; opts.resizeQuality='high'; } } else { opts.resizeWidth=cap; opts.resizeQuality='high'; }
-          var p; try { p=createImageBitmap(blob, opts); } catch(e){ return viaBitmap(i+1); }
-          return p.then(function(bmp){ cwLog('decode.bitmap', cap+' '+bmp.width+'x'+bmp.height); return { src:bmp, w:bmp.width, h:bmp.height, bmp:bmp }; }, function(err){ cwLog('decode.bitmap.err', (err&&err.name)||''); return viaBitmap(i+1); });
-        }
-        function viaImage(){
-          return new Promise(function(res,rej){ var url; try { url=URL.createObjectURL(blob); }catch(e){ rej(new cwAttError('decode',e)); return; } var img=new Image(); function done(ok){ try{ URL.revokeObjectURL(url); }catch(e){} if (ok){ cwLog('decode.image', img.naturalWidth+'x'+img.naturalHeight); res({ src:img, w:img.naturalWidth||img.width, h:img.naturalHeight||img.height, bmp:null }); } else { cwLog('decode.image.err'); rej(new cwAttError('decode')); } } img.onload=function(){ if (img.decode) img.decode().then(function(){ done(true); }, function(){ done(true); }); else done(true); }; img.onerror=function(){ done(false); }; img.src=url; });
-        }
-        return viaBitmap(0).catch(function(){ return viaImage(); });
-      }
-      function cwToBlobSafe(canvas, type, q){ return new Promise(function(resolve){ if (canvas.toBlob){ try{ canvas.toBlob(function(b){ resolve(b); }, type, q); return; }catch(e){} } try{ resolve(cwDataUrlToBlob(canvas.toDataURL(type,q))); }catch(e){ resolve(null); } }); }
-      function cwDataUrlToBlob(durl){ try { if (!durl||durl.indexOf('data:')!==0) return null; var parts=durl.split(','), mime=(/:(.*?);/.exec(parts[0])||[])[1]||'image/jpeg', bin=atob(parts[1]); var u=new Uint8Array(bin.length); for (var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new Blob([u],{type:mime}); } catch(e){ return null; } }
-      function cwPaintEncode(src, w, h, maxPx, outMax){
-        var scale=Math.min(1, maxPx/Math.max(w,h));
-        var cw2=Math.max(1,Math.round(w*scale)), ch=Math.max(1,Math.round(h*scale));
-        var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; var ctx=cv.getContext('2d');
-        if (!ctx) return Promise.reject(new cwAttError('decode'));
-        ctx.fillStyle='#fff'; ctx.fillRect(0,0,cw2,ch);
-        try { ctx.drawImage(src,0,0,cw2,ch); } catch(e){ return Promise.reject(new cwAttError('decode', e)); }
-        cwLog('canvas', cw2+'x'+ch);
-        var qs=[CW_ATT_Q,0.7,0.6,0.5,0.42], shrinks=[0.85,0.7,0.55];
-        return new Promise(function(resolve, reject){
-          var si=-1;
-          function encode(canvas, qi, last){ cwToBlobSafe(canvas,'image/jpeg',qs[qi]).then(function(blob){ if (!blob){ if (qi+1<qs.length) return encode(canvas,qi+1,last); return shrink(last); } if (blob.size>outMax){ if (qi+1<qs.length) return encode(canvas,qi+1,blob); return shrink(blob); } resolve({ canvas:canvas, blob:blob, w:canvas.width, h:canvas.height }); }, function(){ if (qi+1<qs.length) encode(canvas,qi+1,last); else shrink(last); }); }
-          function shrink(best){ si++; if (si>=shrinks.length){ if (best){ resolve({ canvas:cv, blob:best, w:cv.width, h:cv.height }); return; } reject(new cwAttError('toobig')); return; } var f=shrinks[si], nw=Math.max(1,Math.round(cw2*f)), nh=Math.max(1,Math.round(ch*f)); var c2=document.createElement('canvas'); c2.width=nw; c2.height=nh; var x2=c2.getContext('2d'); x2.fillStyle='#fff'; x2.fillRect(0,0,nw,nh); x2.drawImage(cv,0,0,nw,nh); cv=c2; cw2=nw; ch=nh; encode(c2,0,best); }
-          encode(cv,0,null);
-        });
-      }
-      function cwProcessOwnBlob(ownBlob){
-        return cwReadHead(ownBlob, 131072).then(function(bytes){
-          var sig=cwSniff(bytes); cwLog('sniff', sig+' '+ownBlob.size);
-          if (sig==='heic'||sig==='gif'||sig==='unknown') throw new cwAttError('unsupported');
-          var dims=cwDims(bytes, sig); cwLog('dims', dims||'none');
-          return cwDecodeToSource(ownBlob, dims).then(function(r){ return cwPaintEncode(r.src, r.w, r.h, CW_ATT_PX, CW_OUT_MAX).then(function(out){ if (r.bmp){ try{ r.bmp.close(); }catch(e){} } return { blob:out.blob, canvas:out.canvas, w:out.w, h:out.h, sig:sig }; }, function(err){ if (r.bmp){ try{ r.bmp.close(); }catch(e){} } throw err; }); });
-        });
-      }
-
+      function cwShowErr(m){ if (!cwAttErr) return; cwAttErr.textContent=m; cwAttErr.hidden=false; setTimeout(function(){ cwAttErr.hidden=true; }, 3500); }
       function cwRenderThumbs(){
         if (!cwThumbs) return; cwThumbs.innerHTML='';
         cwAtts.forEach(function(a, idx){
-          var t=document.createElement('div'); t.className='cw-thumb cw-thumb-'+a.status;
-          if (a.status==='ready' && a.url){ var im=document.createElement('img'); im.src=a.url; im.alt=''; im.onerror=function(){ cwCspFallback(im, a, 'cw-thumb-canvas'); }; t.appendChild(im); }
-          else if (a.status==='error'){ var rb=document.createElement('button'); rb.type='button'; rb.className='cw-thumb-retry'; rb.setAttribute('aria-label','Reintentar foto '+(idx+1)); rb.innerHTML=CWICO_REGEN; rb.addEventListener('click', function(){ cwRetryAtt(a); }); t.appendChild(rb); }
-          else { var sp=document.createElement('div'); sp.className='cw-thumb-spin'; sp.setAttribute('aria-hidden','true'); t.appendChild(sp); }
+          var t=document.createElement('div'); t.className='cw-thumb';
+          var im=document.createElement('img'); im.src=a.url; im.alt='';
           var x=document.createElement('button'); x.type='button'; x.className='cw-thumbx'; x.setAttribute('aria-label','Quitar imagen '+(idx+1));
           x.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-          x.addEventListener('click', function(){ cwRemoveAtt(a); });
-          t.appendChild(x);
-          if (a.status!=='ready'){ var sr=document.createElement('span'); sr.className='cw-sr'; sr.textContent=a.status==='error'?cwErrText(a.code):'Procesando foto'; t.appendChild(sr); }
-          a.el=t; cwThumbs.appendChild(t);
+          x.addEventListener('click', function(){ cwRemoveAtt(idx); });
+          t.appendChild(im); t.appendChild(x); cwThumbs.appendChild(t);
         });
         cwThumbs.hidden = cwAtts.length === 0; cwSyncSend();
       }
-      function cwRemoveAtt(a){ var i=cwAtts.indexOf(a); if (i<0) return; try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} a.dead=true; a.ownBlob=null; var qi=cwQueue.indexOf(a); if (qi>=0) cwQueue.splice(qi,1); cwAtts.splice(i,1); cwRenderThumbs(); cwMaybeFlushSend(); }
+      function cwRemoveAtt(i){ var a=cwAtts[i]; if (!a) return; try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} cwAtts.splice(i,1); cwRenderThumbs(); }
       // Vacía el compositor revocando las fotos NO enviadas.
-      function cwClearAtts(){ cwAtts.forEach(function(a){ a.dead=true; a.ownBlob=null; try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} }); cwAtts=[]; cwQueue=[]; cwWantSend=false; cwRenderThumbs(); }
+      function cwClearAtts(){ cwAtts.forEach(function(a){ try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} }); cwAtts=[]; cwRenderThumbs(); }
       // Vacía el compositor SIN revocar (las fotos pasaron a un mensaje y siguen vivas).
-      function cwDetachAtts(){ cwAtts=[]; cwQueue=[]; cwRenderThumbs(); }
+      function cwDetachAtts(){ cwAtts=[]; cwRenderThumbs(); }
       // Libera las fotos enviadas (al empezar un chat nuevo o al descargar la página).
-      function cwRevokeLive(){ cwLive.forEach(function(as){ try { var u=(as&&as.url)?as.url:as; if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
-
-      function cwEnqueue(a){ if (a.dead) return; a.status='processing'; if (cwQueue.indexOf(a)<0) cwQueue.push(a); cwRenderThumbs(); cwPump(); }
-      function cwPump(){ while (cwRunning<CW_QUEUE_MAX && cwQueue.length){ var a=cwQueue.shift(); if (a.dead||a.status!=='processing') continue; cwRunning++; cwRunOne(a); } }
-      function cwRunOne(a){
-        var work = a.ownBlob ? cwProcessOwnBlob(a.ownBlob) : cwReadOwnBlob(a.file).then(function(b){ a.ownBlob=b; return cwProcessOwnBlob(b); });
-        work.then(function(data){ cwRunning--; if (a.dead){ cwPump(); return; } a.url=URL.createObjectURL(data.blob); a.canvas=data.canvas; a.w=data.w; a.h=data.h; a.sig=data.sig; a.outBlob=data.blob; a.ownBlob=null; a.status='ready'; a.code=null; cwRenderThumbs(); cwPump(); cwMaybeFlushSend(); },
-          function(err){ cwRunning--; if (a.dead){ cwPump(); return; } a.code=(err&&err.name==='AttError')?err.code:'decode'; cwLog('att.error', a.code); if (!a._autoRetried && a.code!=='unsupported'){ a._autoRetried=true; cwLog('att.autoretry'); cwEnqueue(a); cwPump(); return; } a.status='error'; cwRenderThumbs(); if (a.code==='unsupported'||a.code==='toobig') cwShowErr(cwErrText(a.code)); cwPump(); cwMaybeFlushSend(); });
+      function cwRevokeLive(){ cwLive.forEach(function(u){ try { if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
+      // ¿Es una imagen que aceptamos? No dependemos solo del type (hay galerías que lo mandan vacío);
+      // si no sirve, se deduce por la extensión y, sin extensión, decide el decodificador.
+      function cwIsImageFile(f){
+        if (CW_ATT_TYPES[f.type]) return true;
+        var m=/\.([a-z0-9]+)$/i.exec(f.name||''); var ext=m?m[1].toLowerCase():'';
+        if (ext) return ext==='jpg'||ext==='jpeg'||ext==='png'||ext==='webp';
+        return !f.type || f.type.indexOf('image/')===0;
       }
-      function cwRetryAtt(a){ a._autoRetried=true; a.code=null; cwLog('att.retry.manual'); cwEnqueue(a); }
-      function cwMaybeFlushSend(){ if (!cwWantSend) return; if (cwProcessingCount()>0) return; cwWantSend=false; if (cwSend){ cwSend.classList.remove('busy'); cwSend.setAttribute('aria-label','Enviar'); } if (cwState==='idle' && (cwInput.value.trim()||cwReadyAtts().length)) cwDoSend(); else cwSyncSend(); }
-
-      // Toma archivos, lee sus bytes a memoria ANTES de resetear el input, y los encola.
-      function cwIngest(files, resetInput){
-        cwLog('change', files.length);
-        var accepted=[];
-        for (var i=0;i<files.length;i++){ var f=files[i];
-          if (cwAtts.length >= CW_ATT_MAX){ cwShowErr('Hasta '+CW_ATT_MAX+' fotos.'); break; }
-          if (f.size > CW_IN_MAX){ cwShowErr('Cada foto hasta '+CW_IN_MAX_MB+' MB.'); continue; }
-          var a={ id:++cwAttSeq, file:f, ownBlob:null, status:'reading', code:null, url:null, canvas:null, outBlob:null, w:0, h:0, sig:'', dead:false, _autoRetried:false };
-          cwAtts.push(a); accepted.push(a);
+      // Igual que w.js: data URL (incrustada), con reintentos de lectura (más espera cada vez),
+      // watchdog si createImageBitmap se cuelga, y guarda para no entregar dos resultados.
+      // Solo devuelve null tras agotar los reintentos. Nota Fase 8: `blob` null.
+      function cwDownscale(file, cb){
+        var tries=0, MAX_TRIES=3, done=false;
+        function finish(a){ if (done) return; done=true; cb(a); }
+        function toCanvas(src, w, h, onFail){
+          try {
+            var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
+            var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
+            var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
+            var durl=cv.toDataURL('image/jpeg', CW_ATT_Q);
+            if (durl && durl.indexOf('data:image')===0) finish({ url:durl, blob:null });
+            else onFail();
+          } catch(e){ onFail(); }
         }
-        cwRenderThumbs();
-        var reads=accepted.map(function(a){ return cwReadOwnBlob(a.file).then(function(b){ if (!a.dead) a.ownBlob=b; }, function(err){ if (a.dead) return; a.status='error'; a.code='read'; cwLog('read.fail', (err&&err.name)||''); }); });
-        return Promise.all(reads).then(function(){ if (resetInput!==false && cwFile){ cwFile.value=''; cwLog('input.reset'); } accepted.forEach(function(a){ if (a.dead) return; if (a.ownBlob) cwEnqueue(a); else cwRenderThumbs(); }); return accepted; });
+        function readThenDraw(){
+          if (done) return;
+          var reader=new FileReader();
+          reader.onload=function(){ if (done) return; var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, function(){ finish({ url:reader.result, blob:null }); }); }; img.onerror=function(){ finish({ url:reader.result, blob:null }); }; img.src=reader.result; };
+          reader.onerror=retry;
+          try { reader.readAsDataURL(file); } catch(e){ retry(); }
+        }
+        function retry(){ if (done) return; tries++; if (tries>=MAX_TRIES){ finish(null); return; } setTimeout(readThenDraw, 120*tries); }
+        if (window.createImageBitmap){
+          var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
+          if (p && p.then){
+            var wd=setTimeout(readThenDraw, 800);
+            p.then(function(bmp){ clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, function(){ clearTimeout(wd); readThenDraw(); });
+          } else readThenDraw();
+        } else readThenDraw();
       }
       if (cwPlus && cwFile){
         cwPlus.addEventListener('click', function(){ cwFile.click(); });
-        cwFile.addEventListener('change', function(){ cwIngest(Array.prototype.slice.call(cwFile.files||[]), true); });
+        cwFile.addEventListener('change', function(){
+          var files=Array.prototype.slice.call(cwFile.files||[]); cwFile.value='';
+          files.forEach(function(f){
+            if (cwAtts.length >= CW_ATT_MAX){ cwShowErr('Hasta '+CW_ATT_MAX+' fotos.'); return; }
+            if (!cwIsImageFile(f)){ cwShowErr('Solo JPG, PNG o WEBP.'); return; }
+            if (f.size > CW_ATT_MB*1024*1024){ cwShowErr('Cada foto hasta '+CW_ATT_MB+' MB.'); return; }
+            cwDownscale(f, function(a){ if (!a){ cwShowErr('Esta imagen no se pudo procesar, intentá de nuevo.'); return; } if (cwAtts.length >= CW_ATT_MAX){ try { URL.revokeObjectURL(a.url); } catch(e){} return; } cwAtts.push(a); cwRenderThumbs(); });
+          });
+        });
       }
-      if (CW_DEBUG){ document.addEventListener('visibilitychange', function(){ cwLog('visibilitychange', document.hidden); }); }
 
       // ---- Foco atrapado + visor de imágenes ----
       function cwFocusables(el){ return Array.prototype.slice.call(el.querySelectorAll('button,[href],input,textarea,[tabindex]:not([tabindex="-1"])')).filter(function(n){ return !n.disabled && !n.hidden && n.getClientRects().length; }); }
       function cwTrap(el, e){ if (e.key!=='Tab') return; var f=cwFocusables(el); if (!f.length) return; var first=f[0], last=f[f.length-1], cur=document.activeElement; if (e.shiftKey && cur===first){ e.preventDefault(); last.focus(); } else if (!e.shiftKey && cur===last){ e.preventDefault(); first.focus(); } }
       var cwViewer=wgId('cwViewer'), cwVwImg=wgId('cwVwImg'), cwVwPrev=wgId('cwVwPrev'), cwVwNext=wgId('cwVwNext');
       var cwVwList=[], cwVwIdx=0, cwVwReturn=null;
-      function cwVwShow(){ var a=cwVwList[cwVwIdx]; cwVwImg.onerror=function(){ var cv=cwAssetCanvas(a); if (!cv) return; try{ cwVwImg.onerror=null; cwVwImg.src=cv.toDataURL('image/jpeg',0.9); cwLog('csp.redraw','viewer'); }catch(e){} }; cwVwImg.src=cwAssetUrl(a); cwVwImg.alt='Imagen adjunta '+(cwVwIdx+1)+' de '+cwVwList.length; var m=cwVwList.length>1; cwVwPrev.hidden=!m; cwVwNext.hidden=!m; }
+      function cwVwShow(){ cwVwImg.src=cwVwList[cwVwIdx]; cwVwImg.alt='Imagen adjunta '+(cwVwIdx+1)+' de '+cwVwList.length; var m=cwVwList.length>1; cwVwPrev.hidden=!m; cwVwNext.hidden=!m; }
       function cwOpenViewer(list, idx, ret){ cwVwList=list.slice(); cwVwIdx=idx||0; cwVwReturn=ret||null; cwVwShow(); cwViewer.hidden=false; setTimeout(function(){ wgId('cwVwX').focus(); },0); }
       function cwCloseViewer(){ cwViewer.hidden=true; try { if (cwVwReturn && cwVwReturn.focus) cwVwReturn.focus(); } catch(e){} }
       function cwVwStep(d){ if (cwVwList.length<2) return; cwVwIdx=(cwVwIdx+d+cwVwList.length)%cwVwList.length; cwVwShow(); }
