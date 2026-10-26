@@ -2184,6 +2184,13 @@
         if (accent !== 'auto'){ el.style.background = accent; el.style.color = wgAccentInk(accent); if (accent === '#FFFFFF') el.classList.add('cw-ava--accent-lt'); }
       }
       setAva(wgId('cwAvaSm'));
+      // Los avatares (loguitos) del panel muestran en vivo cómo se vería el logo con el color elegido.
+      var chipBg = (accent === 'auto') ? '#111' : accent;
+      var chipInk = (accent === 'auto') ? '#fff' : wgAccentInk(accent);
+      Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){
+        b.style.background = chipBg; b.style.color = chipInk;
+        b.style.borderColor = (accent === '#FFFFFF') ? 'rgba(0,0,0,.18)' : 'transparent';
+      });
       if (wgId('cwName')) wgId('cwName').textContent = c.name || 'Asistente';
       if (wgId('cwWelcome')) wgId('cwWelcome').textContent = c.welcome || '';
       if (wgId('cwInput')) wgId('cwInput').setAttribute('placeholder', WG_INPUT_PH[c.language] || WG_INPUT_PH.es);
@@ -2222,7 +2229,7 @@
       // avatar: modo mostrar/ocultar
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button')).forEach(function(b){ b.classList.toggle('is-active', (b.getAttribute('data-av') === 'hide') === !!c.avatarHidden); });
       var picker = wgId('wgAvatars'); if (picker) picker.style.display = c.avatarHidden ? 'none' : '';
-      Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ b.classList.toggle('is-active', !c.avatarHidden && c.avatar === b.getAttribute('data-av')); b.style.background = '#111'; });
+      Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ b.classList.toggle('is-active', !c.avatarHidden && c.avatar === b.getAttribute('data-av')); });
       var up = wgId('wgAvUpload');
       if (up){
         if (!c.avatarHidden && typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar]){ up.classList.add('is-active'); up.innerHTML = '<img src="' + c.avatar + '" alt="">'; }
@@ -2823,7 +2830,7 @@
       cwPickNewTitle(); cwSyncHero(); cwAutogrow();
 
       // pintar los avatares preset una vez
-      Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id]; });
+      Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id].replace(/#fff/g, 'currentColor'); });
       var avMode = wgId('wgAvMode');
       if (avMode) avMode.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.avatarHidden = (b.getAttribute('data-av') === 'hide'); renderWidget(); });
       var avatars = wgId('wgAvatars');
