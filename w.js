@@ -31,7 +31,9 @@
   var HIST_MAX_CHATS = 30;         // chats guardados por widget
   var HIST_MAX_MSGS = 100;         // mensajes por chat
   var HIST_TTL = 30 * 24 * 60 * 60 * 1000; // 30 días
-  var CFG_TTL = 10 * 60 * 1000;    // caché de config: 10 minutos
+  var CFG_MAXAGE = 30 * 24 * 60 * 60 * 1000;   // caché que se muestra sin revalidar antes: 30 días
+  var AVA_WAIT = 1200;             // tope de espera del avatar antes de caer al ícono (ms)
+  var REVALIDATE_HIDDEN = 5 * 60 * 1000;       // revalidar al volver tras estar oculta este tiempo
 
   var SUPA_URL = "https://ejbtgkvlrkecnslpapyd.supabase.co";
   var SUPA_KEY = "sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";
@@ -56,39 +58,83 @@
   var CFG_KEY = "wu_cfg_" + dataId;   // caché de config pública (localStorage)
   var instance = null;                // referencia a la instancia dibujada (para actualizar)
 
-  // ---- 2) Dibujar YA desde la caché y revalidar en segundo plano ----
-  // Así el widget aparece al instante al recargar, sin esperar a la red.
-  var cached = readCfgCache();
-  if (cached && cached.cfg) { try { render(cached.cfg, true, cached.ava); } catch (e) {} }
+  // ---- Modo debug de tiempos (?wdebug=1): mide hitos con performance ----
+  var DBG = false; try { DBG = /[?&]wdebug=1(?:&|$)/.test(location.search); } catch (e) {}
+  var MARKS = {};
+  function mark(name) {
+    if (!DBG || MARKS[name] != null) return;   // solo el primer valor de cada hito
+    MARKS[name] = Math.round((window.performance && performance.now) ? performance.now() : Date.now());
+    try { performance.mark && performance.mark("wu:" + name); } catch (e) {}
+    try { window.__wuMarks = MARKS; } catch (e) {}
+    if (name === "fab-visible") printMarks();
+  }
+  function printMarks() {
+    if (!DBG) return;
+    var base = MARKS.script || 0, order = ["script", "req", "cache-render", "resp", "cfg", "ava-start", "ava-visible", "fab-visible"], rows = [];
+    for (var i = 0; i < order.length; i++) { var k = order[i]; if (MARKS[k] != null) rows.push({ hito: k, ms: MARKS[k] - base }); }
+    try { console.table(rows); } catch (e) { try { console.log("[WalkyUp] marks", rows); } catch (e2) {} }
+  }
+  // Ejecuta en tiempo ocioso (no retrasa el primer dibujo); respaldo con setTimeout.
+  function idle(fn) { try { if (window.requestIdleCallback) { requestIdleCallback(fn, { timeout: 2000 }); return; } } catch (e) {} setTimeout(fn, 200); }
+  // Precalienta la conexión con Supabase (una sola vez).
+  function preconnect(origin) {
+    try {
+      var o = String(origin).replace(/\/+$/, "");
+      if (document.querySelector('link[rel="preconnect"][data-wu="1"]')) return;
+      var l = document.createElement("link"); l.rel = "preconnect"; l.href = o; l.crossOrigin = "anonymous"; l.setAttribute("data-wu", "1");
+      (document.head || document.documentElement).appendChild(l);
+    } catch (e) {}
+  }
+  // La petición de config, aislada en UNA función (para cambiar el origen más adelante: ej. CDN).
+  function fetchConfig() {
+    mark("req");
+    return fetch(SUPA_URL + "/rest/v1/rpc/get_widget_public", {
+      method: "POST",
+      headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ widget_id: dataId })
+    }).then(function (r) { mark("resp"); return r.ok ? r.json() : []; }).then(function (rows) { return (rows && rows[0]) || null; });
+  }
+  // Aplica una config fresca: cachea, dibuja o actualiza, ping; la copia local se genera DESPUÉS.
+  function applyCfg(cfg) {
+    if (!cfg) { try { localStorage.removeItem(CFG_KEY); } catch (e) {} return; }   // chat deshabilitado / id inválido
+    mark("cfg");
+    writeCfgCache(cfg);
+    if (!instance) { try { render(cfg, false); } catch (e) {} }
+    else if (JSON.stringify(cfg) !== instance.cfgStr) { instance.update(cfg); }
+    ping();
+    idle(function () { refreshAvaData(cfg); });   // la copia local del avatar NO retrasa el primer dibujo
+  }
 
-  fetch(SUPA_URL + "/rest/v1/rpc/get_widget_public", {
-    method: "POST",
-    headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ widget_id: dataId })
-  })
-    .then(function (r) { return r.ok ? r.json() : []; })
-    .then(function (rows) {
-      var cfg = rows && rows[0];
-      if (!cfg) {
-        // Chat deshabilitado / id inválido: limpiar caché y no dibujar si aún no se dibujó.
-        try { localStorage.removeItem(CFG_KEY); } catch (e) {}
-        return;
-      }
-      writeCfgCache(cfg);
-      if (!instance) { try { render(cfg, false); } catch (e) {} }
-      else if (JSON.stringify(cfg) !== instance.cfgStr) { instance.update(cfg); }
-      ping();
-      refreshAvaData(cfg);   // genera/actualiza la copia local del avatar (para el próximo dibujo)
-    })
-    .catch(function () {});        // sin red: queda lo dibujado desde la caché (o nada)
+  // ---- 2) Pedir la config CUANTO ANTES (antes de construir el DOM/Shadow/CSS) ----
+  preconnect(SUPA_URL);
+  mark("script");
+  var cfgPromise = fetchConfig();                 // UNA sola petición por carga de página
+
+  // Dibujar YA desde la caché reciente mientras la red responde (aparición instantánea).
+  var cached = readCfgCache();
+  if (cached && cached.cfg) { try { render(cached.cfg, true, cached.ava); mark("cache-render"); } catch (e) {} }
+
+  // Revalidar SIEMPRE en cada carga (sin compuerta de TTL): si cambió, reemplaza; si no, no toca el DOM.
+  cfgPromise.then(applyCfg).catch(function () {});   // sin red: queda lo dibujado desde la caché (o nada)
+
+  // Revalidar también al volver de segundo plano tras más de 5 minutos oculta.
+  var hiddenAt = 0;
+  try {
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) { if (!hiddenAt) hiddenAt = Date.now(); return; }
+      if (hiddenAt && (Date.now() - hiddenAt) > REVALIDATE_HIDDEN) { fetchConfig().then(applyCfg).catch(function () {}); }
+      hiddenAt = 0;
+    });
+  } catch (e) {}
 
   function readCfgCache() {
     try {
       var raw = localStorage.getItem(CFG_KEY); if (!raw) return null;
       var o = JSON.parse(raw);
       if (!o || !o.cfg) return null;
-      // Se usa aunque esté algo vencida (para dibujar ya); la red la revalida igual.
-      // `ava` = copia local del avatar { src, data } para el primer dibujo sin red.
+      // Más vieja que CFG_MAXAGE (30 días): no se muestra; se trata como primera visita.
+      // Igual se revalida siempre por red. `ava` = copia local del avatar { src, data }.
+      if (o.ts && (Date.now() - o.ts) > CFG_MAXAGE) return null;
       return { cfg: o.cfg, ava: o.ava || null };
     } catch (e) { return null; }
   }
@@ -261,12 +307,12 @@
     // Regla: el botón nunca se ve con el fondo vacío. O está la foto (decodificada ANTES
     // de insertarla, así pinta de una) o el ícono por defecto. Con copia local (data URL)
     // el dibujo es instantáneo; sin copia, el botón queda oculto hasta decodificar la foto
-    // (tope ~2 s) o cae al ícono. Se guarda una referencia viva para redibujar tras bfcache.
+    // (tope 1200 ms) o cae al ícono. Se guarda una referencia viva para redibujar tras bfcache.
     var liveAva = "";          // src que se está mostrando (data URL o URL), para redibujar
     var avaToken = 0;          // ignora respuestas de un setAvatar ya reemplazado
     var avaShown = false;      // ya se pintó algo (decide si el cambio lleva fundido)
     function eachAva(fn) { Array.prototype.forEach.call($$(".fab, .ava"), fn); }
-    function revealFab() { try { fab.style.visibility = ""; } catch (e) {} }
+    function revealFab() { try { fab.style.visibility = ""; } catch (e) {} mark("fab-visible"); }
     function paintIcon() { eachAva(function (el) { el.innerHTML = spark; el.classList.remove("isimg"); }); liveAva = ""; }
     function paintImg(src, fade) {
       eachAva(function (el) {
@@ -275,7 +321,7 @@
         var im = el.querySelector("img");
         if (im) im.onerror = function () { el.innerHTML = spark; el.classList.remove("isimg"); liveAva = ""; };
       });
-      liveAva = src; avaShown = true;
+      liveAva = src; avaShown = true; mark("ava-visible");
     }
     // Decodifica fuera del DOM; false si falla o la imagen tiene naturalWidth 0.
     function decodeImg(src, cb) {
@@ -289,7 +335,8 @@
     }
     function setAvatar(url, data) {
       avatar = url; var tok = ++avaToken;
-      if (!isImgUrl(url)) { paintIcon(); revealFab(); return; }   // sin foto: ícono por defecto
+      if (!isImgUrl(url)) { paintIcon(); revealFab(); return; }   // sin foto (preset / oculta): ícono ya, sin esperar imagen
+      mark("ava-start");
       var dataUrl = (data && data.indexOf("data:") === 0) ? data : "";
       var pending = (fab.style.visibility === "hidden");          // primera visita: oculto hasta listo
       var fadeNow = avaShown;
@@ -313,12 +360,12 @@
         if (!pending && !avaShown) paintIcon();
         useUrl();
       }
-      // Tope de espera (solo cuando el botón quedó oculto): si nada se pintó en ~2 s, mostrá
-      // el ícono; si la foto llega después, entra con fundido.
+      // Tope de espera (solo cuando el botón quedó oculto): si nada se pintó en AVA_WAIT (1200 ms),
+      // mostrá el ícono; si la foto llega después, entra con fundido.
       if (pending) setTimeout(function () {
         if (tok !== avaToken || avaShown) return;
         paintIcon(); revealFab();
-      }, 2000);
+      }, AVA_WAIT);
     }
     // Ocultar el botón hasta estar listo SOLO si hay foto y no tenemos copia local instantánea.
     if (!hideFab0 && isImgUrl(avatar) && !avaData) { try { fab.style.visibility = "hidden"; } catch (e) {} }
