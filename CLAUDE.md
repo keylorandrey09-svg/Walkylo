@@ -27,6 +27,7 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Fotos: máximo 4, solo en el navegador, sin llamadas de red (queda el TODO `onSendAttachments`).
 - Historial local en localStorage por widget: máximo 30 chats, 100 mensajes por chat y 30 días, solo texto.
 - El widget aparece junto con la página al recargar (config en caché y estado restaurado sin animación).
+- El botón flotante y el avatar nunca dependen de la red para su primer dibujo: se guarda una copia local del avatar (data URL de 128px en la caché de config), la foto se decodifica antes de insertarla y nunca se ve el fondo vacío (o está la foto, o el ícono por defecto; el botón queda oculto hasta estar listo y cae al ícono tras un tope de espera). Cada avatar nuevo del panel ya viaja con un nombre de archivo único (URL nueva), así que ninguna caché sirve una imagen vieja.
 - Accesibilidad y `prefers-reduced-motion` en todo lo nuevo.
 
 ## Cómo trabajar con Keylor

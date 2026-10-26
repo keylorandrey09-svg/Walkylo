@@ -59,7 +59,7 @@
   // ---- 2) Dibujar YA desde la caché y revalidar en segundo plano ----
   // Así el widget aparece al instante al recargar, sin esperar a la red.
   var cached = readCfgCache();
-  if (cached) { try { render(cached, true); } catch (e) {} }
+  if (cached && cached.cfg) { try { render(cached.cfg, true, cached.ava); } catch (e) {} }
 
   fetch(SUPA_URL + "/rest/v1/rpc/get_widget_public", {
     method: "POST",
@@ -78,6 +78,7 @@
       if (!instance) { try { render(cfg, false); } catch (e) {} }
       else if (JSON.stringify(cfg) !== instance.cfgStr) { instance.update(cfg); }
       ping();
+      refreshAvaData(cfg);   // genera/actualiza la copia local del avatar (para el próximo dibujo)
     })
     .catch(function () {});        // sin red: queda lo dibujado desde la caché (o nada)
 
@@ -87,10 +88,69 @@
       var o = JSON.parse(raw);
       if (!o || !o.cfg) return null;
       // Se usa aunque esté algo vencida (para dibujar ya); la red la revalida igual.
-      return o.cfg;
+      // `ava` = copia local del avatar { src, data } para el primer dibujo sin red.
+      return { cfg: o.cfg, ava: o.ava || null };
     } catch (e) { return null; }
   }
-  function writeCfgCache(cfg) { try { localStorage.setItem(CFG_KEY, JSON.stringify({ cfg: cfg, ts: Date.now() })); } catch (e) {} }
+  function writeCfgCache(cfg, ava) {
+    try {
+      // Si no se pasa `ava`, se conserva la copia local que ya hubiera.
+      var prev = null; try { prev = JSON.parse(localStorage.getItem(CFG_KEY)); } catch (e) {}
+      var a = ava || (prev && prev.ava) || null;
+      localStorage.setItem(CFG_KEY, JSON.stringify({ cfg: cfg, ts: Date.now(), ava: a }));
+    } catch (e) {}
+  }
+
+  // Copia local del avatar: cuadro de 128px (recorte "cover") como data URL, para dibujar
+  // el botón al instante en la próxima visita sin esperar a la red. Usa fetch (cors) + canvas;
+  // si CORS/CSP del sitio lo impiden, devuelve null y el flujo normal sigue funcionando.
+  function makeAvatarData(url, cb) {
+    if (!url || url.indexOf("data:") === 0) { cb(null); return; }
+    var done = false;
+    function fin(d) { if (done) return; done = true; cb(d || null); }
+    function toData(src, w, h) {
+      try {
+        if (!w || !h) { fin(null); return; }
+        var S = 128, cv = document.createElement("canvas"); cv.width = S; cv.height = S;
+        var ctx = cv.getContext("2d");
+        var scale = Math.max(S / w, S / h), dw = w * scale, dh = h * scale;
+        ctx.drawImage(src, (S - dw) / 2, (S - dh) / 2, dw, dh);
+        var d = ""; try { d = cv.toDataURL("image/webp", 0.85); } catch (e) {}
+        if (d.indexOf("data:image/webp") !== 0) { try { d = cv.toDataURL("image/jpeg", 0.85); } catch (e) { d = ""; } }
+        fin(d && d.length <= 55000 ? d : null);   // ~40 KB: si pesa más, no se guarda
+      } catch (e) { fin(null); }
+    }
+    function readImg(b) {
+      try {
+        var u = URL.createObjectURL(b), im = new Image();
+        im.onload = function () { toData(im, im.naturalWidth, im.naturalHeight); try { URL.revokeObjectURL(u); } catch (e) {} };
+        im.onerror = function () { try { URL.revokeObjectURL(u); } catch (e) {} fin(null); };
+        im.src = u;
+      } catch (e) { fin(null); }
+    }
+    setTimeout(function () { fin(null); }, 5000);   // no colgar nunca
+    try {
+      fetch(url, { mode: "cors" }).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) {
+        if (!b) { fin(null); return; }
+        if (window.createImageBitmap) {
+          createImageBitmap(b).then(function (bmp) { toData(bmp, bmp.width, bmp.height); try { bmp.close(); } catch (e) {} }, function () { readImg(b); });
+        } else readImg(b);
+      }, function () { fin(null); });
+    } catch (e) { fin(null); }
+  }
+  // Tras revalidar: si el avatar cambió (o no tenemos copia), genera una nueva y la guarda.
+  function refreshAvaData(cfg) {
+    var av = (cfg && cfg.avatar) || "";
+    if (!av || av.indexOf("data:") === 0) return;      // sin foto, o ya es data URL
+    var w = readCfgCache();
+    if (w && w.ava && w.ava.src === av && w.ava.data) return;   // ya tenemos copia vigente
+    makeAvatarData(av, function (d) {
+      if (!d) return;
+      var cur = readCfgCache(), cfgNow = (cur && cur.cfg) || cfg;
+      writeCfgCache(cfgNow, { src: av, data: d });
+      if (instance && instance.setAvaData) instance.setAvaData(av, d);
+    });
+  }
 
   // Ping de instalación: marca installed_at / last_seen_at (sin IA, liviano)
   function ping() {
@@ -105,10 +165,12 @@
   }
 
   // ===================== Dibujar el widget =====================
-  function render(cfg, fromCache) {
+  function render(cfg, fromCache, avaWrap) {
     var name = cfg.name || "Asistente";
     var welcome = cfg.welcome || "¡Hola! ¿En qué te puedo ayudar?";
     var avatar = cfg.avatar || "";
+    // Copia local del avatar, válida solo si corresponde a la URL actual del avatar.
+    var avaData = (avaWrap && avaWrap.src === avatar && avaWrap.data) ? avaWrap.data : "";
     var email = cfg.contact_email || "";
     var privacy = cfg.privacy_url || "";
     var reduceMotion = false, isTouch = false;
@@ -117,7 +179,8 @@
 
     function isImgUrl(a) { return !!a && (a.indexOf("data:") === 0 || /^https?:\/\//.test(a)); }
     var spark = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg>';
-    function avaMarkup(a) { return isImgUrl(a) ? '<img src="' + esc(a) + '" alt="">' : spark; }
+    // Contenido inicial del avatar: copia local (dibujo instantáneo, sin red) o el ícono por defecto.
+    var avaInit = avaData ? ('<img src="' + esc(avaData) + '" alt="">') : spark;
 
     var host = document.createElement("div");
     host.setAttribute("id", "walkyup-widget");
@@ -127,12 +190,12 @@
 
     root.innerHTML =
       '<style>' + wuCSS() + '</style>' +
-      '<button class="fab" part="fab" aria-label="Abrir chat">' + avaMarkup(avatar) + '</button>' +
+      '<button class="fab" part="fab" aria-label="Abrir chat">' + avaInit + '</button>' +
       '<div class="panel" tabindex="-1" data-theme="dark" role="dialog" aria-modal="true" aria-label="Chat de ' + esc(name) + '" aria-hidden="true">' +
         '<div class="grip" aria-hidden="true"></div>' +
         '<div class="head">' +
           '<button class="ico menu" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>' +
-          '<span class="ava sm">' + avaMarkup(avatar) + '</span>' +
+          '<span class="ava sm">' + avaInit + '</span>' +
           '<span class="nm"></span>' +
           '<span class="sp"></span>' +
           '<button class="ico newchat" aria-label="Nuevo chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
@@ -192,30 +255,85 @@
     var $$ = function (s) { return root.querySelectorAll(s); };
 
     var panel = $(".panel"), fab = $(".fab");
+    var hideFab0 = (launcher === "none" || launcher === "off");
 
-    // ---- Avatar recortado a la forma del botón (cover, sin marco) ----
-    function setAvatar(a) {
-      var img = isImgUrl(a);
-      Array.prototype.forEach.call($$(".fab, .ava"), function (el) {
-        el.innerHTML = avaMarkup(a);
-        el.classList.toggle("isimg", img);
+    // ---- Avatar: el primer dibujo NUNCA depende de la red ----
+    // Regla: el botón nunca se ve con el fondo vacío. O está la foto (decodificada ANTES
+    // de insertarla, así pinta de una) o el ícono por defecto. Con copia local (data URL)
+    // el dibujo es instantáneo; sin copia, el botón queda oculto hasta decodificar la foto
+    // (tope ~2 s) o cae al ícono. Se guarda una referencia viva para redibujar tras bfcache.
+    var liveAva = "";          // src que se está mostrando (data URL o URL), para redibujar
+    var avaToken = 0;          // ignora respuestas de un setAvatar ya reemplazado
+    var avaShown = false;      // ya se pintó algo (decide si el cambio lleva fundido)
+    function eachAva(fn) { Array.prototype.forEach.call($$(".fab, .ava"), fn); }
+    function revealFab() { try { fab.style.visibility = ""; } catch (e) {} }
+    function paintIcon() { eachAva(function (el) { el.innerHTML = spark; el.classList.remove("isimg"); }); liveAva = ""; }
+    function paintImg(src, fade) {
+      eachAva(function (el) {
+        el.innerHTML = '<img' + (fade ? ' class="wu-fade"' : '') + ' src="' + esc(src) + '" alt="">';
+        el.classList.add("isimg");
         var im = el.querySelector("img");
-        if (im) im.onerror = function () { el.innerHTML = spark; el.classList.remove("isimg"); };
+        if (im) im.onerror = function () { el.innerHTML = spark; el.classList.remove("isimg"); liveAva = ""; };
       });
+      liveAva = src; avaShown = true;
     }
-    setAvatar(avatar);
+    // Decodifica fuera del DOM; false si falla o la imagen tiene naturalWidth 0.
+    function decodeImg(src, cb) {
+      var im = new Image(), done = false;
+      function fin(ok) { if (done) return; done = true; cb(ok); }
+      im.onload = function () { fin(im.naturalWidth > 0); };
+      im.onerror = function () { fin(false); };
+      try { im.decoding = "async"; } catch (e) {}
+      im.src = src;
+      if (im.decode) { im.decode().then(function () { fin(im.naturalWidth > 0); }, function () { fin(false); }); }
+    }
+    function setAvatar(url, data) {
+      avatar = url; var tok = ++avaToken;
+      if (!isImgUrl(url)) { paintIcon(); revealFab(); return; }   // sin foto: ícono por defecto
+      var dataUrl = (data && data.indexOf("data:") === 0) ? data : "";
+      var pending = (fab.style.visibility === "hidden");          // primera visita: oculto hasta listo
+      var fadeNow = avaShown;
+      function useUrl() {
+        decodeImg(url, function (ok) {
+          if (tok !== avaToken) return;
+          if (ok) paintImg(url, avaShown); else paintIcon();
+          revealFab();
+        });
+      }
+      if (dataUrl) {
+        decodeImg(dataUrl, function (ok) {
+          if (tok !== avaToken) return;
+          if (ok) { paintImg(dataUrl, fadeNow); revealFab(); }
+          else useUrl();                                          // copia local inválida: probá la URL
+        });
+      } else {
+        // Primer dibujo sin copia local y sin ocultar: ícono ya (nunca fondo vacío). En un
+        // cambio de avatar en vivo NO se pinta el ícono: se mantiene la foto actual y se
+        // reemplaza por la nueva al decodificar (sin estado intermedio).
+        if (!pending && !avaShown) paintIcon();
+        useUrl();
+      }
+      // Tope de espera (solo cuando el botón quedó oculto): si nada se pintó en ~2 s, mostrá
+      // el ícono; si la foto llega después, entra con fundido.
+      if (pending) setTimeout(function () {
+        if (tok !== avaToken || avaShown) return;
+        paintIcon(); revealFab();
+      }, 2000);
+    }
+    // Ocultar el botón hasta estar listo SOLO si hay foto y no tenemos copia local instantánea.
+    if (!hideFab0 && isImgUrl(avatar) && !avaData) { try { fab.style.visibility = "hidden"; } catch (e) {} }
+    setAvatar(avatar, avaData);
     $(".nm").textContent = name;
 
-    // Esperar a que el avatar (imagen) esté decodificado (máx 300 ms) para no mostrar
-    // un ícono y después cambiarlo por la foto.
-    (function () {
-      if (launcher === "none" || launcher === "off" || !isImgUrl(avatar)) return;
-      var fimg = fab.querySelector("img"); if (!fimg || !fimg.decode) return;
-      var shown = false; fab.style.visibility = "hidden";
-      function reveal() { if (shown) return; shown = true; fab.style.visibility = ""; }
-      try { fimg.decode().then(reveal, reveal); } catch (e) { reveal(); }
-      setTimeout(reveal, 300);
-    })();
+    // Segundo plano / bfcache: NO recrear el botón; si la imagen perdió su decodificación
+    // (naturalWidth 0 o se descartó), redibujarla desde la referencia viva (la copia local).
+    function redrawIfLost() {
+      if (!liveAva) return;
+      var bad = false;
+      eachAva(function (el) { var im = el.querySelector("img"); if (!im || !im.complete || im.naturalWidth === 0) bad = true; });
+      if (bad) paintImg(liveAva, false);
+    }
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) redrawIfLost(); });
 
     // Tema (se lee de localStorage y, si no, de la config del panel)
     var THEME_KEY = "wu_theme_" + dataId;
@@ -1058,10 +1176,13 @@
     // ---- Instancia (para que la red actualice la config sin rehacer el widget) ----
     instance = {
       cfgStr: JSON.stringify(cfg),
+      // Adopta la copia local recién generada (sin cambio visual: la foto ya se ve); así el
+      // próximo redibujo tras bfcache usa el data URL en vez de la URL remota.
+      setAvaData: function (src, d) { if (src === avatar && liveAva === src) liveAva = d; },
       update: function (nc) {
         instance.cfgStr = JSON.stringify(nc);
         name = nc.name || "Asistente"; $(".nm").textContent = name; panel.setAttribute("aria-label", "Chat de " + name);
-        var na = nc.avatar || ""; if (na !== avatar) { avatar = na; setAvatar(avatar); }
+        var na = nc.avatar || ""; if (na !== avatar) { setAvatar(na, ""); }
         welcome = nc.welcome || welcome;
         if (!userMsgCount()) { var wb = msgs.querySelector(".msg.in .tx"); if (wb) wb.textContent = welcome; }
         var ne = nc.contact_email || ""; if (ne) { mail.style.display = ""; mail.setAttribute("href", "mailto:" + ne); } else mail.style.display = "none";
@@ -1087,6 +1208,7 @@
     window.addEventListener("beforeunload", function () { saveUI(); revokeLive(); });
     window.addEventListener("pageshow", function (e) {
       if (!e.persisted) return; // bfcache: re-sincronizar sin animación
+      redrawIfLost();           // la foto pudo perder su decodificación en bfcache
       var u = readUI(); if (!u) return;
       if (u.open && !isOpen && !hideFab) { open(true); if (typeof u.scroll === "number") body.scrollTop = u.scroll; }
     });
@@ -1120,6 +1242,10 @@
     '.fab img{width:100%;height:100%;object-fit:cover;display:block;} .fab svg{width:24px;height:24px;}' +
     '.fab.fab-in{animation:wu-fab-in .15s ease both;}' +
     '@keyframes wu-fab-in{from{opacity:0}to{opacity:1}}' +
+    // Fundido breve al reemplazar el ícono o una foto anterior por la foto nueva/decodificada.
+    '.fab img.wu-fade,.ava img.wu-fade{animation:wu-ava-fade .15s ease both;}' +
+    '@keyframes wu-ava-fade{from{opacity:0}to{opacity:1}}' +
+    '@media(prefers-reduced-motion:reduce){.fab img.wu-fade,.ava img.wu-fade{animation:none;}}' +
     // ----- Variables de tema -----
     '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);' +
       '--ubub:#2a2b31;--uink:#f4f5f7;--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--thumb:#26272c;' +
