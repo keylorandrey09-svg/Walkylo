@@ -219,6 +219,7 @@
     var avaData = (avaWrap && avaWrap.src === avatar && avaWrap.data) ? avaWrap.data : "";
     var email = cfg.contact_email || "";
     var privacy = cfg.privacy_url || "";
+    var accent = normAccent(cfg.accent);   // color del logo: "" = Automático, o "#RRGGBB"
     var reduceMotion = false, isTouch = false;
     try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
     try { isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches; } catch (e) {}
@@ -313,13 +314,29 @@
     var avaShown = false;      // ya se pintó algo (decide si el cambio lleva fundido)
     function eachAva(fn) { Array.prototype.forEach.call($$(".fab, .ava"), fn); }
     function revealFab() { try { fab.style.visibility = ""; } catch (e) {} mark("fab-visible"); }
-    function paintIcon() { eachAva(function (el) { el.innerHTML = spark; el.classList.remove("isimg"); }); liveAva = ""; }
+    // Color del logo: solo cuando se muestra el ÍCONO (no la foto). Con color elegido, el botón
+    // y el avatar del encabezado llevan ese fondo y el ícono en blanco o #111 según la luminancia;
+    // el fondo NO cambia con el tema. En Automático se ve igual que siempre (sin fondo nuevo).
+    function applyAccent(el, isImg) {
+      if (accent && !isImg) {
+        el.style.background = accent; el.style.color = accentInk(accent);
+        el.classList.add("wu-accent"); el.classList.toggle("wu-accent-lt", accent === "#FFFFFF");
+      } else {
+        el.style.background = ""; el.style.color = "";
+        el.classList.remove("wu-accent", "wu-accent-lt");
+      }
+    }
+    function paintIcon(fade) {
+      var ic = fade ? spark.replace("<svg ", '<svg class="wu-fade" ') : spark;
+      eachAva(function (el) { el.innerHTML = ic; el.classList.remove("isimg"); applyAccent(el, false); });
+      liveAva = "";
+    }
     function paintImg(src, fade) {
       eachAva(function (el) {
         el.innerHTML = '<img' + (fade ? ' class="wu-fade"' : '') + ' src="' + esc(src) + '" alt="">';
-        el.classList.add("isimg");
+        el.classList.add("isimg"); applyAccent(el, true);
         var im = el.querySelector("img");
-        if (im) im.onerror = function () { el.innerHTML = spark; el.classList.remove("isimg"); liveAva = ""; };
+        if (im) im.onerror = function () { el.innerHTML = spark; el.classList.remove("isimg"); applyAccent(el, false); liveAva = ""; };
       });
       liveAva = src; avaShown = true; mark("ava-visible");
     }
@@ -1228,8 +1245,11 @@
       setAvaData: function (src, d) { if (src === avatar && liveAva === src) liveAva = d; },
       update: function (nc) {
         instance.cfgStr = JSON.stringify(nc);
+        var prevAccent = accent; accent = normAccent(nc.accent);   // color del logo (se usa al repintar)
         name = nc.name || "Asistente"; $(".nm").textContent = name; panel.setAttribute("aria-label", "Chat de " + name);
-        var na = nc.avatar || ""; if (na !== avatar) { setAvatar(na, ""); }
+        var na = nc.avatar || "";
+        if (na !== avatar) { setAvatar(na, ""); }                  // repinta con el color nuevo
+        else if (accent !== prevAccent && !liveAva) { paintIcon(true); }   // solo cambió el color del ícono: fundido
         welcome = nc.welcome || welcome;
         if (!userMsgCount()) { var wb = msgs.querySelector(".msg.in .tx"); if (wb) wb.textContent = welcome; }
         var ne = nc.contact_email || ""; if (ne) { mail.style.display = ""; mail.setAttribute("href", "mailto:" + ne); } else mail.style.display = "none";
@@ -1263,6 +1283,23 @@
 
   // ===================== Utilidades a nivel de módulo =====================
   function esc(s) { return String(s).replace(/"/g, "&quot;"); }
+  // Color del logo: "" (Automático) para vacío, "auto" o un hex inválido; si no, "#RRGGBB" en mayúsculas.
+  function normAccent(v) {
+    if (!v) return "";
+    v = String(v).trim();
+    if (v.toLowerCase() === "auto") return "";
+    var m = /^#?([0-9a-fA-F]{6})$/.exec(v);
+    return m ? ("#" + m[1].toUpperCase()) : "";
+  }
+  // Tinta del ícono sobre el color del logo: blanco o #111, el de mayor contraste (WCAG).
+  function accentInk(hex) {
+    function lin(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function lum(h) { return 0.2126 * lin(parseInt(h.substr(1, 2), 16)) + 0.7152 * lin(parseInt(h.substr(3, 2), 16)) + 0.0722 * lin(parseInt(h.substr(5, 2), 16)); }
+    var L = lum(hex), Lk = lum("#111111");
+    var cw = (1 + 0.05) / (L + 0.05);                 // contraste contra blanco
+    var ck = (Math.max(L, Lk) + 0.05) / (Math.min(L, Lk) + 0.05);   // contra #111
+    return cw >= ck ? "#fff" : "#111";
+  }
   function genId() { return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function startOfDay(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function dayGroup(ts, nowT) {
@@ -1290,9 +1327,11 @@
     '.fab.fab-in{animation:wu-fab-in .15s ease both;}' +
     '@keyframes wu-fab-in{from{opacity:0}to{opacity:1}}' +
     // Fundido breve al reemplazar el ícono o una foto anterior por la foto nueva/decodificada.
-    '.fab img.wu-fade,.ava img.wu-fade{animation:wu-ava-fade .15s ease both;}' +
+    '.fab img.wu-fade,.ava img.wu-fade,.fab svg.wu-fade,.ava svg.wu-fade{animation:wu-ava-fade .15s ease both;}' +
     '@keyframes wu-ava-fade{from{opacity:0}to{opacity:1}}' +
-    '@media(prefers-reduced-motion:reduce){.fab img.wu-fade,.ava img.wu-fade{animation:none;}}' +
+    '@media(prefers-reduced-motion:reduce){.fab img.wu-fade,.ava img.wu-fade,.fab svg.wu-fade,.ava svg.wu-fade{animation:none;}}' +
+    // Color del logo (fondo por variable inline). El blanco lleva un borde fino para verse sobre fondos claros.
+    '.fab.wu-accent-lt,.ava.wu-accent-lt{border:1px solid rgba(0,0,0,.16);}' +
     // ----- Variables de tema -----
     '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);' +
       '--ubub:#2a2b31;--uink:#f4f5f7;--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--thumb:#26272c;' +
