@@ -265,7 +265,7 @@
     .wg-cp__hue::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.3);box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:pointer;}
     .wg-cp__hue::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.3);cursor:pointer;}
     .wg-cp__bottom{display:flex;align-items:center;gap:8px;margin-top:12px;}
-    .wg-cp__prev{width:34px;height:34px;border-radius:9px;flex-shrink:0;border:1px solid var(--wa-line);background:#0164FD;}
+    .wg-cp__prev{width:34px;height:34px;border-radius:9px;flex-shrink:0;border:1px solid var(--wa-line);background:#FFFFFF;}
     .wg-cp__hex{flex:1;text-transform:uppercase;}
     .wg-cp__ok{flex-shrink:0;}
     .wg-code-block{border:1px solid var(--wa-line);border-radius:10px;overflow:hidden;background:#0F1419;}
@@ -2382,7 +2382,7 @@
       function cpOpen(){
         if (!wgEditing) return;
         var cur = wgNormAccent(wgCfg().accent);
-        var hsv = cpHexToHsv(cur === 'auto' ? '#0164FD' : cur);
+        var hsv = cpHexToHsv(cur === 'auto' ? '#FFFFFF' : cur);   // sin color elegido, el picker arranca en blanco puro
         cpH = hsv.h; cpS = hsv.s; cpV = hsv.v;
         if (cpHue) cpHue.value = Math.round(cpH);
         if (cp) cp.hidden = false;
