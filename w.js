@@ -22,9 +22,11 @@
   // (ver CLAUDE.md > "Pendientes antes de lanzar a clientes").
   var ATTACHMENTS_ENABLED = true;
   var ATT_MAX = 4;                 // cantidad máxima de fotos
-  var ATT_MAX_MB = 5;              // tamaño máximo por foto
-  var ATT_MAX_PX = 1600;          // lado mayor tras reducir
-  var ATT_QUALITY = 0.8;           // calidad del canvas
+  var ATT_IN_MAX_MB = 25;          // tamaño máximo de ENTRADA por foto
+  var ATT_IN_MAX = ATT_IN_MAX_MB * 1024 * 1024;
+  var ATT_OUT_MAX = 1.5 * 1024 * 1024; // tope del RESULTADO procesado (~1,5 MB)
+  var ATT_MAX_PX = 1600;           // lado mayor tras reducir
+  var ATT_QUALITY = 0.8;           // calidad inicial del JPEG de salida
   var ATT_TYPES = { "image/jpeg": 1, "image/png": 1, "image/webp": 1 };
 
   // ---- Historial local (solo en este dispositivo, sin red) ----
@@ -38,6 +40,62 @@
 
   // Texto de espera actual (la IA real se conecta en la Fase 8). No inventar respuestas.
   var PENDING_REPLY = "¡Gracias por tu mensaje! El asistente estará disponible muy pronto.";
+
+  // ---- Modo diagnóstico de fotos (apagado por defecto) ----
+  // Se activa con ?wdebug=1 en la URL, con localStorage.walkylet_debug="1", o siempre en
+  // widget-test.html. Registra tiempos y SOLO metadatos de las fotos (nunca su contenido).
+  var WDEBUG = (function () {
+    try { if (/(?:^|[?&])wdebug=1(?:&|$|#)/.test(location.search || "")) return true; } catch (e) {}
+    try { if (localStorage.getItem("walkylet_debug") === "1") return true; } catch (e) {}
+    try { if (/widget-test\.html$/i.test(location.pathname || "")) return true; } catch (e) {}
+    return false;
+  })();
+  var WLOG = (function () {
+    var t0 = nowMs(), entries = [], panel = null, pre = null;
+    function nowMs() { try { if (window.performance && performance.now) return performance.now(); } catch (e) {} return Date.now(); }
+    function at() { return Math.round(nowMs() - t0); }
+    function safe(o) { try { return JSON.stringify(o); } catch (e) { return "{?}"; } }
+    function line(e) { return e.t + "ms " + e.ev + (e.d ? " " + safe(e.d) : ""); }
+    function add(ev, data) {
+      var e = { t: at(), ev: ev }; if (data) e.d = data;
+      entries.push(e); if (entries.length > 800) entries.shift();
+      if (WDEBUG) { try { console.debug("[WalkyUp]", e.t + "ms", ev, data || ""); } catch (x) {} draw(); }
+      return e;
+    }
+    function text() {
+      var head = "WalkyUp foto-debug\n" + (navigator.userAgent || "") + "\n";
+      return head + entries.map(line).join("\n");
+    }
+    function btnCss() { return "font:11px ui-monospace,monospace;background:#063;color:#cfc;border:0;border-radius:6px;padding:3px 7px;cursor:pointer;"; }
+    function draw() { if (pre) { pre.textContent = entries.slice(-140).map(line).join("\n"); pre.scrollTop = pre.scrollHeight; } }
+    function mount() {
+      if (!WDEBUG || panel || !document.body) return;
+      panel = document.createElement("div"); panel.id = "walkyup-debug";
+      panel.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483646;width:min(360px,calc(100vw - 16px));max-height:42vh;background:#0b0b0d;color:#9f9;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace;border:1px solid #0a6;border-radius:10px;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.45);";
+      var bar = document.createElement("div"); bar.style.cssText = "display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid #063;";
+      var ttl = document.createElement("b"); ttl.textContent = "WalkyUp fotos"; ttl.style.cssText = "flex:1;color:#8f8;";
+      var copyBtn = document.createElement("button"); copyBtn.textContent = "Copiar log"; copyBtn.style.cssText = btnCss();
+      var clrBtn = document.createElement("button"); clrBtn.textContent = "Limpiar"; clrBtn.style.cssText = btnCss();
+      var hideBtn = document.createElement("button"); hideBtn.textContent = "×"; hideBtn.style.cssText = btnCss();
+      copyBtn.onclick = function () {
+        var s = text(), ok = false;
+        try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(s); ok = true; } } catch (e) {}
+        if (!ok) { try { var ta = document.createElement("textarea"); ta.value = s; ta.style.cssText = "position:fixed;opacity:0;top:0;left:0;"; document.body.appendChild(ta); ta.focus(); ta.select(); ok = document.execCommand("copy"); document.body.removeChild(ta); } catch (x) {} }
+        copyBtn.textContent = ok ? "¡Copiado!" : "Error"; setTimeout(function () { copyBtn.textContent = "Copiar log"; }, 1400);
+      };
+      clrBtn.onclick = function () { entries.length = 0; draw(); };
+      hideBtn.onclick = function () { panel.style.display = "none"; };
+      bar.appendChild(ttl); bar.appendChild(copyBtn); bar.appendChild(clrBtn); bar.appendChild(hideBtn);
+      pre = document.createElement("pre"); pre.style.cssText = "margin:0;padding:6px 8px;overflow:auto;white-space:pre-wrap;word-break:break-word;";
+      panel.appendChild(bar); panel.appendChild(pre); document.body.appendChild(panel); draw();
+    }
+    if (WDEBUG) {
+      try { if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount, { once: true }); } catch (e) {}
+      setTimeout(mount, 0);
+    }
+    return { on: WDEBUG, add: add, text: text, entries: entries, mount: mount };
+  })();
+  function wlog(ev, data) { return WLOG.add(ev, data); }
 
   // ---- 1) Encontrar el script y su data-id ----
   var me = document.currentScript;
@@ -309,10 +367,21 @@
 
     // ---- Burbujas ----
     // Imagen adjunta dentro de una burbuja: si falla, muestra un recuadro neutro (nunca el alt suelto).
+    // Cada item de la lista es un asset { url, canvas } (o, por compatibilidad, una cadena URL).
+    function assetUrl(a) { return (a && typeof a === "object") ? a.url : a; }
+    function assetCanvas(a) { return (a && typeof a === "object") ? a.canvas : null; }
+    // Respaldo CSP: si el navegador bloquea blob: en img-src, dibujamos desde el lienzo procesado.
+    function cspFallback(imgEl, a, cls) {
+      var cv = assetCanvas(a);
+      if (cv) { try { var c = cv.cloneNode(false); c.getContext("2d").drawImage(cv, 0, 0); c.className = cls || ""; if (imgEl.parentNode) imgEl.parentNode.replaceChild(c, imgEl); wlog("csp.redraw", { use: cls || "att" }); return true; } catch (e) {} }
+      return false;
+    }
     function attImg(list, i) {
-      var im = document.createElement("img"); im.src = list[i]; im.alt = "Imagen adjunta " + (i + 1) + " de " + list.length;
+      var a = list[i];
+      var im = document.createElement("img"); im.src = assetUrl(a); im.alt = "Imagen adjunta " + (i + 1) + " de " + list.length;
       im.setAttribute("role", "button"); im.setAttribute("tabindex", "0");
       im.onerror = function () {
+        if (cspFallback(im, a, "msg-att-canvas")) return;
         var ph = document.createElement("div"); ph.className = "att-fail"; ph.setAttribute("role", "img"); ph.setAttribute("aria-label", "Imagen no disponible");
         ph.innerHTML = ICO_IMG; if (im.parentNode) im.parentNode.replaceChild(ph, im);
       };
@@ -686,7 +755,7 @@
     // ---- Campo de texto (autogrow hasta ~5 líneas) ----
     var ta = $(".ta"), sendBtn = $(".send"), typing = $(".typing");
     function autogrow() { ta.style.height = "auto"; var h = Math.min(ta.scrollHeight, 140); ta.style.height = h + "px"; ta.style.overflowY = (ta.scrollHeight > 140) ? "auto" : "hidden"; }
-    function canSend() { return ta.value.trim().length > 0 || attachments.length > 0; }
+    function canSend() { return ta.value.trim().length > 0 || attachments.some(function (a) { return a.status !== "error"; }); }
     function syncSend() { if (state === "idle") sendBtn.disabled = !canSend(); }
     ta.addEventListener("input", function () { autogrow(); syncSend(); saveUI(); });
     ta.addEventListener("keydown", function (e) {
@@ -711,18 +780,25 @@
       if (s === "thinking") scroll();
     }
 
+    // Enviar: si hay fotos todavía procesándose, SOLO el envío espera (se marca y sale al terminar).
     function send() {
-      if (!canSend()) return;
+      if (state !== "idle" || !canSend()) return;
+      if (processingCount() > 0) { wantSend = true; wlog("send.wait", { processing: processingCount() }); sendBtn.classList.add("busy"); sendBtn.setAttribute("aria-label", "Enviando…"); return; }
+      wantSend = false; sendBtn.classList.remove("busy"); doSend();
+    }
+    function doSend() {
       var v = ta.value.trim();
-      // Las URLs pasan a ser del mensaje: se mantienen vivas (no se revocan al limpiar).
-      var atts = attachments.map(function (a) { return a.url; });
-      var hadImg = atts.length > 0;
-      if (hadImg) atts.forEach(function (u) { liveUrls.push(u); });
-      hist.push({ x: v, o: 1, g: hadImg ? 1 : 0, _atts: hadImg ? atts : null });
-      msgs.appendChild(bubble(v, true, hadImg ? atts : null, false, { idx: hist.length - 1 }));
+      var ready = readyAtts();
+      if (!v && !ready.length) return;
+      // Las fotos pasan a ser del mensaje: se mantienen vivas (no se revocan al limpiar).
+      var assets = ready.map(function (a) { return { url: a.url, canvas: a.canvas, w: a.w, h: a.h }; });
+      var hadImg = assets.length > 0;
+      if (hadImg) assets.forEach(function (as) { liveAssets.push(as); });
+      hist.push({ x: v, o: 1, g: hadImg ? 1 : 0, _atts: hadImg ? assets : null });
+      msgs.appendChild(bubble(v, true, hadImg ? assets : null, false, { idx: hist.length - 1 }));
       persist(); logUpsert();
-      // TODO Fase 8: onSendAttachments(attachments) -> subir/enviar al backend (hoy NO hay red)
-      detachAttachments();   // vacía el compositor SIN revocar (las URLs ya son del mensaje)
+      // TODO Fase 8: onSendAttachments(ready) -> subir/enviar al backend (hoy NO hay red)
+      detachAttachments();   // vacía el compositor SIN revocar (las fotos ya son del mensaje)
       ta.value = ""; autogrow(); syncHero(); scroll(); saveUI();
       generateReply({ regenerate: false });
     }
@@ -741,113 +817,139 @@
     }
     sendBtn.addEventListener("click", function () { if (state === "idle") send(); else stop(); });
 
-    // ---- Fotos (+): solo lado navegador ----
+    // ---- Fotos (+): solo lado navegador. Estado FUERA del DOM; el render se deriva de aquí. ----
+    // Cada adjunto: { id, file, ownBlob, status:'reading'|'processing'|'ready'|'error', code,
+    //   url(blob del resultado), canvas(para respaldo CSP), outBlob, w, h, sig }.
     var attachments = [];     // fotos del compositor (aún sin enviar)
-    var liveUrls = [];        // URLs de fotos ya enviadas: vivas hasta chat nuevo o descarga
+    var liveAssets = [];      // fotos ya enviadas (asset { url, canvas }): vivas hasta chat nuevo o descarga
+    var attSeq = 0, queue = [], running = 0, QUEUE_MAX = 2, wantSend = false;
     var fileInp = $(".fileinp"), thumbs = $(".thumbs"), atterr = $(".atterr");
-    function showAttErr(msg) { if (!atterr) return; atterr.textContent = msg; atterr.hidden = false; setTimeout(function () { atterr.hidden = true; }, 3500); }
+
+    function processingCount() { var n = 0; attachments.forEach(function (a) { if (a.status === "reading" || a.status === "processing") n++; }); return n; }
+    function readyAtts() { return attachments.filter(function (a) { return a.status === "ready"; }); }
+    function attErrText(code) {
+      if (code === "unsupported") return "Este formato no es compatible, elegí una foto JPG, PNG o WEBP.";
+      if (code === "toobig") return "No pudimos reducir esta foto, probá con otra.";
+      if (code === "read") return "No pudimos leer la foto, tocá reintentar.";
+      return "Esta imagen no se pudo procesar, tocá reintentar.";
+    }
+    function showAttErr(msg) { if (!atterr) return; atterr.textContent = msg; atterr.hidden = false; clearTimeout(atterr._t); atterr._t = setTimeout(function () { atterr.hidden = true; }, 3500); }
+
+    // Dibuja las miniaturas según el estado de cada adjunto. Nunca recrea el input ni borra
+    // adjuntos: solo refleja `attachments`, que es la única fuente de verdad.
     function renderThumbs() {
+      wlog("renderThumbs", { n: attachments.length });
       thumbs.innerHTML = "";
       attachments.forEach(function (a, idx) {
-        var t = document.createElement("div"); t.className = "thumb";
-        var im = document.createElement("img"); im.src = a.url; im.alt = "";
-        var x = document.createElement("button"); x.className = "thumbx"; x.setAttribute("aria-label", "Quitar imagen " + (idx + 1));
+        var t = document.createElement("div"); t.className = "thumb thumb-" + a.status;
+        if (a.status === "ready" && a.url) {
+          var im = document.createElement("img"); im.src = a.url; im.alt = "";
+          im.onerror = function () { cspFallback(im, a, "thumb-canvas"); };
+          t.appendChild(im);
+        } else if (a.status === "error") {
+          var rb = document.createElement("button"); rb.type = "button"; rb.className = "thumb-retry"; rb.setAttribute("aria-label", "Reintentar foto " + (idx + 1));
+          rb.innerHTML = ICO_REGEN; rb.addEventListener("click", function () { retryAttachment(a); });
+          t.appendChild(rb);
+        } else {
+          var sp = document.createElement("div"); sp.className = "thumb-spin"; sp.setAttribute("aria-hidden", "true"); t.appendChild(sp);
+        }
+        var x = document.createElement("button"); x.type = "button"; x.className = "thumbx"; x.setAttribute("aria-label", "Quitar imagen " + (idx + 1));
         x.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-        x.addEventListener("click", function () { removeAttachment(idx); });
-        t.appendChild(im); t.appendChild(x); thumbs.appendChild(t);
+        x.addEventListener("click", function () { removeAttachment(a); });
+        t.appendChild(x);
+        if (a.status !== "ready") { var sr = document.createElement("span"); sr.className = "sr"; sr.textContent = a.status === "error" ? attErrText(a.code) : "Procesando foto"; t.appendChild(sr); }
+        a.el = t; thumbs.appendChild(t);
       });
       thumbs.hidden = attachments.length === 0;
       syncSend();
     }
-    function removeAttachment(idx) {
-      var a = attachments[idx]; if (!a) return;
-      try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {}
-      attachments.splice(idx, 1); renderThumbs();
+    function removeAttachment(a) {
+      var i = attachments.indexOf(a); if (i < 0) return;
+      try { if (a.url && a.url.indexOf("blob:") === 0) { URL.revokeObjectURL(a.url); wlog("url.revoke", { use: "att" }); } } catch (e) {}
+      a.dead = true; a.ownBlob = null;
+      var qi = queue.indexOf(a); if (qi >= 0) queue.splice(qi, 1);
+      attachments.splice(i, 1); renderThumbs();
+      maybeFlushSend();
     }
     // Vacía el compositor revocando las fotos NO enviadas (descartadas).
     function clearAttachments() {
-      attachments.forEach(function (a) { try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {} });
-      attachments = []; renderThumbs();
+      attachments.forEach(function (a) { a.dead = true; a.ownBlob = null; try { if (a.url && a.url.indexOf("blob:") === 0) URL.revokeObjectURL(a.url); } catch (e) {} });
+      attachments = []; queue = []; wantSend = false; renderThumbs();
     }
     // Vacía el compositor SIN revocar (las fotos pasaron a un mensaje y siguen vivas).
-    function detachAttachments() { attachments = []; renderThumbs(); }
+    function detachAttachments() { attachments = []; queue = []; renderThumbs(); }
     // Libera todas las fotos enviadas (al empezar un chat nuevo o al descargar la página).
     function revokeLive() {
-      liveUrls.forEach(function (u) { try { if (u && u.indexOf("blob:") === 0) URL.revokeObjectURL(u); } catch (e) {} });
-      liveUrls = [];
-    }
-    // ¿El archivo es una imagen que aceptamos? No dependemos solo del type: varias galerías
-    // de Android entregan la MISMA foto con type vacío. Si el type sirve, listo; si no, se
-    // deduce por la extensión (jpg/jpeg/png/webp); sin extensión, se deja que el decodificador valide.
-    function isImageFile(f) {
-      if (ATT_TYPES[f.type]) return true;
-      var m = /\.([a-z0-9]+)$/i.exec(f.name || "");
-      var ext = m ? m[1].toLowerCase() : "";
-      if (ext) return ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp";
-      return !f.type || f.type.indexOf("image/") === 0;
+      liveAssets.forEach(function (as) { try { if (as.url && as.url.indexOf("blob:") === 0) URL.revokeObjectURL(as.url); } catch (e) {} });
+      liveAssets = [];
     }
 
-    // Reduce la foto en el navegador y la devuelve como DATA URL (imagen incrustada), no como
-    // blob temporal: así la vista previa y el mensaje se ven SIEMPRE, sin depender de una URL
-    // que se pueda romper o liberar al cambiar de chat. Usa createImageBitmap (confiable y
-    // respeta la rotación EXIF); si no, o si se queda colgado (watchdog), cae a FileReader->Image.
-    // La lectura reintenta varias veces con más espera cada vez (en móvil, fotos de galería/nube
-    // a veces fallan o tardan en el primer intento) y solo devuelve null tras agotarlas. Una guarda
-    // evita entregar dos resultados. Nota Fase 8: `blob` queda null (reconstruir desde la data URL).
-    function downscale(file, cb) {
-      var tries = 0, MAX_TRIES = 3, done = false;
-      function finish(a) { if (done) return; done = true; cb(a); }
-      function toCanvas(src, w, h, onFail) {
-        try {
-          var scale = Math.min(1, ATT_MAX_PX / Math.max(w, h));
-          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
-          var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
-          cv.getContext("2d").drawImage(src, 0, 0, cw, ch);
-          var durl = cv.toDataURL("image/jpeg", ATT_QUALITY);
-          if (durl && durl.indexOf("data:image") === 0) finish({ url: durl, blob: null });
-          else onFail();
-        } catch (e) { onFail(); }
+    // Cola secuencial con tope de 2 en paralelo. Cada adjunto reprocesa desde su Blob en memoria.
+    function enqueue(a) { if (a.dead) return; a.status = "processing"; if (queue.indexOf(a) < 0) queue.push(a); renderThumbs(); pump(); }
+    function pump() {
+      while (running < QUEUE_MAX && queue.length) {
+        var a = queue.shift(); if (a.dead || a.status !== "processing") continue;
+        running++; runOne(a);
       }
-      function readThenDraw() {
-        if (done) return;
-        var reader = new FileReader();
-        reader.onload = function () {
-          if (done) return;
-          var img = new Image();
-          img.onload = function () { toCanvas(img, img.width, img.height, function () { finish({ url: reader.result, blob: null }); }); };
-          img.onerror = function () { finish({ url: reader.result, blob: null }); }; // el dataURL leído ya sirve para mostrar
-          img.src = reader.result;
-        };
-        reader.onerror = retry;
-        try { reader.readAsDataURL(file); } catch (e) { retry(); }
+    }
+    function runOne(a) {
+      var work = a.ownBlob ? processOwnBlob(a.ownBlob) : readOwnBlob(a.file).then(function (b) { a.ownBlob = b; return processOwnBlob(b); });
+      work.then(function (data) {
+        running--;
+        if (a.dead) { pump(); return; }
+        a.url = URL.createObjectURL(data.blob); wlog("url.create", { use: "att", bytes: data.blob.size });
+        a.canvas = data.canvas; a.w = data.w; a.h = data.h; a.sig = data.sig; a.outBlob = data.blob; a.ownBlob = null;
+        a.status = "ready"; a.code = null;
+        renderThumbs(); pump(); maybeFlushSend();
+      }, function (err) {
+        running--;
+        if (a.dead) { pump(); return; }
+        a.code = (err && err.name === "AttError") ? err.code : "decode";
+        wlog("att.error", { code: a.code });
+        // Un reintento automático y silencioso antes de mostrar nada (salvo formato no compatible).
+        if (!a._autoRetried && a.code !== "unsupported") { a._autoRetried = true; wlog("att.autoretry", {}); enqueue(a); pump(); return; }
+        a.status = "error"; renderThumbs();
+        if (a.code === "unsupported" || a.code === "toobig") showAttErr(attErrText(a.code));
+        pump(); maybeFlushSend();
+      });
+    }
+    function retryAttachment(a) { a._autoRetried = true; a.code = null; wlog("att.retry.manual", {}); enqueue(a); }
+    // Si el envío estaba esperando a que se procesaran las fotos, sale al quedar ninguna en curso.
+    function maybeFlushSend() {
+      if (!wantSend) return;
+      if (processingCount() > 0) return;
+      wantSend = false; sendBtn.classList.remove("busy"); sendBtn.setAttribute("aria-label", "Enviar");
+      if (state === "idle" && (ta.value.trim() || readyAtts().length)) doSend();
+      else syncSend();
+    }
+
+    // Toma archivos (del input o de una prueba), lee sus bytes a memoria ANTES de resetear el
+    // input, y luego los encola. Devuelve una promesa que resuelve cuando terminó de encolar.
+    function ingestFiles(files, resetInput) {
+      wlog("change", { count: files.length, files: files.map(function (f) { return { size: f.size, type: f.type || "", lm: f.lastModified || 0 }; }) });
+      var accepted = [];
+      for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        if (attachments.length >= ATT_MAX) { showAttErr("Hasta " + ATT_MAX + " fotos."); break; }
+        if (f.size > ATT_IN_MAX) { showAttErr("Cada foto hasta " + ATT_IN_MAX_MB + " MB."); continue; }
+        var a = { id: ++attSeq, file: f, ownBlob: null, status: "reading", code: null, url: null, canvas: null, outBlob: null, w: 0, h: 0, sig: "", dead: false, _autoRetried: false };
+        attachments.push(a); accepted.push(a);
       }
-      function retry() {
-        if (done) return;
-        tries++;
-        if (tries >= MAX_TRIES) { finish(null); return; }   // error real recién tras agotar los reintentos
-        setTimeout(readThenDraw, 120 * tries);
-      }
-      if (window.createImageBitmap) {
-        var p; try { p = createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) { p = null; }
-        if (p && p.then) {
-          var wd = setTimeout(readThenDraw, 800);   // si createImageBitmap tarda/se cuelga, arrancamos el otro camino en paralelo
-          p.then(function (bmp) { clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch (e) {} },
-                 function () { clearTimeout(wd); readThenDraw(); });
-        } else readThenDraw();
-      } else readThenDraw();
+      renderThumbs();   // muestra "leyendo" de inmediato
+      // Copiar CADA archivo a un Blob propio con reintentos, y SOLO después resetear el input.
+      var reads = accepted.map(function (a) {
+        return readOwnBlob(a.file).then(function (b) { if (!a.dead) a.ownBlob = b; }, function (err) { if (a.dead) return; a.status = "error"; a.code = "read"; wlog("read.fail", { name: (err && err.name) || "" }); });
+      });
+      return Promise.all(reads).then(function () {
+        if (resetInput !== false) { fileInp.value = ""; wlog("input.reset", {}); }
+        accepted.forEach(function (a) { if (a.dead) return; if (a.ownBlob) enqueue(a); else renderThumbs(); });
+        return accepted;
+      });
     }
     if (ATTACHMENTS_ENABLED) {
       $(".plus").addEventListener("click", function () { fileInp.click(); });
-      fileInp.addEventListener("change", function () {
-        var files = Array.prototype.slice.call(fileInp.files || []);
-        fileInp.value = "";
-        files.forEach(function (f) {
-          if (attachments.length >= ATT_MAX) { showAttErr("Hasta " + ATT_MAX + " fotos."); return; }
-          if (!isImageFile(f)) { showAttErr("Solo JPG, PNG o WEBP."); return; }
-          if (f.size > ATT_MAX_MB * 1024 * 1024) { showAttErr("Cada foto hasta " + ATT_MAX_MB + " MB."); return; }
-          downscale(f, function (a) { if (!a) { showAttErr("Esta imagen no se pudo procesar, intentá de nuevo."); return; } if (attachments.length >= ATT_MAX) { try { URL.revokeObjectURL(a.url); } catch (e) {} return; } attachments.push(a); renderThumbs(); });
-        });
-      });
+      // UN solo input persistente con UN solo listener.
+      fileInp.addEventListener("change", function () { ingestFiles(Array.prototype.slice.call(fileInp.files || []), true); });
     }
 
     // ---- Hoja de ajustes ----
@@ -879,7 +981,13 @@
     var viewerEl = $(".viewer"), viewerImg = $(".viewer-img"), viewerPrev = $(".viewer-prev"), viewerNext = $(".viewer-next");
     var viewerList = [], viewerIdx = 0, viewerReturn = null;
     function showViewerImg() {
-      viewerImg.src = viewerList[viewerIdx];
+      var a = viewerList[viewerIdx];
+      viewerImg.onerror = function () {
+        // Respaldo CSP: blob: bloqueado -> usar el lienzo procesado como data URL.
+        var cv = assetCanvas(a); if (!cv) return;
+        try { viewerImg.onerror = null; viewerImg.src = cv.toDataURL("image/jpeg", 0.9); wlog("csp.redraw", { use: "viewer" }); } catch (e) {}
+      };
+      viewerImg.src = assetUrl(a);
       viewerImg.alt = "Imagen adjunta " + (viewerIdx + 1) + " de " + viewerList.length;
       var multi = viewerList.length > 1; viewerPrev.hidden = !multi; viewerNext.hidden = !multi;
     }
@@ -1083,13 +1191,36 @@
     if (!fromCache && !ui) { fab.classList.add("fab-in"); }
 
     // Guardar estado al salir / bfcache (y liberar las fotos en memoria al descargar)
-    window.addEventListener("pagehide", function () { saveUI(); revokeLive(); });
+    window.addEventListener("pagehide", function () { wlog("pagehide", {}); saveUI(); revokeLive(); });
     window.addEventListener("beforeunload", function () { saveUI(); revokeLive(); });
     window.addEventListener("pageshow", function (e) {
+      wlog("pageshow", { persisted: !!e.persisted });
       if (!e.persisted) return; // bfcache: re-sincronizar sin animación
       var u = readUI(); if (!u) return;
       if (u.open && !isOpen && !hideFab) { open(true); if (typeof u.scroll === "number") body.scrollTop = u.scroll; }
     });
+    // Eventos que podrían interrumpir el procesado (solo se registran; no tocan los adjuntos).
+    if (WDEBUG) {
+      document.addEventListener("visibilitychange", function () { wlog("visibilitychange", { hidden: document.hidden }); });
+      window.addEventListener("focus", function () { wlog("focus", {}); });
+      window.addEventListener("blur", function () { wlog("blur", {}); });
+    }
+
+    // API de pruebas (solo en modo debug): expone el pipeline REAL para widget-test.html.
+    if (WDEBUG) {
+      window.WalkyUp.__debug = {
+        version: 2,
+        log: WLOG,
+        sniffType: sniffType, readDims: readDims, readOwnBlob: readOwnBlob,
+        processFile: processFile, processOwnBlob: processOwnBlob,
+        addFiles: function (files, resetInput) { return ingestFiles(Array.prototype.slice.call(files), resetInput); },
+        getAttachments: function () { return attachments; },
+        renderThumbs: function () { renderThumbs(); },
+        clearAttachments: function () { clearAttachments(); },
+        constants: { ATT_MAX: ATT_MAX, ATT_MAX_PX: ATT_MAX_PX, ATT_OUT_MAX: ATT_OUT_MAX, ATT_IN_MAX: ATT_IN_MAX }
+      };
+      wlog("debug.ready", {});
+    }
   }
 
   // ===================== Utilidades a nivel de módulo =====================
@@ -1108,6 +1239,174 @@
     if (ts >= today) return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
     return d.getDate() + "/" + (d.getMonth() + 1);
   }
+
+  // ===================== Pipeline de fotos (puro, sin DOM del widget) =====================
+  // Un error con causa específica para dar mensajes útiles por tipo de falla.
+  function AttError(code, cause) { this.name = "AttError"; this.code = code; this.message = code; this.cause = cause; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  // Detecta el tipo por la FIRMA de los primeros bytes (nunca confiar en file.type: en Android
+  // suele venir vacío). Devuelve "jpeg" | "png" | "webp" | "gif" | "heic" | "unknown".
+  function sniffType(b) {
+    if (!b || b.length < 12) return "unknown";
+    if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return "jpeg";
+    if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47 && b[4] === 0x0D && b[5] === 0x0A && b[6] === 0x1A && b[7] === 0x0A) return "png";
+    if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return "webp";
+    if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) return "gif";
+    // ISO-BMFF ('ftyp' en offset 4): HEIC/HEIF/AVIF y afines que no aceptamos.
+    if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return "heic";
+    return "unknown";
+  }
+  function be16(b, o) { return (b[o] << 8) | b[o + 1]; }
+  function be32(b, o) { return (b[o] * 16777216) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3]; }
+  // Dimensiones desde el encabezado (para decodificar ya reducido). Si no se pueden leer, null.
+  function readDims(b, sig) {
+    try {
+      if (sig === "png") { return { w: be32(b, 16), h: be32(b, 20) }; }
+      if (sig === "jpeg") {
+        var i = 2, n = b.length;
+        while (i + 9 < n) {
+          if (b[i] !== 0xFF) { i++; continue; }
+          var m = b[i + 1];
+          if (m === 0xD8 || m === 0xD9 || (m >= 0xD0 && m <= 0xD7) || m === 0x01) { i += 2; continue; }
+          if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) { return { h: be16(b, i + 5), w: be16(b, i + 7) }; }
+          var len = be16(b, i + 2); if (len < 2) break; i += 2 + len;
+        }
+      }
+      if (sig === "webp") {
+        var fourcc = String.fromCharCode(b[12], b[13], b[14], b[15]);
+        if (fourcc === "VP8X") { return { w: (b[24] | (b[25] << 8) | (b[26] << 16)) + 1, h: (b[27] | (b[28] << 8) | (b[29] << 16)) + 1 }; }
+        if (fourcc === "VP8 ") { return { w: (b[26] | (b[27] << 8)) & 0x3FFF, h: (b[28] | (b[29] << 8)) & 0x3FFF }; }
+        if (fourcc === "VP8L" && b[20] === 0x2F) { var w = 1 + (((b[22] & 0x3F) << 8) | b[21]); var h = 1 + (((b[24] & 0x0F) << 10) | (b[23] << 2) | ((b[22] & 0xC0) >> 6)); return { w: w, h: h }; }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // Lee el archivo a un Blob PROPIO en memoria (así nada lo invalida al resetear el input).
+  // Reintenta hasta 3 veces (200/500/1000 ms) ante errores pasajeros de lectura.
+  function readOwnBlob(file) {
+    var delays = [200, 500, 1000];
+    function attempt(i) {
+      wlog("read.start", { i: i });
+      var p;
+      try {
+        if (file.arrayBuffer) p = file.arrayBuffer();
+        else p = new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = function () { rej(r.error || new Error("FileReader")); }; r.readAsArrayBuffer(file); });
+      } catch (e) { p = Promise.reject(e); }
+      return p.then(function (buf) {
+        wlog("read.ok", { i: i, bytes: buf.byteLength });
+        return new Blob([buf], { type: file.type || "application/octet-stream" });
+      }, function (err) {
+        var name = (err && err.name) || "Error";
+        wlog("read.err", { i: i, name: name });
+        var transient = name === "NotReadableError" || name === "AbortError" || name === "SecurityError" || name === "Error" || name === "TypeError";
+        if (i < delays.length && transient) return sleep(delays[i]).then(function () { return attempt(i + 1); });
+        throw new AttError("read", err);
+      });
+    }
+    return attempt(0);
+  }
+
+  function readHead(blob, n) {
+    var part = blob.slice(0, Math.min(n, blob.size || n));
+    if (part.arrayBuffer) return part.arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+    return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(new Uint8Array(r.result)); }; r.onerror = function () { rej(r.error); }; r.readAsArrayBuffer(part); });
+  }
+
+  // Decodifica a una fuente dibujable, ya reducida cuando se puede. Prefiere createImageBitmap
+  // con resize (menos memoria); si falla, baja el tope (2048/1280/1024) y al final cae a Image+decode().
+  function decodeToSource(blob, dims) {
+    var caps = [ATT_MAX_PX, 2048, 1280, 1024];
+    function viaBitmap(i) {
+      if (!window.createImageBitmap || i >= caps.length) return Promise.reject(new Error("no-bitmap"));
+      var cap = caps[i], opts = { imageOrientation: "from-image" };
+      if (dims && dims.w && dims.h) { var big = Math.max(dims.w, dims.h); if (big > cap) { if (dims.w >= dims.h) opts.resizeWidth = cap; else opts.resizeHeight = cap; opts.resizeQuality = "high"; } }
+      else { opts.resizeWidth = cap; opts.resizeQuality = "high"; }
+      var p; try { p = createImageBitmap(blob, opts); } catch (e) { return viaBitmap(i + 1); }
+      return p.then(function (bmp) { wlog("decode.bitmap", { cap: cap, w: bmp.width, h: bmp.height }); return { src: bmp, w: bmp.width, h: bmp.height, bmp: bmp, method: "bitmap" }; },
+        function (err) { wlog("decode.bitmap.err", { cap: cap, name: (err && err.name) || "" }); return viaBitmap(i + 1); });
+    }
+    function viaImage() {
+      return new Promise(function (res, rej) {
+        var url; try { url = URL.createObjectURL(blob); wlog("url.create", { use: "decode" }); } catch (e) { rej(new AttError("decode", e)); return; }
+        var img = new Image();
+        function done(ok) { try { URL.revokeObjectURL(url); wlog("url.revoke", { use: "decode" }); } catch (e) {} if (ok) { wlog("decode.image", { w: img.naturalWidth, h: img.naturalHeight }); res({ src: img, w: img.naturalWidth || img.width, h: img.naturalHeight || img.height, bmp: null, method: "image" }); } else { wlog("decode.image.err", {}); rej(new AttError("decode")); } }
+        img.onload = function () { if (img.decode) img.decode().then(function () { done(true); }, function () { done(true); }); else done(true); };
+        img.onerror = function () { done(false); };
+        img.src = url;
+      });
+    }
+    return viaBitmap(0).catch(function () { return viaImage(); });
+  }
+
+  function toBlobSafe(canvas, type, q) {
+    return new Promise(function (resolve) {
+      if (canvas.toBlob) { try { canvas.toBlob(function (b) { resolve(b); }, type, q); return; } catch (e) {} }
+      try { resolve(dataUrlToBlob(canvas.toDataURL(type, q))); } catch (e) { resolve(null); }
+    });
+  }
+  function dataUrlToBlob(durl) {
+    try {
+      if (!durl || durl.indexOf("data:") !== 0) return null;
+      var parts = durl.split(","), mime = (/:(.*?);/.exec(parts[0]) || [])[1] || "image/jpeg", bin = atob(parts[1]);
+      var u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      return new Blob([u], { type: mime });
+    } catch (e) { return null; }
+  }
+
+  // Pinta sobre FONDO BLANCO (los PNG/WebP transparentes no quedan negros) a <= maxPx y
+  // codifica a JPEG bajando calidad y, si hace falta, tamaño, hasta quedar bajo outMax.
+  function paintEncode(src, w, h, maxPx, outMax) {
+    var scale = Math.min(1, maxPx / Math.max(w, h));
+    var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+    var cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+    var ctx = cv.getContext("2d");
+    if (!ctx) return Promise.reject(new AttError("decode"));
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch);
+    try { ctx.drawImage(src, 0, 0, cw, ch); } catch (e) { return Promise.reject(new AttError("decode", e)); }
+    wlog("canvas", { w: cw, h: ch });
+    var qs = [ATT_QUALITY, 0.7, 0.6, 0.5, 0.42], shrinks = [0.85, 0.7, 0.55];
+    return new Promise(function (resolve, reject) {
+      var si = -1;
+      function encode(canvas, qi, last) {
+        toBlobSafe(canvas, "image/jpeg", qs[qi]).then(function (blob) {
+          if (!blob) { wlog("toBlob.null", { q: qs[qi] }); if (qi + 1 < qs.length) return encode(canvas, qi + 1, last); return shrink(last); }
+          wlog("toBlob.ok", { q: qs[qi], bytes: blob.size });
+          if (blob.size > outMax) { if (qi + 1 < qs.length) return encode(canvas, qi + 1, blob); return shrink(blob); }
+          resolve({ canvas: canvas, blob: blob, w: canvas.width, h: canvas.height });
+        }, function () { if (qi + 1 < qs.length) encode(canvas, qi + 1, last); else shrink(last); });
+      }
+      function shrink(best) {
+        si++;
+        if (si >= shrinks.length) { if (best) { resolve({ canvas: cv, blob: best, w: cv.width, h: cv.height }); return; } reject(new AttError("toobig")); return; }
+        var f = shrinks[si], nw = Math.max(1, Math.round(cw * f)), nh = Math.max(1, Math.round(ch * f));
+        var c2 = document.createElement("canvas"); c2.width = nw; c2.height = nh;
+        var x2 = c2.getContext("2d"); x2.fillStyle = "#fff"; x2.fillRect(0, 0, nw, nh); x2.drawImage(cv, 0, 0, nw, nh);
+        wlog("shrink", { w: nw, h: nh }); cv = c2; cw = nw; ch = nh; encode(c2, 0, best);
+      }
+      encode(cv, 0, null);
+    });
+  }
+
+  // Procesa un Blob propio: encabezado -> firma -> dimensiones -> decodificar -> pintar -> codificar.
+  // Devuelve { blob, canvas, w, h, sig }. Lanza AttError con código de causa.
+  function processOwnBlob(ownBlob) {
+    return readHead(ownBlob, 131072).then(function (bytes) {
+      var sig = sniffType(bytes);
+      wlog("sniff", { sig: sig, headBytes: bytes.length, size: ownBlob.size });
+      if (sig === "heic" || sig === "gif" || sig === "unknown") throw new AttError("unsupported");
+      var dims = readDims(bytes, sig); wlog("dims", dims || { parsed: false });
+      return decodeToSource(ownBlob, dims).then(function (r) {
+        return paintEncode(r.src, r.w, r.h, ATT_MAX_PX, ATT_OUT_MAX).then(function (out) {
+          if (r.bmp) { try { r.bmp.close(); wlog("bitmap.close", {}); } catch (e) {} }
+          return { blob: out.blob, canvas: out.canvas, w: out.w, h: out.h, sig: sig };
+        }, function (err) { if (r.bmp) { try { r.bmp.close(); } catch (e) {} } throw err; });
+      });
+    });
+  }
+  // Pipeline completo desde un File (leer a memoria + procesar). Para pruebas y uso directo.
+  function processFile(file) { return readOwnBlob(file).then(processOwnBlob); }
 
   function wuCSS() { return (
     ':host{all:initial;}' +
@@ -1165,6 +1464,7 @@
     // Miniaturas en el chat: sin burbuja ni fondo, fila que envuelve, alineadas a la derecha.
     '.msg-atts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%;}' +
     '.msg-atts img{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);cursor:pointer;display:block;}' +
+    '.msg-att-canvas{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);display:block;}' +
     '.att-fail{width:88px;height:88px;border-radius:14px;border:1px solid var(--imgline);background:var(--surface);display:grid;place-items:center;color:var(--ink2);} .att-fail svg{width:26px;height:26px;}' +
     // Acciones debajo de los mensajes de la IA (copiar / generar otra respuesta)
     '.msg-actions{display:flex;gap:2px;margin-top:2px;margin-left:-11px;align-self:flex-start;}' +
@@ -1193,9 +1493,15 @@
     '.composer.focus{border-color:var(--ink2);}' +
     '.thumbs{grid-area:thumbs;display:flex;flex-wrap:wrap;gap:7px;padding:4px 2px 2px;margin-bottom:7px;}' +
     '.thumbs[hidden]{display:none;}' +
-    '.thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}' +
-    '.thumb img{width:100%;height:100%;object-fit:cover;display:block;}' +
-    '.thumbx{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;} .thumbx svg{width:12px;height:12px;display:block;}' +
+    '.thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);display:grid;place-items:center;}' +
+    '.thumb img,.thumb canvas.thumb-canvas{width:100%;height:100%;object-fit:cover;display:block;grid-area:1/1;}' +
+    '.thumb-reading,.thumb-processing{opacity:.85;}' +
+    '.thumb-error{border-color:var(--danger);}' +
+    '.thumb-spin{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--ink2);animation:wu-spin .7s linear infinite;}' +
+    '@media (prefers-reduced-motion: reduce){.thumb-spin{animation:none;border-top-color:var(--ink2);}}' +
+    '@keyframes wu-spin{to{transform:rotate(360deg)}}' +
+    '.thumb-retry{width:100%;height:100%;border:0;background:var(--danger-bg);color:var(--danger);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation;} .thumb-retry svg{width:22px;height:22px;}' +
+    '.thumbx{position:absolute;top:3px;right:3px;z-index:2;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;} .thumbx svg{width:12px;height:12px;display:block;}' +
     '.ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:10px 2px;min-height:44px;max-height:140px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}' +
     '.ta::-webkit-scrollbar{width:6px;} .ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;} .ta::-webkit-scrollbar-track{background:transparent;}' +
     '.ta::placeholder{color:var(--ink2);}' +

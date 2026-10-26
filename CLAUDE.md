@@ -24,10 +24,24 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Blanco y negro con variables de tema (Predeterminado/Claro y Oscuro). Nunca `#0164FD` ni colores sueltos; el rojo solo para acciones destructivas.
 - En pantallas táctiles nunca llamar a `textarea.focus()` de forma automática (única excepción: al tocar "Editar" un mensaje). En laptop sí se enfoca al abrir.
 - El título del estado vacío es estático: se elige uno al azar al abrir el chat o al empezar un chat nuevo, sin repetir el último, y no rota.
-- Fotos: máximo 4, solo en el navegador, sin llamadas de red (queda el TODO `onSendAttachments`).
+- Fotos: máximo 4, solo en el navegador, sin llamadas de red (queda el TODO `onSendAttachments`). El pipeline completo está en «Fotos del widget» más abajo.
 - Historial local en localStorage por widget: máximo 30 chats, 100 mensajes por chat y 30 días, solo texto.
 - El widget aparece junto con la página al recargar (config en caché y estado restaurado sin animación).
 - Accesibilidad y `prefers-reduced-motion` en todo lo nuevo.
+
+## Fotos del widget
+Reglas del pipeline de carga de fotos (aplican a `w.js` y a la vista previa `cw*` en `app/index.html`). Pensado para ser confiable aun en móvil, galerías de Android/nube y sitios con CSP estricto.
+- **(a) Leer antes de limpiar**: en el `change`, copiar enseguida cada archivo a un Blob propio en memoria (`file.arrayBuffer()`), con reintentos ante fallos pasajeros (200/500/1000 ms: `NotReadableError`, `AbortError`, `SecurityError`). Recién después resetear `input.value`. (Resetear antes invalidaba el File en móvil: era la causa principal del “no se pudo procesar”.)
+- **(b) Tipo por firma**: detectar JPEG/PNG/WebP por los primeros bytes, nunca por `file.type` (en Android viene vacío). HEIC/HEIF/AVIF, GIF y desconocidos: mensaje “Este formato no es compatible, elegí una foto JPG, PNG o WEBP.”.
+- **(c) Límites**: entrada hasta 25 MB; el tope real (~1,5 MB) aplica al RESULTADO procesado. Si lo supera, se baja calidad y, si hace falta, tamaño.
+- **(d) Decodificar reducido**: `createImageBitmap(blob, {resizeWidth|resizeHeight, resizeQuality, imageOrientation:'from-image'})` ≤1600px (dimensiones leídas del encabezado); si falla, baja el tope (2048/1280/1024) y al final cae a `Image`+`decode()`. Cerrar el bitmap al terminar.
+- **(e) Canvas fondo blanco**: pintar blanco antes de dibujar (los PNG/WebP transparentes no quedan negros). Verificar que `toBlob` no sea null; si lo es, reintentar con otros parámetros.
+- **(f) Estado fuera del DOM**: los adjuntos viven en el arreglo de estado, nunca dependen del input ni del render. Un solo input persistente con un solo listener. Ningún re-render (config revalidada, restauración, `pageshow`, `visibilitychange`, abrir/cerrar) recrea el input, reemplaza la tarjeta ni borra adjuntos.
+- **(g) Cola secuencial**: máximo 2 en paralelo. Cada adjunto tiene estado (leyendo/procesando/listo/error). Miniatura con indicador discreto mientras procesa; solo “enviar” espera si hay alguno procesándose.
+- **(h) URLs**: una por adjunto (blob del resultado), liberada solo al quitar el adjunto, empezar un chat nuevo o descargar la página. Ninguna rutina de limpieza revoca URLs en uso.
+- **(i) Respaldo CSP**: si la miniatura/visor no cargan el `blob:` (CSP estricto), se dibuja desde el lienzo procesado en un `<canvas>`.
+- **(j) Errores**: un reintento automático y silencioso antes de mostrar nada. Si al final falla, mensaje específico por causa y botón “Reintentar” junto a esa miniatura (reusa el Blob en memoria, sin reabrir el selector). El mensaje genérico queda solo para errores inesperados, siempre con el detalle en el log.
+- **Modo diagnóstico**: apagado por defecto. Se activa con `?wdebug=1` en la URL, con `localStorage.walkylet_debug="1"`, o siempre en `widget-test.html`. Muestra un panel chico (abajo a la izquierda) con botón “Copiar log”; registra tiempos y SOLO metadatos de las fotos (nunca su contenido). En modo debug, `w.js` expone `window.WalkyUp.__debug` para las pruebas de `widget-test.html` (batería de regresión del pipeline).
 
 ## Cómo trabajar con Keylor
 - Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
