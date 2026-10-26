@@ -253,9 +253,21 @@
     .wg-logo__opt[aria-checked=true]{box-shadow:0 0 0 2px var(--wa-surface),0 0 0 4px var(--wa-ink);}
     .wg-logo__opt:focus-visible{outline:none;box-shadow:0 0 0 2px var(--wa-surface),0 0 0 4px var(--wa-ink-3);}
     .wg-logo__opt:disabled{cursor:not-allowed;opacity:.6;}
-    .wg-logo__opt input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;cursor:pointer;}
-    .wg-logo__opt input[type=color]:disabled{cursor:not-allowed;}
     .wg-hex{font-size:.82rem;color:var(--wa-ink-3);font-family:ui-monospace,monospace;text-transform:uppercase;}
+    /* ===== Paleta: picker propio en la página (no el nativo) ===== */
+    .wg-cp{margin-top:12px;padding:12px;border:1px solid var(--wa-line);border-radius:14px;background:var(--wa-surface);max-width:280px;}
+    .wg-cp__sv{position:relative;width:100%;height:132px;border-radius:10px;cursor:crosshair;touch-action:none;
+      background:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0)),hsl(210,100%,50%);}
+    .wg-cp__thumb{position:absolute;left:100%;top:0;width:15px;height:15px;border-radius:50%;border:2px solid #fff;
+      box-shadow:0 0 0 1px rgba(0,0,0,.45);transform:translate(-50%,-50%);pointer-events:none;}
+    .wg-cp__hue{width:100%;height:14px;margin-top:12px;-webkit-appearance:none;appearance:none;border-radius:7px;outline:none;touch-action:none;
+      background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
+    .wg-cp__hue::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.3);box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:pointer;}
+    .wg-cp__hue::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.3);cursor:pointer;}
+    .wg-cp__bottom{display:flex;align-items:center;gap:8px;margin-top:12px;}
+    .wg-cp__prev{width:34px;height:34px;border-radius:9px;flex-shrink:0;border:1px solid var(--wa-line);background:#FFFFFF;}
+    .wg-cp__hex{flex:1;text-transform:uppercase;}
+    .wg-cp__ok{flex-shrink:0;}
     .wg-code-block{border:1px solid var(--wa-line);border-radius:10px;overflow:hidden;background:#0F1419;}
     .wg-code-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px 8px 13px;border-bottom:1px solid rgba(255,255,255,.08);}
     .wg-code-tag{font:600 .74rem ui-monospace,SFMono-Regular,Menlo,monospace;color:#8B95A5;}
@@ -966,13 +978,21 @@
                   <div class="wg-logo" id="wgLogo" role="radiogroup" aria-labelledby="wgLogoLbl">
                     <button class="wg-logo__opt" type="button" data-k="white" role="radio" aria-checked="false" aria-label="Blanco" disabled><span class="wg-logo__dot"></span></button>
                     <button class="wg-logo__opt" type="button" data-k="black" role="radio" aria-checked="false" aria-label="Negro" disabled><span class="wg-logo__dot"></span></button>
-                    <button class="wg-logo__opt wg-logo__opt--custom" type="button" data-k="palette" role="radio" aria-checked="false" aria-label="Color personalizado" disabled>
+                    <button class="wg-logo__opt wg-logo__opt--custom" id="wgCustomWrap" type="button" data-k="palette" role="radio" aria-checked="false" aria-label="Color personalizado" aria-haspopup="true" aria-expanded="false" disabled>
                       <span class="wg-logo__dot"><span class="wg-logo__fill"></span></span>
-                      <input type="color" id="wgLogoColor" tabindex="-1" aria-label="Elegir color personalizado" disabled />
                     </button>
                   </div>
                   <p class="wg-field__hint">Sin elegir, el logo se adapta al chat (claro u oscuro).</p>
                   <div class="wg-row2" style="margin-top:4px"><span class="wg-hex" id="wgHex" hidden></span></div>
+                  <div class="wg-cp" id="wgCp" hidden>
+                    <div class="wg-cp__sv" id="wgCpSv"><span class="wg-cp__thumb" id="wgCpThumb"></span></div>
+                    <input type="range" class="wg-cp__hue" id="wgCpHue" min="0" max="360" value="210" aria-label="Matiz" />
+                    <div class="wg-cp__bottom">
+                      <span class="wg-cp__prev" id="wgCpPrev"></span>
+                      <input class="wg-input wg-cp__hex" id="wgCpHex" type="text" maxlength="7" spellcheck="false" aria-label="Código hex" />
+                      <button class="wa-btn wa-btn-primary wg-cp__ok" id="wgCpOk" type="button">Listo</button>
+                    </div>
+                  </div>
                 </div>
                 <div class="wg-field">
                   <label class="wg-field__label">Tema por defecto</label>
@@ -2190,14 +2210,14 @@
         custom.classList.toggle('has-color', kind === 'custom');
         if (kind === 'custom') custom.style.setProperty('--wg-custom', aNorm);
       }
-      var colInp = wgId('wgLogoColor'); if (colInp && aNorm !== 'auto') colInp.value = aNorm;
       var hex = wgId('wgHex'); if (hex){ if (kind === 'custom'){ hex.hidden = false; hex.textContent = aNorm; } else { hex.hidden = true; hex.textContent = ''; } }
+      if (!wgEditing && wgId('wgCp')){ wgId('wgCp').hidden = true; if (custom) custom.setAttribute('aria-expanded', 'false'); }
       Array.prototype.slice.call(document.querySelectorAll('#wgTone button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-t') === c.tone); });
       Array.prototype.slice.call(document.querySelectorAll('#wgTheme button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-th') === (c.theme || 'dark')); });
 
       var dis = !wgEditing;
       ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgSite','wgEmail','wgPrivacy','wgAnalyze'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
-      Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt, #wgLogoColor, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
+      Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt, #wgCpHue, #wgCpHex, #wgCpOk, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button')).forEach(function(b){ b.classList.toggle('is-active', (b.getAttribute('data-av') === 'hide') === !!c.avatarHidden); });
@@ -2295,15 +2315,16 @@
       ['wgName','wgWelcome','wgKnow','wgSite','wgEmail','wgPrivacy'].forEach(function(id){
         var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); });
       });
-      // ===== Color del logo: Blanco · Negro · Paleta (selector nativo) =====
-      var logo = wgId('wgLogo'), colInp = wgId('wgLogoColor');
+      // ===== Color del logo: Blanco · Negro · Paleta (picker propio) =====
+      var logo = wgId('wgLogo');
       function setAccent(v){ if (!wgEditing || !wgDraft) return; wgReadInputs(); wgDraft.accent = wgNormAccent(v); renderWidget(); }
       if (logo) logo.addEventListener('click', function(e){
         if (!wgEditing) return;
         var b = e.target.closest('.wg-logo__opt'); if (!b) return;
         var k = b.getAttribute('data-k');
-        // La paleta abre el selector nativo; con teclado lo disparamos desde el botón.
-        if (k === 'palette'){ if (e.target !== colInp && colInp) colInp.click(); return; }
+        // La paleta abre/cierra el picker propio de la página.
+        if (k === 'palette'){ if (cp && cp.hidden) cpOpen(); else cpClose(); return; }
+        cpClose();
         var val = (k === 'white') ? '#FFFFFF' : '#000000';
         // Tocar de nuevo el círculo ya elegido lo desmarca (vuelve a Automático).
         setAccent(wgNormAccent(wgCfg().accent) === val ? 'auto' : val);
@@ -2317,11 +2338,69 @@
         var fwd = (e.key === 'ArrowRight' || e.key === 'ArrowDown');
         opts[(i + (fwd ? 1 : opts.length - 1)) % opts.length].focus();
       });
-      // Paleta: vista previa en vivo (input) y confirmación (change). Se guarda al pulsar Guardar.
-      if (colInp){
-        colInp.addEventListener('input', function(){ setAccent(colInp.value); });
-        colInp.addEventListener('change', function(){ setAccent(colInp.value); });
+      // ===== Picker de color propio (misma experiencia en móvil y laptop) =====
+      var cpBtn = wgId('wgCustomWrap'), cp = wgId('wgCp'), cpSv = wgId('wgCpSv'), cpThumb = wgId('wgCpThumb'),
+          cpHue = wgId('wgCpHue'), cpHex = wgId('wgCpHex'), cpPrev = wgId('wgCpPrev'), cpOk = wgId('wgCpOk');
+      var cpH = 210, cpS = 1, cpV = 1, cpDrag = false;
+      function cpHexToHsv(hex){
+        hex = String(hex || '').replace('#','');
+        if (hex.length === 3) hex = hex.split('').map(function(x){ return x+x; }).join('');
+        var r = parseInt(hex.substr(0,2),16)/255, g = parseInt(hex.substr(2,2),16)/255, b = parseInt(hex.substr(4,2),16)/255;
+        if (isNaN(r)||isNaN(g)||isNaN(b)) return { h:210, s:1, v:1 };
+        var max = Math.max(r,g,b), min = Math.min(r,g,b), d = max-min, h = 0;
+        if (d !== 0){ if (max===r) h = ((g-b)/d)%6; else if (max===g) h = (b-r)/d+2; else h = (r-g)/d+4; h *= 60; if (h<0) h += 360; }
+        return { h:h, s: max===0?0:d/max, v:max };
       }
+      function cpHsvToHex(h,s,v){
+        var c = v*s, x = c*(1-Math.abs((h/60)%2-1)), m = v-c, r=0,g=0,b=0;
+        if (h<60){ r=c; g=x; } else if (h<120){ r=x; g=c; } else if (h<180){ g=c; b=x; }
+        else if (h<240){ g=x; b=c; } else if (h<300){ r=x; b=c; } else { r=c; b=x; }
+        function h2(n){ return ('0' + Math.round((n+m)*255).toString(16)).slice(-2); }
+        return '#' + h2(r) + h2(g) + h2(b);
+      }
+      function cpPaintSv(){ if (cpSv) cpSv.style.background = 'linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0)),hsl(' + cpH + ',100%,50%)'; }
+      // Pinta solo la interfaz del picker (sin tocar el valor guardado).
+      function cpPaintUI(){
+        var hex = cpHsvToHex(cpH, cpS, cpV);
+        if (cpPrev) cpPrev.style.background = hex;
+        if (cpHex) cpHex.value = hex.toUpperCase();
+        if (cpThumb){ cpThumb.style.left = (cpS*100) + '%'; cpThumb.style.top = ((1-cpV)*100) + '%'; }
+        cpPaintSv();
+        return hex;
+      }
+      // Aplica el color al borrador (ligero, para arrastrar sin rehacer todo el panel).
+      function cpApply(hex){
+        if (!wgEditing || !wgDraft) return;
+        var a = wgNormAccent(hex); wgDraft.accent = a;
+        var custom = document.querySelector('#wgLogo .wg-logo__opt--custom');
+        if (custom){ custom.classList.add('has-color'); custom.setAttribute('aria-checked','true'); custom.style.setProperty('--wg-custom', a); }
+        Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt[data-k=white],#wgLogo .wg-logo__opt[data-k=black]')).forEach(function(bb){ bb.setAttribute('aria-checked','false'); });
+        var hx = wgId('wgHex'); if (hx){ hx.hidden = false; hx.textContent = a; }
+        renderWidgetPreview();
+      }
+      function cpSync(){ cpApply(cpPaintUI()); }
+      function cpOpen(){
+        if (!wgEditing) return;
+        var cur = wgNormAccent(wgCfg().accent);
+        var hsv = cpHexToHsv(cur === 'auto' ? '#FFFFFF' : cur);   // sin color elegido, el picker arranca en blanco puro
+        cpH = hsv.h; cpS = hsv.s; cpV = hsv.v;
+        if (cpHue) cpHue.value = Math.round(cpH);
+        if (cp) cp.hidden = false;
+        if (cpBtn) cpBtn.setAttribute('aria-expanded', 'true');
+        cpPaintUI();   // solo pinta: no cambia el valor hasta que el usuario elija
+      }
+      function cpClose(){ if (cp) cp.hidden = true; if (cpBtn) cpBtn.setAttribute('aria-expanded', 'false'); }
+      function cpFromEvent(e){ if (!cpSv) return; var r = cpSv.getBoundingClientRect(); cpS = Math.max(0, Math.min(1, (e.clientX-r.left)/r.width)); cpV = Math.max(0, Math.min(1, 1-(e.clientY-r.top)/r.height)); cpSync(); }
+      if (cpOk) cpOk.addEventListener('click', function(){ cpClose(); if (cpBtn) try { cpBtn.focus(); } catch(_){} });
+      if (cpHue) cpHue.addEventListener('input', function(){ cpH = parseFloat(cpHue.value) || 0; cpSync(); });
+      if (cpHex) cpHex.addEventListener('input', function(){ var v = cpHex.value.trim(); if (/^#?[0-9a-fA-F]{6}$/.test(v)){ if (v.charAt(0) !== '#') v = '#'+v; var hsv = cpHexToHsv(v); cpH = hsv.h; cpS = hsv.s; cpV = hsv.v; if (cpHue) cpHue.value = Math.round(cpH); cpSync(); } });
+      if (cpSv){
+        cpSv.addEventListener('pointerdown', function(e){ if (!wgEditing) return; cpDrag = true; try { cpSv.setPointerCapture(e.pointerId); } catch(_){} cpFromEvent(e); });
+        cpSv.addEventListener('pointermove', function(e){ if (cpDrag) cpFromEvent(e); });
+        cpSv.addEventListener('pointerup', function(){ cpDrag = false; });
+        cpSv.addEventListener('pointercancel', function(){ cpDrag = false; });
+      }
+      document.addEventListener('click', function(e){ if (cp && !cp.hidden && !cp.contains(e.target) && !(cpBtn && (e.target === cpBtn || cpBtn.contains(e.target)))) cpClose(); });
       var tone = wgId('wgTone');
       if (tone) tone.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.tone = b.getAttribute('data-t'); renderWidget(); });
       var themeSeg = wgId('wgTheme');
