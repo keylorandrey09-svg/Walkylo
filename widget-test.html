@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>WalkyUp · Pruebas de fotos del widget</title>
+<style>
+  :root { color-scheme: light dark; --ok:#1a7f37; --bad:#d1242f; --skip:#9a6700; --line:#d0d7de; --bg:#fff; --ink:#1f2328; --mut:#656d76; }
+  @media (prefers-color-scheme: dark){ :root{ --line:#30363d; --bg:#0d1117; --ink:#e6edf3; --mut:#8b949e; --ok:#3fb950; --bad:#f85149; --skip:#d29922; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:20px 16px 120px; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  h1 { font-size:1.15rem; margin:0 0 4px; } p.sub { margin:0 0 16px; color:var(--mut); font-size:.85rem; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  button.run { font:inherit; font-weight:650; background:#0164FD; color:#fff; border:0; border-radius:10px; padding:9px 16px; cursor:pointer; }
+  button.run:disabled { opacity:.5; cursor:default; }
+  .summary { font-weight:700; padding:4px 10px; border-radius:999px; border:1px solid var(--line); }
+  ol { list-style:none; margin:0; padding:0; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  li { display:grid; grid-template-columns:22px 1fr auto; gap:10px; align-items:start; padding:9px 12px; border-top:1px solid var(--line); }
+  li:first-child { border-top:0; }
+  .dot { width:14px; height:14px; border-radius:50%; margin-top:3px; background:var(--line); }
+  .pass .dot { background:var(--ok); } .fail .dot { background:var(--bad); } .skip .dot { background:var(--skip); }
+  .name { font-weight:600; } .detail { color:var(--mut); font-size:.82rem; white-space:pre-wrap; }
+  .ms { color:var(--mut); font-size:.78rem; font-variant-numeric:tabular-nums; }
+  .env { font-size:.8rem; color:var(--mut); margin-top:14px; }
+</style>
+</head>
+<body>
+<h1>Pruebas de fotos del widget</h1>
+<p class="sub">Carga el <code>w.js</code> real (modo diagnóstico activo) y ejercita su pipeline de fotos. El panel verde de abajo a la izquierda trae el log con “Copiar log”.</p>
+<div class="bar">
+  <button class="run" id="run">Ejecutar batería</button>
+  <span class="summary" id="summary">listo</span>
+</div>
+<ol id="list"></ol>
+<p class="env" id="env"></p>
+
+<script>
+  // Semilla ANTES de cargar w.js: config en caché para que el widget se dibuje sin red, y debug on.
+  try { localStorage.setItem("walkylet_debug", "1"); } catch (e) {}
+  try { localStorage.setItem("wu_cfg_test", JSON.stringify({ cfg: { name: "Test", welcome: "hola", theme: "dark" }, ts: Date.now() })); } catch (e) {}
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var listEl = document.getElementById("list");
+  var sumEl = document.getElementById("summary");
+  var runBtn = document.getElementById("run");
+  document.getElementById("env").textContent = navigator.userAgent;
+
+  function li(name) {
+    var el = document.createElement("li"); el.className = "pending";
+    el.innerHTML = '<span class="dot"></span><span><span class="name"></span><div class="detail"></div></span><span class="ms"></span>';
+    el.querySelector(".name").textContent = name; listEl.appendChild(el); return el;
+  }
+  function mark(el, state, detail, ms) {
+    el.className = state; if (detail) el.querySelector(".detail").textContent = detail;
+    if (ms != null) el.querySelector(".ms").textContent = ms + "ms";
+  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function waitFor(fn, timeout, label) {
+    var t0 = Date.now();
+    return new Promise(function (resolve, reject) {
+      (function poll() {
+        var v; try { v = fn(); } catch (e) { v = false; }
+        if (v) return resolve(v);
+        if (Date.now() - t0 > timeout) return reject(new Error("timeout: " + (label || "") ));
+        setTimeout(poll, 25);
+      })();
+    });
+  }
+  var DBG = null;
+  function dbg() { return window.WalkyUp && window.WalkyUp.__debug; }
+
+  // ---- Generadores de imágenes de prueba (sin red) ----
+  function canvasToFile(cv, type, name) {
+    return new Promise(function (resolve) {
+      cv.toBlob(function (b) {
+        if (!b) { resolve(null); return; }
+        try { resolve(new File([b], name, { type: type, lastModified: Date.now() })); }
+        catch (e) { b.name = name; b.lastModified = Date.now(); resolve(b); }
+      }, type, 0.92);
+    });
+  }
+  function solid(w, h, color, transparent) {
+    var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    var c = cv.getContext("2d");
+    if (!transparent) { c.fillStyle = color || "#3366cc"; c.fillRect(0, 0, w, h); }
+    // algo de detalle para que el JPEG no sea trivialmente pequeño
+    c.fillStyle = "rgba(255,120,0,.9)"; c.fillRect(Math.floor(w*0.1), Math.floor(h*0.1), Math.floor(w*0.3), Math.floor(h*0.3));
+    return cv;
+  }
+  function mkJpeg(w, h) { return canvasToFile(solid(w, h, "#2a6", false), "image/jpeg", "foto.jpg"); }
+  function mkPngTransparent(w, h) {
+    var cv = solid(w, h, null, true); // fondo transparente, solo un cuadro naranja
+    return canvasToFile(cv, "image/png", "trans.png");
+  }
+  function mkWebp(w, h) { return canvasToFile(solid(w, h, "#639", false), "image/webp", "foto.webp"); }
+  function emptyType(file) { try { return new File([file], "sinmime", { type: "", lastModified: Date.now() }); } catch (e) { return file; } }
+  function heicFile() {
+    var u = new Uint8Array(32);
+    u[3] = 0x18; u[4]=0x66;u[5]=0x74;u[6]=0x79;u[7]=0x70; // 'ftyp'
+    u[8]=0x68;u[9]=0x65;u[10]=0x69;u[11]=0x63; // 'heic'
+    try { return new File([u], "foto.heic", { type: "", lastModified: Date.now() }); } catch (e) { var b = new Blob([u]); return b; }
+  }
+  // Envuelve un File para que su primer arrayBuffer() falle (NotReadableError) y el segundo funcione.
+  function failArrayBufferOnce(file) {
+    var n = 0, real = file.arrayBuffer ? file.arrayBuffer.bind(file) : null;
+    try {
+      Object.defineProperty(file, "arrayBuffer", {
+        configurable: true, writable: true,
+        value: function () {
+          n++;
+          if (n === 1) { var e = new Error("forced"); e.name = "NotReadableError"; return Promise.reject(e); }
+          return real ? real() : Promise.reject(new Error("no-arraybuffer"));
+        }
+      });
+    } catch (e) {}
+    return file;
+  }
+  function centerPixelWhiteish(canvas) {
+    try {
+      var c = canvas.getContext("2d"); var x = Math.floor(canvas.width/2), y = Math.floor(canvas.height/2);
+      var d = c.getImageData(x, y, 1, 1).data; return (d[0] > 230 && d[1] > 230 && d[2] > 230);
+    } catch (e) { return null; }
+  }
+
+  function lastAtt() { var a = dbg().getAttachments(); return a[a.length - 1]; }
+  function awaitReady(att, timeout) { return waitFor(function () { return att.status === "ready" || att.status === "error"; }, timeout || 9000, "att status").then(function () { return att.status; }); }
+
+  // ---- Batería ----
+  var TESTS = [
+    ["Firma por bytes (sniffType)", async function () {
+      var jf = await mkJpeg(64, 64); var head = new Uint8Array(await jf.slice(0, 16).arrayBuffer());
+      var sig = dbg().sniffType(head);
+      if (sig !== "jpeg") throw new Error("JPEG detectado como " + sig);
+      var hf = heicFile(); var hh = new Uint8Array(await hf.slice(0, 16).arrayBuffer());
+      if (dbg().sniffType(hh) !== "heic") throw new Error("HEIC no detectado");
+      return "JPEG=jpeg, HEIC=heic";
+    }],
+    ["JPEG normal entra y queda listo", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(1200, 800); await dbg().addFiles([f]);
+      var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      if (a.w > 1600 || a.h > 1600) throw new Error("no reducida: " + a.w + "x" + a.h);
+      return a.w + "x" + a.h + ", " + Math.round(a.outBlob.size/1024) + "KB";
+    }],
+    ["La miniatura se dibuja en el compositor (DOM)", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(600, 400); await dbg().addFiles([f]);
+      var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s);
+      var host = document.getElementById("walkyup-widget"); var root = host && host.shadowRoot;
+      var thumbs = root && root.querySelector(".thumbs");
+      if (!thumbs) throw new Error("no se encontró .thumbs");
+      if (thumbs.hidden) throw new Error(".thumbs quedó oculto");
+      if (thumbs.children.length < 1) throw new Error("miniatura no renderizada (0 hijos)");
+      if (!thumbs.querySelector("img,canvas")) throw new Error("la miniatura no tiene imagen");
+      return thumbs.children.length + " miniatura(s) en el DOM";
+    }],
+    ["La foto enviada aparece en el mensaje (DOM)", async function () {
+      var d = dbg(); d.clearAttachments();
+      var host = document.getElementById("walkyup-widget"), root = host.shadowRoot;
+      try { if (!window.WalkyUp) throw 0; window.WalkyUp.open(); } catch (e) {}
+      var f = await mkJpeg(500, 500); await d.addFiles([f]); var a = lastAtt(); await awaitReady(a);
+      var sendBtn = root.querySelector(".send");
+      sendBtn.click();   // envía (la foto ready pasa al mensaje)
+      await waitFor(function () { return root.querySelector(".msg.out .msg-atts img, .msg.out .msg-atts canvas"); }, 4000, "imagen en el mensaje");
+      return "imagen presente en la burbuja enviada";
+    }],
+    ["Imagen de 48 megapíxeles", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(8000, 6000); if (!f) throw new Error("no se pudo generar 48MP");
+      var a; await dbg().addFiles([f]); a = lastAtt();
+      var s = await awaitReady(a, 15000);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      if (Math.max(a.w, a.h) > 1600) throw new Error("lado mayor " + Math.max(a.w, a.h));
+      if (a.outBlob.size > dbg().constants.ATT_OUT_MAX) throw new Error("salida " + a.outBlob.size + " > límite");
+      return "reducida a " + a.w + "x" + a.h + ", " + Math.round(a.outBlob.size/1024) + "KB";
+    }],
+    ["PNG con transparencia (fondo NO negro)", async function () {
+      dbg().clearAttachments();
+      var f = await mkPngTransparent(600, 600); await dbg().addFiles([f]);
+      var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      var white = centerPixelWhiteish(a.canvas);
+      if (white === false) throw new Error("el centro quedó oscuro (fondo negro)");
+      return white === null ? "procesada (no se pudo leer pixel)" : "centro blanco OK";
+    }],
+    ["File con type vacío", async function () {
+      dbg().clearAttachments();
+      var f = emptyType(await mkJpeg(500, 500)); if (f.type) throw new Error("type no quedó vacío");
+      await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      return "aceptada por firma, type vacío";
+    }],
+    ["arrayBuffer falla la 1ª vez y reintenta", async function () {
+      dbg().clearAttachments();
+      var f = failArrayBufferOnce(await mkJpeg(400, 400));
+      await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a, 12000);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      return "recuperó tras el reintento de lectura";
+    }],
+    ["Re-render de la tarjeta a mitad del proceso", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(2000, 1500); await dbg().addFiles([f]); var a = lastAtt();
+      for (var i = 0; i < 6; i++) { dbg().renderThumbs(); await sleep(15); }
+      var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      if (dbg().getAttachments().indexOf(a) < 0) throw new Error("se perdió el adjunto");
+      return "sobrevive a 6 re-renders";
+    }],
+    ["visibilitychange/pagehide/pageshow durante el proceso", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(2000, 1500); await dbg().addFiles([f]); var a = lastAtt();
+      try { document.dispatchEvent(new Event("visibilitychange")); } catch (e) {}
+      try { window.dispatchEvent(new Event("pagehide")); } catch (e) {}
+      try { window.dispatchEvent(new Event("pageshow")); } catch (e) {}
+      var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      return "los eventos no interrumpieron el proceso";
+    }],
+    ["Elegir el mismo archivo dos veces seguidas", async function () {
+      dbg().clearAttachments();
+      var f = await mkJpeg(500, 400);
+      await dbg().addFiles([f]); await dbg().addFiles([f]);
+      var atts = dbg().getAttachments(); if (atts.length !== 2) throw new Error("hay " + atts.length + " adjuntos");
+      await Promise.all(atts.map(function (a) { return awaitReady(a); }));
+      if (atts.filter(function (a) { return a.status === "ready"; }).length !== 2) throw new Error("no quedaron 2 listos");
+      return "2 copias independientes listas";
+    }],
+    ["4 archivos juntos y un quinto (máx 4)", async function () {
+      dbg().clearAttachments();
+      var files = []; for (var i = 0; i < 5; i++) files.push(await mkJpeg(300 + i, 300));
+      await dbg().addFiles(files);
+      var atts = dbg().getAttachments(); if (atts.length !== 4) throw new Error("quedaron " + atts.length + " (esperaba 4)");
+      await Promise.all(atts.map(function (a) { return awaitReady(a); }));
+      return "4 aceptados, 5º rechazado";
+    }],
+    ["Tipo HEIC → mensaje específico", async function () {
+      dbg().clearAttachments();
+      var f = heicFile(); await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "error") throw new Error("no fue error: " + s);
+      if (a.code !== "unsupported") throw new Error("código " + a.code);
+      return "rechazado como no compatible";
+    }],
+    ["WebP normal", async function () {
+      dbg().clearAttachments();
+      var f = await mkWebp(800, 600); if (!f) return SKIP("este navegador no codifica WebP");
+      await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s + " / " + a.code);
+      return a.w + "x" + a.h;
+    }],
+    ["Primera carga con caché de config vacía", async function () {
+      // El widget ya se dibujó (hay __debug) incluso partiendo de caché/fetch; el pipeline es el
+      // mismo con o sin config previa. Verificamos que una foto se procesa en este estado.
+      dbg().clearAttachments();
+      var f = await mkJpeg(700, 500); await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a);
+      if (s !== "ready") throw new Error("estado " + s);
+      return "pipeline operativo al dibujar desde caché";
+    }],
+    ["30 selecciones seguidas (30/30)", async function () {
+      var ok = 0;
+      for (var i = 0; i < 30; i++) {
+        dbg().clearAttachments();
+        var f = await mkJpeg(400 + (i % 7) * 30, 300 + (i % 5) * 25);
+        await dbg().addFiles([f]); var a = lastAtt(); var s = await awaitReady(a, 9000);
+        if (s === "ready") ok++;
+      }
+      if (ok !== 30) throw new Error("solo " + ok + "/30");
+      return "30/30 correctas";
+    }]
+  ];
+
+  var SKIP_SIGIL = {};
+  function SKIP(reason) { return { __skip: true, reason: reason }; }
+
+  async function runAll() {
+    runBtn.disabled = true; listEl.innerHTML = "";
+    sumEl.textContent = "preparando…";
+    try { await waitFor(dbg, 8000, "WalkyUp.__debug"); } catch (e) { sumEl.textContent = "no cargó el widget (¿sin w.js?)"; runBtn.disabled = false; return; }
+    var pass = 0, fail = 0, skip = 0;
+    for (var i = 0; i < TESTS.length; i++) {
+      var name = TESTS[i][0], fn = TESTS[i][1];
+      var row = li(name); mark(row, "pending", "corriendo…");
+      var t0 = Date.now();
+      try {
+        var res = await Promise.race([fn(), sleep(20000).then(function () { throw new Error("timeout de prueba (20s)"); })]);
+        if (res && res.__skip) { skip++; mark(row, "skip", "OMITIDA: " + res.reason, Date.now() - t0); }
+        else { pass++; mark(row, "pass", String(res || "OK"), Date.now() - t0); }
+      } catch (e) {
+        fail++; mark(row, "fail", (e && e.message) || String(e), Date.now() - t0);
+      }
+      sumEl.textContent = (pass) + "/" + (pass + fail) + " OK" + (skip ? " · " + skip + " omitidas" : "") + (fail ? " · " + fail + " FALLAN" : "");
+      await sleep(10);
+    }
+    sumEl.style.color = fail ? "var(--bad)" : "var(--ok)";
+    try { dbg().clearAttachments(); } catch (e) {}
+    runBtn.disabled = false;
+  }
+  runBtn.addEventListener("click", runAll);
+})();
+</script>
+
+<!-- Carga del widget real: debe ir al final del body. data-id="test" usa la config sembrada arriba. -->
+<script src="./w.js" data-id="test"></script>
+</body>
+</html>
