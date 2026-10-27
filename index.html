@@ -19,15 +19,17 @@
     /* Composición propia de la landing. Tokens y componentes en /brand.css */
 
     /* ---------- Hero (banda blanca) ---------- */
-    .hero { padding-block: var(--s6) var(--s8); }
+    .hero { padding-block: var(--s6) var(--s4); }
     .hero__top { display: grid; gap: var(--s3); }
     .hero__title { display: grid; gap: var(--s2); }
     .hero__top .lead { max-width: 40ch; align-self: end; }
     .hero__product { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); margin-top: var(--s6); align-items: start; }
     .hero figcaption { margin-top: var(--s1); }
     /* Datos verificables bajo el hero */
-    .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2) var(--s5); margin-top: var(--s6); padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--text-2); }
-    .trust li { display: inline-flex; align-items: center; gap: var(--s1); }
+    /* Móvil: 2 arriba y 1 abajo, ícono sobre el texto; mismo aire arriba y abajo de la fila */
+    .trust { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3) var(--s2); margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--border); color: var(--text-2); text-align: center; }
+    .trust li { display: flex; flex-direction: column; align-items: center; gap: var(--s1); text-wrap: balance; }
+    .trust li:last-child { grid-column: 1 / -1; }
     .trust .icon { width: 18px; height: 18px; color: var(--text); }
 
     /* Escenario del hero: marco de navegador blanco con el widget anclado abajo a la derecha */
@@ -180,6 +182,8 @@
     @media (min-width: 620px) {
       .footer__cols { grid-template-columns: repeat(3, 1fr); }
       .stage--hero { padding: var(--s4); }
+      .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2) var(--s5); }
+      .trust li { flex-direction: row; }
     }
     @media (min-width: 768px) {
       .panels { grid-template-columns: repeat(2, 1fr); }
@@ -188,7 +192,8 @@
       .status__cols { grid-template-columns: repeat(3, 1fr); }
     }
     @media (min-width: 880px) {
-      .hero { padding-block: var(--s8) var(--s10); }
+      .hero { padding-block: var(--s8) var(--s5); }
+      .trust { padding-top: var(--s5); }
       .hero__top { grid-template-columns: 7fr 5fr; gap: var(--s6); }
       .hero__product { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s6); margin-top: var(--s8); }
       .how, .faq-wrap { grid-template-columns: 5fr 7fr; gap: var(--s6); }
@@ -331,7 +336,7 @@
 
         <ul class="trust small" aria-label="Datos del widget">
           <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Sin tarjeta para empezar</li>
-          <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22M17.5 15H9"/></svg>w.js pesa 28 KB con gzip</li>
+          <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22M17.5 15H9"/></svg>w.js pesa 28&nbsp;KB con gzip</li>
           <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Un solo archivo, sin dependencias</li>
         </ul>
       </div>
