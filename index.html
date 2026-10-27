@@ -157,6 +157,7 @@
 
     /* ---------- Cierre (banda gris) ---------- */
     .closing { display: grid; justify-items: center; gap: var(--s2); max-width: calc(560px + 2 * var(--gutter)); text-align: center; }
+    .closing__text { display: grid; gap: var(--s2); text-wrap: balance; }
     .closing .btn { margin-top: var(--s1); }
 
     /* ---------- Footer (blanco con línea superior) ---------- */
@@ -204,6 +205,9 @@
       .plans { grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
       .plan { padding: var(--s4); }
       .footer__grid { grid-template-columns: 5fr 7fr; }
+      /* Laptop: cierre como antes, título y descripción a la izquierda, botón a la derecha */
+      .closing { max-width: var(--maxw); grid-template-columns: 1fr auto; align-items: center; justify-items: start; column-gap: var(--s6); text-align: left; }
+      .closing .btn { margin-top: 0; justify-self: end; }
     }
   </style>
 </head>
@@ -604,8 +608,10 @@
     <!-- ==================== CIERRE (gris) ==================== -->
     <section class="section band-alt" aria-labelledby="end-t">
       <div class="wrap closing">
-        <h2 id="end-t">Probalo en tu sitio</h2>
-        <p class="muted">Instalalo con una línea y ajustalo desde tu panel.</p>
+        <div class="closing__text">
+          <h2 id="end-t">Probalo en tu sitio</h2>
+          <p class="muted">Instalalo con una línea y ajustalo desde tu panel.</p>
+        </div>
         <a class="btn btn-primary" href="/login?signup">Empezar gratis</a>
       </div>
     </section>
