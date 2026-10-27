@@ -143,12 +143,16 @@ a:hover { text-decoration-thickness: 2px; }
   font-size: 0.875rem;
 }
 .nav a:hover, .footer a:hover, .footer a.logo { color: var(--text); }
-.site-header__actions { display: flex; align-items: center; gap: var(--s1); margin-left: auto; }
+.site-header__actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .site-header__actions .btn { padding-inline: 16px; }
+/* Móvil: Empezar y menú de 40px a la vista, con 44px de área táctil invisible */
+.site-header__actions .btn-primary { position: relative; min-height: 40px; font-size: 0.875rem; }
+.site-header__actions .btn-primary::after, .menu-btn::after { content: ""; position: absolute; inset: -2px; }
 .site-header__actions .btn-quiet { display: none; }   /* en móvil "Iniciar sesión" va dentro del menú */
 
 .menu-btn {
-  width: 44px; height: 44px; display: grid; place-items: center;
+  position: relative; width: 40px; height: 40px; display: grid; place-items: center;
+  margin-left: -8px;   /* 8px de separación con Empezar (el header separa 16px) */
   background: transparent; border: 1px solid var(--border); border-radius: 50%;
   cursor: pointer;
 }
@@ -175,7 +179,8 @@ a:hover { text-decoration-thickness: 2px; }
   .logo { justify-self: start; }
   .nav { display: flex; justify-self: center; gap: var(--s1); }
   .nav a { padding: 0 10px; font-size: 0.9375rem; }
-  .site-header__actions { justify-self: end; margin-left: 0; }
+  .site-header__actions { justify-self: end; margin-left: 0; gap: var(--s1); }
+  .site-header__actions .btn-primary { min-height: 44px; font-size: 0.9375rem; }
   .site-header__actions .btn-quiet { display: inline-flex; }
   .menu-btn, .mobile-menu { display: none !important; }
 }
