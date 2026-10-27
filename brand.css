@@ -143,11 +143,11 @@ a:hover { text-decoration-thickness: 2px; }
   font-size: 0.875rem;
 }
 .nav a:hover, .footer a:hover, .footer a.logo { color: var(--text); }
-.site-header__actions { display: none; gap: 4px; }
-.site-header__actions .btn { padding-inline: 10px; }
+.site-header__actions { display: flex; align-items: center; gap: var(--s1); margin-left: auto; }
+.site-header__actions .btn { padding-inline: 16px; }
+.site-header__actions .btn-quiet { display: none; }   /* en móvil "Iniciar sesión" va dentro del menú */
 
 .menu-btn {
-  margin-left: auto;
   width: 44px; height: 44px; display: grid; place-items: center;
   background: transparent; border: 1px solid var(--border); border-radius: 50%;
   cursor: pointer;
@@ -169,19 +169,15 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .mobile-menu__actions { display: grid; gap: var(--s1); margin-top: var(--s3); }
 
-/* Desde 768px: logo | enlaces centrados de verdad | acciones */
-@media (min-width: 768px) {
+/* Móvil y tablet: logo | Empezar + menú (≡). Desde 1024px: logo | enlaces centrados de verdad | acciones */
+@media (min-width: 1024px) {
   .site-header__in { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .logo { justify-self: start; }
-  .nav { display: flex; justify-self: center; }
-  .site-header__actions { display: flex; justify-self: end; }
-  .menu-btn, .mobile-menu { display: none !important; }
-}
-@media (min-width: 1024px) {
-  .nav { gap: var(--s1); }
+  .nav { display: flex; justify-self: center; gap: var(--s1); }
   .nav a { padding: 0 10px; font-size: 0.9375rem; }
-  .site-header__actions { gap: var(--s1); }
-  .site-header__actions .btn { padding-inline: 16px; }
+  .site-header__actions { justify-self: end; margin-left: 0; }
+  .site-header__actions .btn-quiet { display: inline-flex; }
+  .menu-btn, .mobile-menu { display: none !important; }
 }
 
 /* ---------- Secciones ---------- */
@@ -222,11 +218,11 @@ a:hover { text-decoration-thickness: 2px; }
 .copy-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-width: 96px; min-height: 44px; padding: 0 14px;
-  background: transparent; border: 0; border-left: 1px solid var(--border);
-  border-radius: 0 var(--r-box) 0 0;
+  background: var(--text); color: #fff; border: 0;
+  border-radius: 0 calc(var(--r-box) - 1px) 0 0;
   font: 500 0.875rem/1 var(--font); cursor: pointer;
 }
-.copy-btn:hover { background: var(--surface); }
+.copy-btn:hover { background: #2A2D33; }
 .copy-btn .icon { width: 16px; height: 16px; }
 .copy-btn .icon-check { display: none; }
 .copy-btn.is-copied .icon-copy { display: none; }
