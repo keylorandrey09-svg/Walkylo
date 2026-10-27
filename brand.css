@@ -28,6 +28,7 @@
   --text-2: #6B7079;
   --text: #0E1014;
   --accent: #0164FD;   /* solo enlaces, foco y estado activo */
+  --ok: #079455;       /* verde: solo "disponible hoy" (palomas del plan Gratis) */
 
   --font: "Geist", system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, monospace;

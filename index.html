@@ -99,23 +99,32 @@
     .how[data-active="1"] [data-step="1"] h3, .how[data-active="2"] [data-step="2"] h3, .how[data-active="3"] [data-step="3"] h3 { color: var(--text); }
     .how[data-active="1"] [data-step="1"] .how__n, .how[data-active="2"] [data-step="2"] .how__n, .how[data-active="3"] [data-step="3"] .how__n { color: var(--accent); }
 
-    /* ---------- Precios (banda gris): un solo bloque blanco en 3 columnas ---------- */
-    .plans { display: grid; }
-    .plan { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3); }
-    .plan + .plan { border-top: 1px solid var(--border); }
+    /* ---------- Precios (banda gris): tres tarjetas separadas, la del medio oscura ---------- */
+    .plans { display: grid; gap: var(--s2); }
+    .plan {
+      display: flex; flex-direction: column; gap: var(--s1);
+      padding: var(--s3); background: var(--bg); border: 1px solid var(--border); border-radius: 24px;
+    }
+    .plan__desc { color: var(--text-2); max-width: 30ch; }
+    .plan ul { display: grid; gap: 12px; padding-block: var(--s2) var(--s4); }
+    .plan li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; }
+    .plan li .icon { width: 18px; height: 18px; margin-top: 2px; stroke-width: 2; color: var(--accent); }
+    .plan--free li .icon { color: var(--ok); }               /* verde: disponible hoy */
+    .plan li.plan__intro { display: block; font-weight: 500; }
+    .plan__foot { margin-top: auto; display: grid; gap: 12px; }
     .plan__price { display: flex; align-items: baseline; gap: 6px; }
     .plan__amount { font-size: 2.5rem; line-height: 1; letter-spacing: -0.02em; }
+    .plan__cur { margin-left: auto; }
+    .plan__note { text-align: center; font-size: 0.8125rem; color: var(--text-2); }
     .soon {
       display: flex; align-items: center; justify-content: center; min-height: 44px;
       border: 1px solid var(--border); border-radius: var(--r-ctl);
-      font-size: 0.875rem; color: var(--text-2);
+      font-size: 0.9375rem; color: var(--text-2);
     }
-    .plan ul { display: grid; gap: var(--s1); color: var(--text-2); padding-bottom: var(--s1); }
-    .plan .btn, .plan .soon { margin-top: auto; }   /* acción abajo de la lista, alineada entre columnas */
-    .plan li { display: grid; grid-template-columns: 16px 1fr; gap: var(--s1); }
-    .plan li::before { content: "—"; color: var(--border); }
-    .plan li.plan__intro { display: block; color: var(--text); }
-    .plan li.plan__intro::before { content: none; }
+    .plan--dark { background: var(--text); border-color: var(--text); color: #E5E7EA; }
+    .plan--dark h3, .plan--dark .plan__amount { color: #fff; }
+    .plan--dark .plan__desc, .plan--dark .muted, .plan--dark .plan__note { color: #A1A6AE; }
+    .plan--dark .soon { border-color: #3A3E46; color: #C9CDD3; }
     .plans__note { margin-top: var(--s3); }
 
     /* ---------- FAQ (banda blanca) ---------- */
@@ -149,6 +158,7 @@
     @media (min-width: 768px) {
       .panels { grid-template-columns: repeat(2, 1fr); }
       .card--feature .stage { padding: var(--s4) var(--s3); }
+      .plans { grid-template-columns: repeat(3, 1fr); }
     }
     @media (min-width: 880px) {
       .hero { padding-block: var(--s8) var(--s10); }
@@ -159,9 +169,8 @@
       .how { row-gap: var(--s5); }
       .how__steps { grid-template-rows: repeat(3, 1fr); }   /* los pasos llenan el alto del escenario */
       .faq-wrap .section__head { margin-bottom: 0; position: sticky; top: calc(var(--header-h) + var(--s4)); align-self: start; }
-      .plans { grid-template-columns: repeat(3, 1fr); }
+      .plans { grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
       .plan { padding: var(--s4); }
-      .plan + .plan { border-top: 0; border-left: 1px solid var(--border); }
       .footer__grid { grid-template-columns: 5fr 7fr; }
     }
     @media (min-width: 1024px) {
@@ -460,40 +469,50 @@
         <div class="section__head">
           <p class="label">Provisionales</p>
           <h2 id="price-t">Precios.</h2>
+          <p class="muted">Empezá gratis. Los planes pagos llegan pronto.</p>
         </div>
-        <div class="card plans">
-          <article class="plan">
+        <div class="plans">
+          <article class="plan plan--free">
             <h3>Gratis</h3>
-            <p class="small muted">Para probar.</p>
-            <p class="plan__price"><span class="plan__amount">$0</span><span class="small muted">/mes</span></p>
+            <p class="small plan__desc">Para probar Walkylet en tu sitio.</p>
             <ul class="small">
-              <li>Panel básico</li>
-              <li>1 app</li>
-              <li>Conversaciones limitadas</li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Panel básico</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>1 app</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Conversaciones limitadas</span></li>
             </ul>
-            <a class="btn btn-secondary btn-block" href="/login?signup">Empezar gratis</a>
+            <div class="plan__foot">
+              <p class="plan__price"><span class="plan__amount">$0</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
+              <a class="btn btn-primary btn-block" href="/login?signup">Empezar gratis</a>
+              <p class="plan__note">Sin tarjeta.</p>
+            </div>
           </article>
-          <article class="plan">
+          <article class="plan plan--dark">
             <h3>Pro</h3>
-            <p class="small muted">Para apps en crecimiento.</p>
-            <p class="plan__price"><span class="plan__amount">$19</span><span class="small muted">/mes</span></p>
+            <p class="small plan__desc">Para apps que ya están creciendo.</p>
             <ul class="small">
-              <li>Más conversaciones</li>
-              <li>Personalización de marca</li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Más conversaciones</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Personalización de marca</span></li>
             </ul>
-            <p class="soon">Próximamente</p>
+            <div class="plan__foot">
+              <p class="plan__price"><span class="plan__amount">$19</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
+              <p class="soon">Próximamente</p>
+              <p class="plan__note">Todavía no se puede contratar.</p>
+            </div>
           </article>
           <article class="plan">
             <h3>Business</h3>
-            <p class="small muted">Para equipos.</p>
-            <p class="plan__price"><span class="plan__amount">$49</span><span class="small muted">/mes</span></p>
+            <p class="small plan__desc">Para equipos que manejan varias apps.</p>
             <ul class="small">
               <li class="plan__intro">Todo lo de Pro, más:</li>
-              <li>Conversaciones altas</li>
-              <li>Multi-app</li>
-              <li>Soporte prioritario</li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Conversaciones altas</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Multi-app</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Soporte prioritario</span></li>
             </ul>
-            <p class="soon">Próximamente</p>
+            <div class="plan__foot">
+              <p class="plan__price"><span class="plan__amount">$49</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
+              <p class="soon">Próximamente</p>
+              <p class="plan__note">Todavía no se puede contratar.</p>
+            </div>
           </article>
         </div>
         <p class="small muted plans__note">Precios en dólares y provisionales: todavía los estamos definiendo.</p>
