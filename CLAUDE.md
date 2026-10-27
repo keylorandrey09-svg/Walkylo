@@ -39,10 +39,13 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - El azul solo para enlaces, foco (`focus-visible`) y estado activo/seleccionado. Máximo un elemento azul visible por pantalla. Nunca en títulos, íconos decorativos ni etiquetas.
 - Prohibido: gradientes, sombras, brillos, subrayados dibujados, fondos de color en íconos, píldoras.
 - Tipografía: Geist (sans) y Geist Mono (solo código y números chicos), autoalojadas en `/fonts/` (licencia OFL en `fonts/OFL.txt`). Nada de Google Fonts. Pesos 400 y 500, nunca más. Títulos con `letter-spacing: -0.02em`; la jerarquía sale del tamaño, no del grosor.
-- Escala: h1 `clamp(2.5rem, 6vw, 4.5rem)/1.05`; h2 `clamp(1.75rem, 3.5vw, 2.5rem)/1.15`; cuerpo `1rem/1.6`; secundario `0.875rem`; etiquetas `0.8125rem` peso 500, sin mayúsculas ni tracking ancho.
+- Escala: h1 `clamp(2.25rem, 5vw, 3.75rem)/1.08` con `text-wrap: balance` (máximo 2 líneas en escritorio); h2 `clamp(1.75rem, 3.5vw, 2.5rem)/1.15`; cuerpo `1rem/1.6`; secundario `0.875rem`; etiquetas `0.8125rem` peso 500, sin mayúsculas ni tracking ancho.
 - Forma: radios 6px (controles) y 10px (contenedores); bordes de 1px `--border`. Íconos SVG inline de línea, trazo 1.5px, sin relleno, clase `.icon`.
 - Espaciado en escala de 8px, contenedor de 1120px, texto alineado a la izquierda. No repetir el mismo molde en todas las secciones; cada elemento con una función.
 - Móvil primero (360px), objetivos táctiles de 44px o más, casi sin animaciones y siempre con `prefers-reduced-motion`.
+- Botones: el negro lleno solo en el header ("Empezar") y en la sección de cierre al final. El hero no lleva botones: su acción es el snippet con Copiar. En el resto (precios, etc.), botón secundario o enlace de texto.
+- Textos cortos: función ≤ 12 palabras, paso ≤ 14, subtítulo de sección ≤ 12, respuesta de FAQ ≤ 2 frases.
+- Ilustraciones: máximo 3 en la página. SVG inline (clase `.art`) con rectángulos, líneas, círculos y arcos simples; trazo 1px no escalable; sin relleno salvo `--surface`; colores solo `--border`, `--text-2` y `--text`. Punteado = lo ajeno (tu sitio, tu CSS); sólido = lo de Walkylet. Etiquetas en Geist Mono 11–12px dentro de cajitas de radio 6px (`.tag`). Sin gradientes, sombras ni animación, con `aria-hidden="true"`, legibles a 360px y explicando algo real del producto. Única excepción de relleno: la mitad oscura del dibujo "Tema claro y oscuro" usa `--text`. Sin ilustraciones en Precios ni FAQ.
 - La réplica del widget en el hero es estática y muestra solo el estado vacío: nunca inventar una conversación ni respuestas de la IA.
 - El snippet de instalación vive en un solo lugar (`#snippet` en `index.html`) y apunta a `https://walkylo.vercel.app/w.js` hasta que haya dominio propio.
 

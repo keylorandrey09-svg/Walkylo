@@ -66,8 +66,8 @@ button { font: inherit; color: inherit; }
 code, kbd, pre { font-family: var(--mono); }
 
 h1, h2, h3 { font-weight: 400; color: var(--text); letter-spacing: -0.02em; }
-h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.05; }
-h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.15; }
+h1 { font-size: clamp(2.25rem, 5vw, 3.75rem); line-height: 1.08; text-wrap: balance; }
+h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.15; text-wrap: balance; }
 h3 { font-size: 1.0625rem; line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
 
 a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -125,7 +125,7 @@ a:hover { text-decoration-thickness: 2px; }
   border-bottom: 1px solid var(--border);
 }
 .site-header__in {
-  display: flex; align-items: center; gap: var(--s3);
+  display: flex; align-items: center; gap: var(--s2);
   height: var(--header-h);
 }
 .logo {
@@ -133,16 +133,17 @@ a:hover { text-decoration-thickness: 2px; }
   color: var(--text); text-decoration: none;
 }
 .logo > span { display: inline-flex; font-size: 1.5rem; line-height: 1; } /* el SVG mide .914em */
-.nav { display: none; gap: var(--s1); margin-left: var(--s2); }
+.nav { display: none; gap: 2px; }
 .nav a, .footer a {
   color: var(--text-2); text-decoration: none;
 }
 .nav a {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px;
-  font-size: 0.9375rem;
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px;
+  font-size: 0.875rem;
 }
 .nav a:hover, .footer a:hover { color: var(--text); }
-.site-header__actions { display: none; margin-left: auto; gap: var(--s1); }
+.site-header__actions { display: none; gap: 4px; }
+.site-header__actions .btn { padding-inline: 10px; }
 
 .menu-btn {
   margin-left: auto;
@@ -167,9 +168,19 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .mobile-menu__actions { display: grid; gap: var(--s1); margin-top: var(--s3); }
 
-@media (min-width: 880px) {
-  .nav, .site-header__actions { display: flex; }
+/* Desde 768px: logo | enlaces centrados de verdad | acciones */
+@media (min-width: 768px) {
+  .site-header__in { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .logo { justify-self: start; }
+  .nav { display: flex; justify-self: center; }
+  .site-header__actions { display: flex; justify-self: end; }
   .menu-btn, .mobile-menu { display: none !important; }
+}
+@media (min-width: 1024px) {
+  .nav { gap: var(--s1); }
+  .nav a { padding: 0 10px; font-size: 0.9375rem; }
+  .site-header__actions { gap: var(--s1); }
+  .site-header__actions .btn { padding-inline: 16px; }
 }
 
 /* ---------- Secciones ---------- */
@@ -187,29 +198,52 @@ a:hover { text-decoration-thickness: 2px; }
 
 /* ---------- Bloque de código con copiar ---------- */
 .code {
-  display: flex; align-items: stretch;
   border: 1px solid var(--border); border-radius: var(--r-box);
   background: var(--surface);
   min-width: 0;
 }
-.code pre {
-  flex: 1; min-width: 0; margin: 0;
-  padding: 14px var(--s2);
-  font-size: 0.8125rem; line-height: 1.6; color: var(--text);
-  white-space: pre-wrap; word-break: break-all;
+.code__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
+  padding-left: var(--s2); border-bottom: 1px solid var(--border);
+  font: 400 0.75rem/1.4 var(--mono); color: var(--text-2);
 }
+/* Saltos de línea entre atributos; nunca corta a mitad de palabra (scroll interno si hace falta) */
+.code pre {
+  margin: 0; padding: var(--s2);
+  overflow-x: auto; white-space: pre;
+  font-size: 0.75rem; line-height: 1.7; color: var(--text);
+}
+@media (min-width: 620px) { .code pre { font-size: 0.8125rem; } }
 .copy-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-width: 96px; min-height: 44px; padding: 0 14px;
-  background: var(--bg); border: 0; border-left: 1px solid var(--border);
-  border-radius: 0 var(--r-box) var(--r-box) 0;
-  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  background: transparent; border: 0; border-left: 1px solid var(--border);
+  border-radius: 0 var(--r-box) 0 0;
+  font: 500 0.875rem/1 var(--font); cursor: pointer;
 }
 .copy-btn:hover { background: var(--surface); }
 .copy-btn .icon { width: 16px; height: 16px; }
 .copy-btn .icon-check { display: none; }
 .copy-btn.is-copied .icon-copy { display: none; }
 .copy-btn.is-copied .icon-check { display: block; }
+
+/* ---------- Ilustraciones (vocabulario visual) ----------
+   Punteado = lo ajeno (tu sitio, tu CSS). Sólido = lo de Walkylet.
+   Trazo 1px, sin relleno salvo --surface, sin animación. */
+.art { display: block; width: 100%; height: auto; }
+.art * { vector-effect: non-scaling-stroke; }
+.art .s, .art .g, .art .d, .art .lb, .art .fl { fill: none; stroke-width: 1; }
+.art .s { stroke: var(--text); }                               /* Walkylet */
+.art .g { stroke: var(--text-2); }                             /* detalle interno */
+.art .d { stroke: var(--text-2); stroke-dasharray: 3 3; }      /* lo ajeno */
+.art .lb, .art .fl { fill: var(--surface); stroke: var(--border); }
+.art .fl { stroke: var(--text-2); }
+.art text { font: 400 11px var(--mono); fill: var(--text-2); }
+.tag {
+  display: inline-block; padding: 3px 7px;
+  font: 400 0.75rem/1.3 var(--mono); color: var(--text-2);
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-ctl);
+}
 
 /* ---------- FAQ (details/summary) ---------- */
 .faq details { border-top: 1px solid var(--border); }

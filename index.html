@@ -15,38 +15,36 @@
 
     /* ---------- Hero ---------- */
     .hero { padding-block: var(--s6) var(--s10); }
-    .hero__top { display: grid; gap: var(--s4); }
-    .hero__title { display: grid; gap: var(--s3); }
-    .hero__title h1 { max-width: 13ch; }
-    .hero__aside { display: grid; gap: var(--s3); align-content: end; }
-    .hero__aside .lead { max-width: 44ch; }
-    .hero__ctas { display: flex; flex-wrap: wrap; gap: var(--s1); }
-    .hero__ctas .btn { flex: 1 1 auto; }
-    .hero__note { color: var(--text-2); }
+    .hero__top { display: grid; gap: var(--s3); }
+    .hero__title { display: grid; gap: var(--s2); }
+    .hero__top .lead { max-width: 40ch; align-self: end; }
 
-    .hero__product { display: grid; gap: var(--s5); margin-top: var(--s8); }
+    .hero__product { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); margin-top: var(--s6); }
     .stage {
+      position: relative; overflow: hidden;
+      display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center;
+      padding: 76px var(--s2) var(--s2);
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-box);
-      padding: var(--s3) var(--s2); display: grid; place-items: center;
     }
-    .stage figcaption { margin-top: var(--s2); text-align: center; }
+    .stage__site { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .stage__tag-site { position: absolute; top: 11px; left: 12px; }
+    .stage__widget { position: relative; width: 100%; max-width: 340px; }
+    .stage__tag-w { position: absolute; top: -30px; left: 0; }
+    .hero figcaption { margin-top: var(--s1); }
 
     .install { display: grid; gap: var(--s2); align-content: start; }
     .install h2 { font-size: 1.0625rem; line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
-    .install__steps { display: grid; gap: var(--s1); counter-reset: st; }
-    .install__steps li { counter-increment: st; display: grid; grid-template-columns: 24px 1fr; gap: var(--s1); }
-    .install__steps li::before { content: counter(st); font: 400 0.8125rem/1.7 var(--mono); color: var(--text-2); }
 
     /* ---------- Réplica estática del widget (estado vacío) ---------- */
     .wdemo {
-      width: 100%; max-width: 360px; height: 460px;
+      width: 100%; height: 420px;
       display: flex; flex-direction: column;
       background: #fff; color: #0a0a0a;
       border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
       user-select: none; -webkit-user-select: none;
     }
     .wdemo__head { display: flex; align-items: center; gap: 4px; padding: 10px 8px 6px; }
-    .wdemo__ico { width: 36px; height: 36px; display: grid; place-items: center; color: #0a0a0a; }
+    .wdemo__ico { width: 32px; height: 32px; display: grid; place-items: center; color: #0a0a0a; }
     .wdemo__ico .icon { width: 18px; height: 18px; }
     .wdemo__ava {
       width: 28px; height: 28px; border-radius: 50%; margin: 0 4px 0 2px;
@@ -69,17 +67,25 @@
     .wdemo__send .icon { width: 16px; height: 16px; stroke-width: 2; }
     .wdemo__disc { padding: 10px 20px 14px; font-size: 0.6875rem; line-height: 1.45; color: #6b7280; text-align: center; }
 
-    /* ---------- Cómo funciona ---------- */
-    .how { display: grid; gap: var(--s5); }
-    .how__steps li { display: grid; grid-template-columns: 40px 1fr; gap: var(--s1) var(--s2); padding-block: var(--s3); }
-    .how__n { font: 400 0.8125rem/1.9 var(--mono); color: var(--text-2); }
-    .how__steps p { grid-column: 2; color: var(--text-2); max-width: 52ch; }
-
-    /* ---------- Producto: cuadrícula de texto ---------- */
+    /* ---------- Producto ---------- */
+    .panels { display: grid; gap: var(--s2); margin-bottom: var(--s6); }
+    .panel { display: grid; gap: var(--s1); align-content: start; padding: var(--s3); border: 1px solid var(--border); border-radius: var(--r-box); }
+    .panel .art { max-width: 360px; margin: 0 auto var(--s3); }
+    .panel p, .feature p { color: var(--text-2); }
     .features { display: grid; gap: 0 var(--s4); }
-    .feature { display: grid; gap: var(--s1); align-content: start; padding-block: var(--s3) var(--s4); border-top: 1px solid var(--border); }
+    .feature { display: grid; gap: var(--s1); align-content: start; padding-block: var(--s3); border-top: 1px solid var(--border); }
     .feature .icon { width: 24px; height: 24px; margin-bottom: var(--s1); }
-    .feature p { color: var(--text-2); }
+
+    /* ---------- Cómo funciona: ilustración según el paso activo ---------- */
+    .how { display: grid; gap: var(--s4); }
+    .how__art { margin-top: var(--s4); padding: var(--s2); border: 1px solid var(--border); border-radius: var(--r-box); }
+    .how__art .art { max-width: 360px; margin-inline: auto; display: none; }
+    .how[data-active="1"] [data-art="1"], .how[data-active="2"] [data-art="2"], .how[data-active="3"] [data-art="3"] { display: block; }
+    .how__steps { display: grid; gap: var(--s1); }
+    .how__steps li { display: grid; grid-template-columns: 40px 1fr; gap: 4px var(--s2); padding: var(--s3) var(--s2); border-radius: var(--r-box); cursor: default; }
+    .how[data-active="1"] [data-step="1"], .how[data-active="2"] [data-step="2"], .how[data-active="3"] [data-step="3"] { background: var(--surface); }
+    .how__n { font: 400 0.8125rem/1.9 var(--mono); color: var(--text-2); }
+    .how__steps p { grid-column: 2; color: var(--text-2); }
 
     /* ---------- Precios ---------- */
     .plans { display: grid; border-top: 1px solid var(--border); }
@@ -97,8 +103,7 @@
     .faq-wrap { display: grid; gap: var(--s5); }
 
     /* ---------- Cierre ---------- */
-    .closing { display: grid; gap: var(--s3); }
-    .closing__ctas { display: flex; flex-wrap: wrap; gap: var(--s1); }
+    .closing { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3); }
 
     /* ---------- Footer ---------- */
     .footer__grid { display: grid; gap: var(--s5); }
@@ -108,25 +113,29 @@
     .footer__bottom { margin-top: var(--s8); padding-top: var(--s3); border-top: 1px solid var(--border); }
 
     @media (min-width: 620px) {
-      .hero__ctas .btn { flex: 0 0 auto; }
       .features { grid-template-columns: repeat(2, 1fr); }
       .footer__cols { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 768px) {
+      .panels { grid-template-columns: repeat(2, 1fr); }
+      .panel { padding: var(--s4); }
     }
     @media (min-width: 880px) {
       .hero { padding-block: var(--s12) var(--s16); }
       .hero__top { grid-template-columns: 7fr 5fr; gap: var(--s6); }
-      .hero__product { grid-template-columns: 7fr 5fr; gap: var(--s6); margin-top: var(--s12); }
-      .stage { padding: var(--s6) var(--s4) var(--s3); }
-      .install { padding-top: var(--s2); }
-      .how, .faq-wrap { grid-template-columns: 4fr 8fr; gap: var(--s6); }
+      .hero__product { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s6); margin-top: var(--s10); }
+      .stage { justify-items: end; padding: 84px var(--s4) var(--s4); }
+      .install { padding-top: 84px; }
+      .how, .faq-wrap { grid-template-columns: 5fr 7fr; gap: var(--s6); }
       .how .section__head, .faq-wrap .section__head { margin-bottom: 0; align-content: start; }
-      .features { grid-template-columns: repeat(3, 1fr); }
       .plans { grid-template-columns: repeat(3, 1fr); }
       .plan { padding: var(--s4) var(--s4) 0; }
       .plan:first-child { padding-left: 0; }
       .plan + .plan { border-top: 0; border-left: 1px solid var(--border); }
-      .closing { grid-template-columns: 1fr auto; align-items: end; gap: var(--s6); }
       .footer__grid { grid-template-columns: 5fr 7fr; }
+    }
+    @media (min-width: 1024px) {
+      .features { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
@@ -177,57 +186,70 @@
         <div class="hero__top">
           <div class="hero__title">
             <p class="label">Acceso anticipado</p>
-            <h1 id="hero-t">Ayuda para tu web, en una línea de código.</h1>
+            <h1 id="hero-t">Ayuda para tu web, en una línea.</h1>
           </div>
-          <div class="hero__aside">
-            <p class="lead">Walkylet es un chat que sumás a cualquier sitio pegando un script y que personalizás desde tu panel. La IA que va a responder con la información de tu app se está conectando: hoy el chat contesta con un mensaje de espera.</p>
-            <div class="hero__ctas">
-              <a class="btn btn-primary" href="/login?signup">Crear cuenta gratis</a>
-              <a class="btn btn-secondary" href="#como-funciona">Ver cómo funciona</a>
-            </div>
-            <p class="small hero__note">Crear la cuenta no pide tarjeta.</p>
-          </div>
+          <p class="lead">Un chat para tu sitio: pegás un script y lo ajustás en el panel. La IA se está conectando; hoy responde con un mensaje de espera.</p>
         </div>
 
         <div class="hero__product">
-          <figure class="stage">
-            <!-- Réplica estática del estado vacío de w.js (no interactiva) -->
-            <div class="wdemo" aria-hidden="true">
-              <div class="wdemo__head">
-                <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r=".8"/><circle cx="12" cy="12" r=".8"/><circle cx="12" cy="19" r=".8"/></svg></span>
-                <span class="wdemo__ava"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg></span>
-                <span class="wdemo__nm">Tu asistente</span>
-                <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></span>
-                <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
+          <figure>
+            <div class="stage">
+              <!-- Ilustración 1: tu sitio (punteado) con el widget de Walkylet encima (sólido) -->
+              <svg class="art stage__site" viewBox="0 0 600 520" preserveAspectRatio="xMinYMin slice" aria-hidden="true">
+                <line class="d" x1="0" y1="44" x2="600" y2="44"/>
+                <rect class="d" x="104" y="13" width="220" height="18" rx="6"/>
+                <rect class="d" x="24" y="72" width="200" height="16" rx="4"/>
+                <line class="d" x1="420" y1="72" x2="466" y2="72"/><line class="d" x1="484" y1="72" x2="530" y2="72"/><line class="d" x1="548" y1="72" x2="580" y2="72"/>
+                <line class="d" x1="24" y1="112" x2="250" y2="112"/><line class="d" x1="24" y1="128" x2="216" y2="128"/><line class="d" x1="24" y1="144" x2="236" y2="144"/>
+                <rect class="d" x="24" y="172" width="108" height="84" rx="6"/><rect class="d" x="148" y="172" width="108" height="84" rx="6"/>
+                <line class="d" x1="24" y1="284" x2="250" y2="284"/><line class="d" x1="24" y1="300" x2="200" y2="300"/><line class="d" x1="24" y1="316" x2="230" y2="316"/>
+                <rect class="d" x="24" y="344" width="232" height="120" rx="6"/>
+              </svg>
+              <span class="tag stage__tag-site" aria-hidden="true">tu sitio</span>
+
+              <div class="stage__widget">
+                <span class="tag stage__tag-w" aria-hidden="true">walkylet</span>
+                <!-- Réplica estática del estado vacío de w.js (no interactiva) -->
+                <div class="wdemo" aria-hidden="true">
+                  <div class="wdemo__head">
+                    <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r=".8"/><circle cx="12" cy="12" r=".8"/><circle cx="12" cy="19" r=".8"/></svg></span>
+                    <span class="wdemo__ava"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg></span>
+                    <span class="wdemo__nm">Tu asistente</span>
+                    <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></span>
+                    <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                    <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
+                  </div>
+                  <div class="wdemo__body"><p class="wdemo__title">¿En qué podemos ayudarte hoy?</p></div>
+                  <div class="wdemo__composer">
+                    <span class="wdemo__ph">Escribí tu mensaje…</span>
+                    <span class="wdemo__send"><svg class="icon" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+                  </div>
+                  <p class="wdemo__disc">Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p>
+                </div>
               </div>
-              <div class="wdemo__body"><p class="wdemo__title">¿En qué podemos ayudarte hoy?</p></div>
-              <div class="wdemo__composer">
-                <span class="wdemo__ph">Escribí tu mensaje…</span>
-                <span class="wdemo__send"><svg class="icon" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
-              </div>
-              <p class="wdemo__disc">Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p>
             </div>
-            <figcaption class="small muted">Así se ve el widget al abrirlo. Imagen estática.</figcaption>
+            <figcaption class="small muted">Vista estática del widget, sin conversación.</figcaption>
           </figure>
 
           <div class="install">
             <h2>Instalalo con una línea</h2>
-            <!-- Snippet de instalación: este es el único lugar donde está la URL del widget -->
             <div class="code">
-              <pre><code id="snippet">&lt;script src="https://walkylo.vercel.app/w.js" data-id="TU_ID" defer&gt;&lt;/script&gt;</code></pre>
-              <button class="copy-btn" type="button" aria-describedby="snippet">
-                <svg class="icon icon-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-                <svg class="icon icon-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-                <span class="copy-btn__label">Copiar</span>
-              </button>
+              <div class="code__bar">
+                <span>antes de &lt;/body&gt;</span>
+                <button class="copy-btn" type="button" aria-label="Copiar el código de instalación">
+                  <svg class="icon icon-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  <svg class="icon icon-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                  <span class="copy-btn__label">Copiar</span>
+                </button>
+              </div>
+              <!-- Snippet de instalación: único lugar con la URL del widget. Copiar lo une en una sola línea. -->
+<pre><code id="snippet">&lt;script
+  src="https://walkylo.vercel.app/w.js"
+  data-id="TU_ID"
+  defer&gt;&lt;/script&gt;</code></pre>
             </div>
             <p class="sr-only" role="status" aria-live="polite" id="copy-status"></p>
-            <ol class="install__steps small muted">
-              <li><span>Creá tu cuenta y tu widget.</span></li>
-              <li><span>Copiá tu línea desde el panel: ahí <code>TU_ID</code> ya viene con tu identificador.</span></li>
-              <li><span>Pegala en tu sitio, antes de <code>&lt;/body&gt;</code>.</span></li>
-            </ol>
+            <p class="small muted"><a href="/login?signup">Creá tu cuenta</a> para obtener tu ID. No pide tarjeta.</p>
           </div>
         </div>
       </div>
@@ -238,38 +260,62 @@
       <div class="wrap">
         <div class="section__head">
           <h2 id="prod-t">Lo que ya funciona.</h2>
-          <p class="muted">Un widget liviano que se ve como parte de tu sitio. Esto es lo que podés usar hoy.</p>
+          <p class="muted">Esto lo podés usar hoy.</p>
         </div>
+
+        <div class="panels">
+          <div class="panel">
+            <!-- Ilustración 3a: tu CSS (punteado) y Walkylet (sólido), separados -->
+            <svg class="art" viewBox="0 0 320 152" aria-hidden="true">
+              <rect class="lb" x="16" y="2" width="56" height="18" rx="6"/><text x="44" y="15" text-anchor="middle">tu css</text>
+              <rect class="d" x="16" y="30" width="120" height="112" rx="6"/>
+              <line class="d" x1="32" y1="56" x2="112" y2="56"/><line class="d" x1="32" y1="72" x2="98" y2="72"/><line class="d" x1="32" y1="88" x2="118" y2="88"/><line class="d" x1="32" y1="104" x2="86" y2="104"/>
+              <rect class="lb" x="184" y="2" width="68" height="18" rx="6"/><text x="218" y="15" text-anchor="middle">walkylet</text>
+              <rect class="s" x="184" y="30" width="120" height="112" rx="10"/>
+              <circle class="g" cx="200" cy="48" r="5"/><line class="g" x1="212" y1="48" x2="252" y2="48"/>
+              <line class="g" x1="214" y1="84" x2="274" y2="84"/>
+              <rect class="g" x="196" y="116" width="96" height="14" rx="7"/>
+            </svg>
+            <h3>No choca con tus estilos</h3>
+            <p>Vive en su propio Shadow DOM, aislado de tu CSS.</p>
+          </div>
+          <div class="panel">
+            <!-- Ilustración 3b: el mismo widget, mitad claro y mitad oscuro -->
+            <svg class="art" viewBox="0 0 320 152" aria-hidden="true">
+              <defs><clipPath id="mitad-oscura"><rect x="160" y="2" width="70" height="148"/></clipPath></defs>
+              <rect class="lb" x="28" y="66" width="52" height="18" rx="6"/><text x="54" y="79" text-anchor="middle">claro</text>
+              <rect class="lb" x="240" y="66" width="56" height="18" rx="6"/><text x="268" y="79" text-anchor="middle">oscuro</text>
+              <rect x="100" y="8" width="120" height="136" rx="10" fill="var(--text)" clip-path="url(#mitad-oscura)"/>
+              <rect class="s" x="100" y="8" width="120" height="136" rx="10"/>
+              <circle class="g" cx="116" cy="26" r="5"/><line class="g" x1="128" y1="26" x2="176" y2="26"/>
+              <line class="g" x1="124" y1="72" x2="196" y2="72"/><line class="g" x1="138" y1="84" x2="182" y2="84"/>
+              <rect class="g" x="112" y="118" width="96" height="14" rx="7"/>
+            </svg>
+            <h3>Tema claro y oscuro</h3>
+            <p>Elegís uno por defecto; el visitante lo cambia desde el chat.</p>
+          </div>
+        </div>
+
         <div class="features">
           <div class="feature">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13.5 5l-3 14"/></svg>
             <h3>Una línea, sin dependencias</h3>
-            <p>Un solo archivo que carga diferido. No necesitás build ni tocar el resto de tu código.</p>
-          </div>
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
-            <h3>No choca con tus estilos</h3>
-            <p>Vive aislado en su propio espacio (Shadow DOM): tu CSS no lo rompe y él no rompe el tuyo.</p>
+            <p>Un solo archivo con carga diferida. Sin build.</p>
           </div>
           <div class="feature">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
             <h3>Tu nombre y tu foto</h3>
-            <p>Cambiás el nombre del asistente, la foto y el color del logo desde el panel, con vista previa.</p>
-          </div>
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M12 7a5 5 0 0 1 0 10"/></svg>
-            <h3>Tema claro y oscuro</h3>
-            <p>Elegís el tema por defecto y cada visitante puede cambiarlo desde el chat.</p>
+            <p>Nombre, foto y color del logo, desde el panel.</p>
           </div>
           <div class="feature">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
             <h3>Historial en el dispositivo</h3>
-            <p>Los chats del visitante quedan guardados en su propio navegador. No se suben a ningún servidor.</p>
+            <p>Los chats quedan en el navegador del visitante, no en servidores.</p>
           </div>
           <div class="feature">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/><path d="M17 15l2 2 3-4"/></svg>
             <h3>IA, en camino</h3>
-            <p>En el panel ya cargás la información de tu app. La IA la va a usar para responder cuando esté conectada.</p>
+            <p>Ya cargás la información; la IA la usará al conectarse.</p>
           </div>
         </div>
       </div>
@@ -277,26 +323,62 @@
 
     <!-- ==================== CÓMO FUNCIONA ==================== -->
     <section class="section" id="como-funciona" aria-labelledby="how-t">
-      <div class="wrap how">
-        <div class="section__head">
-          <h2 id="how-t">Cómo funciona.</h2>
-          <p class="muted">Tres pasos, sin tocar tu servidor.</p>
+      <div class="wrap how" data-active="1">
+        <div>
+          <div class="section__head">
+            <h2 id="how-t">Cómo funciona.</h2>
+            <p class="muted">Tres pasos, sin tocar tu servidor.</p>
+          </div>
+          <!-- Ilustración 2: cambia según el paso activo -->
+          <div class="how__art" aria-hidden="true">
+            <svg class="art" data-art="1" viewBox="0 0 320 168">
+              <rect class="lb" x="70" y="2" width="52" height="18" rx="6"/><text x="96" y="15" text-anchor="middle">panel</text>
+              <rect class="s" x="70" y="30" width="180" height="124" rx="10"/>
+              <circle class="g" cx="88" cy="46" r="5"/><line class="g" x1="70" y1="62" x2="250" y2="62"/>
+              <line class="g" x1="90" y1="84" x2="170" y2="84"/>
+              <rect class="fl" x="90" y="100" width="140" height="30" rx="6"/><text x="104" y="119">data-id: TU_ID</text>
+            </svg>
+            <svg class="art" data-art="2" viewBox="0 0 320 168">
+              <rect class="s" x="12" y="70" width="96" height="30" rx="6"/><text x="60" y="89" text-anchor="middle">&lt;script&gt;</text>
+              <line class="s" x1="108" y1="85" x2="168" y2="85"/><path class="s" d="M162 80l6 5-6 5"/>
+              <rect class="lb" x="176" y="2" width="68" height="18" rx="6"/><text x="210" y="15" text-anchor="middle">tu sitio</text>
+              <rect class="d" x="176" y="30" width="132" height="130" rx="6"/>
+              <line class="d" x1="176" y1="48" x2="308" y2="48"/>
+              <line class="d" x1="190" y1="66" x2="270" y2="66"/><line class="d" x1="190" y1="80" x2="250" y2="80"/><line class="d" x1="190" y1="94" x2="262" y2="94"/>
+              <rect class="d" x="190" y="108" width="60" height="38" rx="4"/>
+              <circle class="s" cx="288" cy="140" r="9"/>
+            </svg>
+            <svg class="art" data-art="3" viewBox="0 0 320 168">
+              <rect class="lb" x="12" y="2" width="52" height="18" rx="6"/><text x="38" y="15" text-anchor="middle">panel</text>
+              <rect class="s" x="12" y="30" width="132" height="128" rx="10"/>
+              <line class="g" x1="28" y1="54" x2="92" y2="54"/>
+              <rect class="g" x="28" y="70" width="26" height="14" rx="7"/><circle class="s" cx="47" cy="77" r="4"/><line class="g" x1="64" y1="77" x2="126" y2="77"/>
+              <circle class="g" cx="35" cy="104" r="7"/><line class="g" x1="50" y1="104" x2="120" y2="104"/>
+              <line class="g" x1="28" y1="132" x2="108" y2="132"/>
+              <line class="s" x1="144" y1="94" x2="184" y2="94"/><path class="s" d="M178 89l6 5-6 5"/>
+              <rect class="lb" x="192" y="2" width="60" height="18" rx="6"/><text x="222" y="15" text-anchor="middle">widget</text>
+              <rect class="s" x="192" y="30" width="116" height="128" rx="10"/>
+              <circle class="g" cx="208" cy="46" r="5"/><line class="g" x1="220" y1="46" x2="260" y2="46"/>
+              <line class="g" x1="222" y1="92" x2="278" y2="92"/>
+              <rect class="g" x="202" y="132" width="96" height="14" rx="7"/>
+            </svg>
+          </div>
         </div>
-        <ol class="rule-list how__steps">
-          <li>
+        <ol class="how__steps">
+          <li data-step="1" tabindex="0">
             <span class="how__n" aria-hidden="true">01</span>
             <h3>Creás tu widget</h3>
-            <p>Te registrás y el panel te arma un widget con su propio identificador.</p>
+            <p>Te registrás y el panel le asigna un identificador propio.</p>
           </li>
-          <li>
+          <li data-step="2" tabindex="0">
             <span class="how__n" aria-hidden="true">02</span>
             <h3>Pegás una línea</h3>
-            <p>Copiás el script desde el panel y lo pegás en tu sitio. Funciona en cualquier página HTML.</p>
+            <p>Copiás el script del panel y lo pegás en tu sitio.</p>
           </li>
-          <li>
+          <li data-step="3" tabindex="0">
             <span class="how__n" aria-hidden="true">03</span>
             <h3>Lo ajustás desde el panel</h3>
-            <p>Nombre, foto, color del logo, tema y mensaje de bienvenida. Los cambios llegan a tu sitio sin volver a instalar nada.</p>
+            <p>Nombre, foto, color y tema. Se actualiza sin reinstalar nada.</p>
           </li>
         </ol>
       </div>
@@ -308,7 +390,7 @@
         <div class="section__head">
           <p class="label">Provisionales</p>
           <h2 id="price-t">Precios.</h2>
-          <p class="muted">Todavía estamos definiendo los planes. Estos precios pueden cambiar antes del lanzamiento.</p>
+          <p class="muted">Todavía los estamos definiendo. Pueden cambiar.</p>
         </div>
         <div class="plans">
           <article class="plan">
@@ -320,7 +402,7 @@
               <li>1 app</li>
               <li>Conversaciones limitadas</li>
             </ul>
-            <a class="btn btn-primary btn-block" href="/login?signup">Empezar gratis</a>
+            <a class="btn btn-secondary btn-block" href="/login?signup">Empezar gratis</a>
           </article>
           <article class="plan">
             <h3>Pro</h3>
@@ -358,27 +440,27 @@
         <div class="faq">
           <details>
             <summary>¿Qué es Walkylet?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Un chat de ayuda que sumás a tu web con una sola línea de código y configurás desde tu panel. Está en acceso anticipado: la IA que va a responder con la información de tu app todavía se está conectando, y hoy el chat contesta con un mensaje de espera.</p>
+            <p>Un chat de ayuda que sumás a tu web con una línea de código. Está en acceso anticipado: hoy responde con un mensaje de espera.</p>
           </details>
           <details>
             <summary>¿Cómo lo instalo?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Creás tu cuenta, copiás tu línea desde el panel y la pegás en tu sitio. Sin build, sin dependencias. Funciona en cualquier página.</p>
+            <p>Creás tu cuenta, copiás tu línea desde el panel y la pegás en tu sitio. Sin build ni dependencias.</p>
           </details>
           <details>
             <summary>¿Necesito saber programar?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Solo para pegar esa línea una vez. Nombre, foto, color del logo, tema y mensaje de bienvenida los cambiás desde el panel, sin tocar código.</p>
+            <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel.</p>
           </details>
           <details>
             <summary>¿De dónde va a sacar las respuestas?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>De la información que vos cargues en el panel. Esa parte todavía no está activa: hoy el chat no responde con IA.</p>
+            <p>De la información que cargues en el panel. Esa parte todavía no está activa.</p>
           </details>
           <details>
             <summary>¿Necesito una clave de IA o una cuenta aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>No. No tenés que traer ni configurar ninguna clave.</p>
+            <p>No. No tenés que traer ninguna clave.</p>
           </details>
           <details>
             <summary>¿Cuánto cuesta?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Crear la cuenta es gratis y no pide tarjeta. Los planes pagos y sus precios son provisionales: mirá la sección de <a href="#precios">Precios</a>.</p>
+            <p>Crear la cuenta es gratis y no pide tarjeta. Los planes pagos son provisionales: mirá <a href="#precios">Precios</a>.</p>
           </details>
         </div>
       </div>
@@ -387,14 +469,8 @@
     <!-- ==================== CIERRE ==================== -->
     <section class="section" aria-labelledby="end-t">
       <div class="wrap closing">
-        <div class="section__head" style="margin-bottom:0">
-          <h2 id="end-t">Probalo en tu sitio.</h2>
-          <p class="muted">Creá tu cuenta, armá tu widget y pegá la línea. Te toma unos minutos.</p>
-        </div>
-        <div class="closing__ctas">
-          <a class="btn btn-primary" href="/login?signup">Crear cuenta gratis</a>
-          <a class="btn btn-secondary" href="/login">Iniciar sesión</a>
-        </div>
+        <h2 id="end-t">Probalo en tu sitio.</h2>
+        <a class="btn btn-primary" href="/login?signup">Empezar gratis</a>
       </div>
     </section>
   </main>
@@ -445,8 +521,7 @@
     "use strict";
 
     // Menú móvil
-    var btn = document.querySelector(".menu-btn");
-    var menu = document.getElementById("menu-movil");
+    var btn = document.querySelector(".menu-btn"), menu = document.getElementById("menu-movil");
     function setMenu(open) {
       btn.setAttribute("aria-expanded", open ? "true" : "false");
       btn.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
@@ -454,17 +529,18 @@
     }
     btn.addEventListener("click", function () { setMenu(menu.hidden); });
     menu.addEventListener("click", function (e) { if (e.target.closest("a")) setMenu(false); });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !menu.hidden) { setMenu(false); btn.focus(); }
-    });
-    window.matchMedia("(min-width: 880px)").addEventListener("change", function (m) { if (m.matches) setMenu(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { setMenu(false); btn.focus(); } });
+    window.matchMedia("(min-width: 768px)").addEventListener("change", function (m) { if (m.matches) setMenu(false); });
 
-    // Copiar el snippet
-    var copyBtn = document.querySelector(".copy-btn");
-    var snippet = document.getElementById("snippet");
-    var label = copyBtn.querySelector(".copy-btn__label");
-    var status = document.getElementById("copy-status");
-    var timer = null;
+    // Cómo funciona: el paso con hover, foco o toque elige la ilustración
+    var how = document.querySelector(".how");
+    how.querySelectorAll("[data-step]").forEach(function (li) {
+      ["mouseenter", "focus", "click"].forEach(function (ev) { li.addEventListener(ev, function () { how.dataset.active = li.dataset.step; }); });
+    });
+
+    // Copiar el snippet en una sola línea (se muestra con saltos entre atributos)
+    var copyBtn = document.querySelector(".copy-btn"), label = copyBtn.querySelector(".copy-btn__label");
+    var status = document.getElementById("copy-status"), timer = null;
     function done(ok) {
       copyBtn.classList.toggle("is-copied", ok);
       label.textContent = ok ? "Copiado" : "Copiá a mano";
@@ -473,15 +549,15 @@
       timer = setTimeout(function () { copyBtn.classList.remove("is-copied"); label.textContent = "Copiar"; status.textContent = ""; }, 2000);
     }
     function fallback(text) {
-      var ta = document.createElement("textarea");
+      var ta = document.createElement("textarea"), ok = false;
       ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
       document.body.appendChild(ta); ta.select();
-      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      try { ok = document.execCommand("copy"); } catch (e) {}
       document.body.removeChild(ta);
       return ok;
     }
     copyBtn.addEventListener("click", function () {
-      var text = snippet.textContent;
+      var text = document.getElementById("snippet").textContent.replace(/\s*\n\s*/g, " ");
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallback(text)); });
       } else { done(fallback(text)); }
