@@ -278,3 +278,19 @@ a:hover { text-decoration-thickness: 2px; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Panel (app/): peligro y tema oscuro ----------
+   Solo los usa el panel; la landing nunca pone data-theme.
+   Valores del tema oscuro de w.js (fondo, superficie, texto, borde y peligro). */
+:root { --danger: #DC2626; }   /* rojo: solo acciones destructivas y errores */
+:root[data-theme="dark"] {
+  --bg: #0E0F12;
+  --surface: #1B1C20;
+  --border: #2A2B30;
+  --text-2: #9AA0A8;
+  --text: #F4F5F7;
+  --accent: #4C8DFF;   /* el #0164FD no llega a 4.5:1 sobre el fondo oscuro */
+  --ok: #4ADE80;
+  --danger: #FF6B6B;
+  color-scheme: dark;
+}
