@@ -23,7 +23,7 @@
 
     /* Escenario del hero: marco de navegador blanco con el widget anclado abajo a la derecha */
     .stage--hero { padding: var(--s2); }
-    .browser { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-box); overflow: hidden; }
+    .browser { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
     .browser__bar { display: flex; align-items: center; height: 40px; padding: 0 var(--s1); border-bottom: 1px solid var(--border); }
     .browser__url {
       display: flex; align-items: center; flex: 1; max-width: 240px; height: 24px; padding: 0 var(--s1);
@@ -37,6 +37,10 @@
 
     .install { display: grid; gap: var(--s2); align-content: start; }
     .install h2 { font-size: 1.0625rem; line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
+    .install__after { display: grid; gap: var(--s2); margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border); }
+    .checks { display: grid; gap: var(--s2); color: var(--text-2); }
+    .checks li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; align-items: start; }
+    .checks .icon { color: var(--text); margin-top: 1px; }
 
     /* ---------- Réplica estática del widget (estado vacío) ---------- */
     .wdemo {
@@ -83,11 +87,12 @@
 
     /* ---------- Cómo funciona (banda blanca) ---------- */
     .how { display: grid; gap: var(--s4); }
+    .how .section__head { margin-bottom: 0; }
     .how .stage { padding: var(--s4) var(--s3); }
     .how .stage .art { max-width: 360px; margin-inline: auto; display: none; }
     .how[data-active="1"] [data-art="1"], .how[data-active="2"] [data-art="2"], .how[data-active="3"] [data-art="3"] { display: block; }
-    .how__steps { display: grid; gap: var(--s1); align-content: start; }
-    .how__steps li { display: grid; grid-template-columns: 40px 1fr; gap: 4px var(--s2); min-height: 44px; padding: var(--s2); border-radius: var(--r-box); cursor: default; }
+    .how__steps { display: grid; gap: var(--s1); }
+    .how__steps li { display: grid; grid-template-columns: 40px 1fr; gap: 4px var(--s2); align-content: center; min-height: 44px; padding: var(--s2); border-radius: var(--r-box); cursor: default; }
     .how__steps h3 { color: var(--text-2); }
     .how__n { font: 400 0.8125rem/1.9 var(--mono); color: var(--text-2); }
     .how__steps p { grid-column: 2; color: var(--text-2); }
@@ -105,7 +110,8 @@
       border: 1px solid var(--border); border-radius: var(--r-ctl);
       font-size: 0.875rem; color: var(--text-2);
     }
-    .plan ul { display: grid; gap: var(--s1); color: var(--text-2); padding-top: var(--s1); }
+    .plan ul { display: grid; gap: var(--s1); color: var(--text-2); padding-bottom: var(--s1); }
+    .plan .btn, .plan .soon { margin-top: auto; }   /* acción abajo de la lista, alineada entre columnas */
     .plan li { display: grid; grid-template-columns: 16px 1fr; gap: var(--s1); }
     .plan li::before { content: "—"; color: var(--border); }
     .plan li.plan__intro { display: block; color: var(--text); }
@@ -114,6 +120,7 @@
 
     /* ---------- FAQ (banda blanca) ---------- */
     .faq-wrap { display: grid; gap: var(--s5); }
+    .faq-wrap .section__head { align-content: start; }
 
     /* ---------- Cierre (banda gris) ---------- */
     .closing { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3); }
@@ -144,12 +151,14 @@
       .card--feature .stage { padding: var(--s4) var(--s3); }
     }
     @media (min-width: 880px) {
-      .hero { padding-block: var(--s10) var(--s12); }
+      .hero { padding-block: var(--s8) var(--s10); }
       .hero__top { grid-template-columns: 7fr 5fr; gap: var(--s6); }
       .hero__product { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s6); margin-top: var(--s8); }
       .how, .faq-wrap { grid-template-columns: 5fr 7fr; gap: var(--s6); }
-      .how .section__head, .faq-wrap .section__head { align-content: start; }
-      .faq-wrap .section__head { margin-bottom: 0; }
+      .how .section__head { grid-column: 1 / -1; }
+      .how { row-gap: var(--s5); }
+      .how__steps { grid-template-rows: repeat(3, 1fr); }   /* los pasos llenan el alto del escenario */
+      .faq-wrap .section__head { margin-bottom: 0; position: sticky; top: calc(var(--header-h) + var(--s4)); align-self: start; }
       .plans { grid-template-columns: repeat(3, 1fr); }
       .plan { padding: var(--s4); }
       .plan + .plan { border-top: 0; border-left: 1px solid var(--border); }
@@ -273,6 +282,14 @@
             </div>
             <p class="sr-only" role="status" aria-live="polite" id="copy-status"></p>
             <p class="small muted"><a href="/login?signup">Creá tu cuenta</a> para obtener tu ID. No pide tarjeta.</p>
+            <div class="install__after">
+              <p class="label">Al pegarlo</p>
+              <ul class="checks small">
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Aparece un botón de chat abajo a la derecha de tu sitio.</span></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Usa el nombre, la foto y el tema que elegiste en el panel.</span></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Mientras conectamos la IA, responde con un mensaje de espera.</span></li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -366,7 +383,6 @@
     <!-- ==================== CÓMO FUNCIONA (blanco) ==================== -->
     <section class="section" id="como-funciona" aria-labelledby="how-t">
       <div class="wrap how" data-active="1">
-        <div>
           <div class="section__head">
             <h2 id="how-t">Cómo funciona.</h2>
             <p class="muted">Tres pasos, sin tocar tu servidor.</p>
@@ -417,7 +433,6 @@
               <text x="176" y="184">widget</text>
             </svg>
           </div>
-        </div>
         <ol class="how__steps">
           <li data-step="1" tabindex="0">
             <span class="how__n" aria-hidden="true">01</span>
@@ -451,34 +466,34 @@
             <h3>Gratis</h3>
             <p class="small muted">Para probar.</p>
             <p class="plan__price"><span class="plan__amount">$0</span><span class="small muted">/mes</span></p>
-            <a class="btn btn-secondary btn-block" href="/login?signup">Empezar gratis</a>
             <ul class="small">
               <li>Panel básico</li>
               <li>1 app</li>
               <li>Conversaciones limitadas</li>
             </ul>
+            <a class="btn btn-secondary btn-block" href="/login?signup">Empezar gratis</a>
           </article>
           <article class="plan">
             <h3>Pro</h3>
             <p class="small muted">Para apps en crecimiento.</p>
             <p class="plan__price"><span class="plan__amount">$19</span><span class="small muted">/mes</span></p>
-            <p class="soon">Próximamente</p>
             <ul class="small">
               <li>Más conversaciones</li>
               <li>Personalización de marca</li>
             </ul>
+            <p class="soon">Próximamente</p>
           </article>
           <article class="plan">
             <h3>Business</h3>
             <p class="small muted">Para equipos.</p>
             <p class="plan__price"><span class="plan__amount">$49</span><span class="small muted">/mes</span></p>
-            <p class="soon">Próximamente</p>
             <ul class="small">
               <li class="plan__intro">Todo lo de Pro, más:</li>
               <li>Conversaciones altas</li>
               <li>Multi-app</li>
               <li>Soporte prioritario</li>
             </ul>
+            <p class="soon">Próximamente</p>
           </article>
         </div>
         <p class="small muted plans__note">Precios en dólares y provisionales: todavía los estamos definiendo.</p>
@@ -490,6 +505,7 @@
       <div class="wrap faq-wrap">
         <div class="section__head">
           <h2 id="faq-t">Preguntas frecuentes.</h2>
+          <p class="muted">¿Otra duda? Escribinos a <a href="mailto:walkyup@gmail.com">walkyup@gmail.com</a>.</p>
         </div>
         <div class="faq">
           <details>
