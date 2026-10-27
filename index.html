@@ -75,6 +75,7 @@
     .wdemo__disc { padding: 10px 16px 12px; font-size: 0.6875rem; line-height: 1.45; color: #6b7280; text-align: center; }
 
     /* ---------- Producto (banda gris): paneles blancos con escenario arriba ---------- */
+    .section__head--center { margin-inline: auto; text-align: center; justify-items: center; }
     .panels { display: grid; gap: var(--s2); margin-bottom: var(--s6); }
     .card--feature { overflow: hidden; }
     .card--feature .stage { border-radius: 0; padding: var(--s3) var(--s2); }
@@ -108,24 +109,20 @@
     .plan__desc { color: var(--text-2); max-width: 30ch; }
     .plan ul { display: grid; gap: 12px; padding-block: var(--s2) var(--s4); }
     .plan li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; }
-    .plan li .icon { width: 18px; height: 18px; margin-top: 2px; stroke-width: 2; color: var(--accent); }
-    .plan--free li .icon { color: var(--ok); }               /* verde: disponible hoy */
+    .plan li .icon { width: 18px; height: 18px; margin-top: 2px; stroke-width: 2; color: var(--ok); }
+    .plan--free li .icon { color: var(--accent); }           /* azul solo en la primera tarjeta */
     .plan li.plan__intro { display: block; font-weight: 500; }
     .plan__foot { margin-top: auto; display: grid; gap: 12px; }
     .plan__price { display: flex; align-items: baseline; gap: 6px; }
     .plan__amount { font-size: 2.5rem; line-height: 1; letter-spacing: -0.02em; }
     .plan__cur { margin-left: auto; }
     .plan__note { text-align: center; font-size: 0.8125rem; color: var(--text-2); }
-    .soon {
-      display: flex; align-items: center; justify-content: center; min-height: 44px;
-      border: 1px solid var(--border); border-radius: var(--r-ctl);
-      font-size: 0.9375rem; color: var(--text-2);
-    }
+    .soon, .soon:hover { cursor: default; background: var(--text); }   /* parece botón pero no lleva enlace */
+    .plan--dark .btn-primary, .plan--dark .soon { background: #fff; color: var(--text); }
     .plan--dark { background: var(--text); border-color: var(--text); color: #E5E7EA; }
     .plan--dark h3, .plan--dark .plan__amount { color: #fff; }
     .plan--dark .plan__desc, .plan--dark .muted, .plan--dark .plan__note { color: #A1A6AE; }
-    .plan--dark .soon { border-color: #3A3E46; color: #C9CDD3; }
-    .plans__note { margin-top: var(--s3); }
+    .plans__note { margin-top: var(--s3); text-align: center; }
 
     /* ---------- FAQ (banda blanca) ---------- */
     .faq-wrap { display: grid; gap: var(--s5); }
@@ -307,7 +304,7 @@
     <!-- ==================== PRODUCTO (gris) ==================== -->
     <section class="section band-alt" id="caracteristicas" aria-labelledby="prod-t">
       <div class="wrap">
-        <div class="section__head">
+        <div class="section__head section__head--center">
           <h2 id="prod-t">Lo que ya funciona.</h2>
           <p class="muted">Esto lo podés usar hoy.</p>
         </div>
@@ -466,7 +463,7 @@
     <!-- TODO: definir límites reales antes de cobrar -->
     <section class="section band-alt" id="precios" aria-labelledby="price-t">
       <div class="wrap">
-        <div class="section__head">
+        <div class="section__head section__head--center">
           <p class="label">Provisionales</p>
           <h2 id="price-t">Precios.</h2>
           <p class="muted">Empezá gratis. Los planes pagos llegan pronto.</p>
@@ -495,7 +492,7 @@
             </ul>
             <div class="plan__foot">
               <p class="plan__price"><span class="plan__amount">$19</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
-              <p class="soon">Próximamente</p>
+              <span class="btn btn-primary btn-block soon">Próximamente</span>
               <p class="plan__note">Todavía no se puede contratar.</p>
             </div>
           </article>
@@ -510,7 +507,7 @@
             </ul>
             <div class="plan__foot">
               <p class="plan__price"><span class="plan__amount">$49</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
-              <p class="soon">Próximamente</p>
+              <span class="btn btn-primary btn-block soon">Próximamente</span>
               <p class="plan__note">Todavía no se puede contratar.</p>
             </div>
           </article>
