@@ -19,6 +19,8 @@
       /* alias que usan estilos inline y la vista previa del chat */
       --wa-ink-2:var(--text-2);--wa-ink-3:var(--text-2);--wa-font:var(--font);}
     html{scroll-behavior:auto;}
+    /* Escritorio: sin rebote del touchpad, el menú lateral nunca se despega del borde */
+    @media (min-width:769px){ html,body{overscroll-behavior:none;} }
     body{font-size:.9375rem;line-height:1.5;}
     * { -webkit-tap-highlight-color: transparent; }
     .wa-brand, .wa-nav a, .wa-tab, .wa-btn, .wa-burger, .wa-attach-btn {
