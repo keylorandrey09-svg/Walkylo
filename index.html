@@ -40,7 +40,7 @@
       font: 400 0.75rem/1 var(--mono); color: var(--text-2);
     }
     /* Móvil: el sitio asoma arriba y el widget sube como hoja desde abajo (igual que w.js en celular) */
-    .browser__body { position: relative; display: flex; justify-content: flex-end; padding: 120px 0 0; }
+    .browser__body { position: relative; display: flex; justify-content: flex-end; padding: 96px 8px 0; background: #F1F2F4; }
     .browser__site { position: absolute; top: 0; left: 0; }
     .browser__site .b { stroke: #CDD1D6; }                        /* sitio de fondo: un poco más oscuro, sin competir */
     .browser__site .sb { fill: #EFF1F3; stroke: #CDD1D6; }
@@ -56,10 +56,10 @@
 
     /* ---------- Réplica estática del widget (estado vacío) ---------- */
     .wdemo {
-      width: 100%; height: 400px;
+      width: 100%; height: 330px;
       display: flex; flex-direction: column;
       background: #fff; color: #0a0a0a;
-      border: 1px solid #0a0a0a; border-width: 1px 0 0; border-radius: 20px 20px 0 0; overflow: hidden;
+      border: 1px solid #0a0a0a; border-bottom: 0; border-radius: 20px 20px 0 0; overflow: hidden;
       user-select: none; -webkit-user-select: none;
     }
     .wdemo__grip { flex-shrink: 0; width: 36px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: #d4d4d8; }
@@ -77,8 +77,10 @@
     .wdemo__composer {
       margin: 6px 12px 0; display: flex; align-items: center; gap: 8px;
       background: #f6f6f7; border: 1px solid #ececec; border-radius: 24px;
-      padding: 6px 6px 6px 16px;
+      padding: 6px 6px 6px 6px;
     }
+    .wdemo__plus { width: 32px; height: 32px; display: grid; place-items: center; color: #6b7280; }
+    .wdemo__plus .icon { width: 20px; height: 20px; }
     .wdemo__ph { flex: 1; font-size: 0.9375rem; color: #6b7280; }
     .wdemo__send {
       width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
@@ -168,9 +170,11 @@
       .wdemo__ico { width: 34px; height: 34px; }
       .wdemo__nm { font-size: 0.9375rem; }
       .wdemo__title { font-size: 1.5rem; }
-      .browser__body { padding: 48px 16px 16px; }
+      .browser__body { padding: 48px 16px 16px; background: none; }
       .browser__widget .tag { right: auto; left: 0; bottom: calc(100% + 4px); }
-      .wdemo { border-width: 1px; border-radius: 16px; }
+      .wdemo { border-bottom: 1px solid #0a0a0a; border-radius: 16px; }
+      .wdemo__composer { padding-left: 16px; }
+      .wdemo__plus { display: none; }
       .wdemo__grip { display: none; }
     }
     @media (min-width: 620px) {
@@ -282,6 +286,7 @@
                       </div>
                       <div class="wdemo__body"><p class="wdemo__title">¿En qué podemos ayudarte hoy?</p></div>
                       <div class="wdemo__composer">
+                        <span class="wdemo__plus"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
                         <span class="wdemo__ph">Escribí tu mensaje…</span>
                         <span class="wdemo__send"><svg class="icon" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
                       </div>
