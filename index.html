@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Walkylet — Ayuda con IA para tu app, lista en una línea</title>
-  <meta name="description" content="Walkylet es un chat de ayuda que sumás a tu web con una línea de código y configurás desde tu panel. En acceso anticipado." />
+  <title>Walkylet — Asistente de ayuda para tu web, en una línea</title>
+  <meta name="description" content="Walkylet es un asistente de ayuda que instalás en tu web con una línea y configurás desde tu panel. Las respuestas con IA se están conectando." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Walkylet" />
+  <meta property="og:locale" content="es_LA" />
+  <meta property="og:title" content="Walkylet — Asistente de ayuda para tu web, en una línea" />
+  <meta property="og:description" content="Se instala con una línea y se configura desde tu panel. Las respuestas con IA se están conectando." />
   <meta name="theme-color" content="#FFFFFF" />
 
   <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
@@ -20,6 +25,10 @@
     .hero__top .lead { max-width: 40ch; align-self: end; }
     .hero__product { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); margin-top: var(--s6); align-items: start; }
     .hero figcaption { margin-top: var(--s1); }
+    /* Datos verificables bajo el hero */
+    .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2) var(--s5); margin-top: var(--s6); padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--text-2); }
+    .trust li { display: inline-flex; align-items: center; gap: var(--s1); }
+    .trust .icon { width: 18px; height: 18px; color: var(--text); }
 
     /* Escenario del hero: marco de navegador blanco con el widget anclado abajo a la derecha */
     .stage--hero { padding: var(--s2); }
@@ -30,10 +39,13 @@
       border: 1px solid var(--border); border-radius: var(--r-ctl);
       font: 400 0.75rem/1 var(--mono); color: var(--text-2);
     }
-    .browser__body { position: relative; display: flex; justify-content: flex-end; padding: 48px 12px 12px; }
-    .browser__site { position: absolute; top: 0; left: 0; display: none; }  /* en celular el widget tapa el sitio: solo se dibuja desde 480px */
+    /* Móvil: el sitio asoma arriba y el widget sube como hoja desde abajo (igual que w.js en celular) */
+    .browser__body { position: relative; display: flex; justify-content: flex-end; padding: 120px 0 0; }
+    .browser__site { position: absolute; top: 0; left: 0; }
+    .browser__site .b { stroke: #CDD1D6; }                        /* sitio de fondo: un poco más oscuro, sin competir */
+    .browser__site .sb { fill: #EFF1F3; stroke: #CDD1D6; }
     .browser__widget { position: relative; width: 100%; max-width: 320px; }
-    .browser__widget .tag { position: absolute; bottom: calc(100% + 4px); left: 0; }
+    .browser__widget .tag { position: absolute; bottom: calc(100% + 6px); right: 12px; }
 
     .install { display: grid; gap: var(--s2); align-content: start; }
     .install h2 { font-size: 1.0625rem; line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
@@ -47,10 +59,11 @@
       width: 100%; height: 400px;
       display: flex; flex-direction: column;
       background: #fff; color: #0a0a0a;
-      border: 1px solid #0a0a0a; border-radius: 16px; overflow: hidden;
+      border: 1px solid #0a0a0a; border-width: 1px 0 0; border-radius: 20px 20px 0 0; overflow: hidden;
       user-select: none; -webkit-user-select: none;
     }
-    .wdemo__head { display: flex; align-items: center; gap: 2px; padding: 8px 6px 4px; }
+    .wdemo__grip { flex-shrink: 0; width: 36px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: #d4d4d8; }
+    .wdemo__head { display: flex; align-items: center; gap: 2px; padding: 4px 6px 4px; }
     .wdemo__ico { width: 30px; height: 30px; display: grid; place-items: center; color: #0a0a0a; }
     .wdemo__ico .icon { width: 18px; height: 18px; }
     .wdemo__ava {
@@ -82,9 +95,17 @@
     .card--feature .art { max-width: 400px; margin-inline: auto; }
     .card__text { display: grid; gap: var(--s1); padding: var(--s3); }
     .card__text p, .feature p { color: var(--text-2); }
-    .features { display: grid; gap: 0 var(--s4); }
-    .feature { display: grid; gap: var(--s1); align-content: start; padding-block: var(--s3); border-top: 1px solid var(--border); }
-    .feature .icon { width: 24px; height: 24px; margin-bottom: var(--s1); }
+    /* Estado del proyecto: 3 columnas sobre la banda gris, sin tarjetas */
+    .status { display: grid; gap: var(--s4); margin-top: var(--s8); padding-top: var(--s6); border-top: 1px solid var(--border); }
+    .status__head { display: grid; gap: var(--s2); max-width: 640px; }
+    .status__cols { display: grid; gap: var(--s4); }
+    .status__col { display: grid; gap: var(--s1); align-content: start; }
+    .status__tag { display: inline-flex; align-items: center; gap: var(--s1); font: 400 0.8125rem/1.4 var(--mono); color: var(--text); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--text-2); }
+    .dot--ok { background: var(--ok); border-color: var(--ok); }            /* verde: confirmado, funciona hoy */
+    .dot--dev { background: var(--accent); border-color: var(--accent); }   /* azul: estado activo */
+    .status__col ul { color: var(--text-2); }
+    .status__col li { padding-block: 12px; border-bottom: 1px solid var(--border); }
 
     /* ---------- Cómo funciona (banda blanca) ---------- */
     .how { display: grid; gap: var(--s4); }
@@ -93,12 +114,14 @@
     .how .stage .art { max-width: 360px; margin-inline: auto; display: none; }
     .how[data-active="1"] [data-art="1"], .how[data-active="2"] [data-art="2"], .how[data-active="3"] [data-art="3"] { display: block; }
     .how__steps { display: grid; gap: var(--s1); }
-    .how__steps li { display: grid; grid-template-columns: 40px 1fr; gap: 4px var(--s2); align-content: center; min-height: 44px; padding: var(--s2); border-radius: var(--r-box); cursor: default; }
+    .how__steps li { display: grid; grid-template-columns: 56px 1fr; gap: 4px var(--s2); align-content: center; min-height: 44px; padding: var(--s2); border-radius: var(--r-box); cursor: default; }
     .how__steps h3 { color: var(--text-2); }
-    .how__n { font: 400 0.8125rem/1.9 var(--mono); color: var(--text-2); }
+    .how__n { display: inline-flex; align-items: center; gap: 6px; height: 1.6em; font: 400 0.875rem/1 var(--font); font-variant-numeric: tabular-nums; color: var(--text-2); }  /* Geist normal: el 0 de la mono va tachado */
+    .how__hand { width: 20px; height: 20px; color: var(--text); visibility: hidden; }
     .how__steps p { grid-column: 2; color: var(--text-2); }
     .how[data-active="1"] [data-step="1"] h3, .how[data-active="2"] [data-step="2"] h3, .how[data-active="3"] [data-step="3"] h3 { color: var(--text); }
     .how[data-active="1"] [data-step="1"] .how__n, .how[data-active="2"] [data-step="2"] .how__n, .how[data-active="3"] [data-step="3"] .how__n { color: var(--accent); }
+    .how[data-active="1"] [data-step="1"] .how__hand, .how[data-active="2"] [data-step="2"] .how__hand, .how[data-active="3"] [data-step="3"] .how__hand { visibility: visible; }
 
     /* ---------- Precios (banda gris): tres tarjetas separadas, la del medio oscura ---------- */
     .plans { display: grid; gap: var(--s2); }
@@ -117,8 +140,8 @@
     .plan__amount { font-size: 2.5rem; line-height: 1; letter-spacing: -0.02em; }
     .plan__cur { margin-left: auto; }
     .plan__note { text-align: center; font-size: 0.8125rem; color: var(--text-2); }
-    .soon, .soon:hover { cursor: default; background: var(--text); }   /* parece botón pero no lleva enlace */
-    .plan--dark .btn-primary, .plan--dark .soon { background: #fff; color: var(--text); }
+    .soon, .soon:hover { cursor: default; background: transparent; color: var(--text-2); border-color: var(--border); }   /* sin enlace */
+    .plan--dark .soon { background: #fff; color: var(--text); border-color: #fff; }
     .plan--dark { background: var(--text); border-color: var(--text); color: #E5E7EA; }
     .plan--dark h3, .plan--dark .plan__amount { color: #fff; }
     .plan--dark .plan__desc, .plan--dark .muted, .plan--dark .plan__note { color: #A1A6AE; }
@@ -129,7 +152,8 @@
     .faq-wrap .section__head { align-content: start; }
 
     /* ---------- Cierre (banda gris) ---------- */
-    .closing { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3); }
+    .closing { display: grid; justify-items: center; gap: var(--s2); max-width: calc(560px + 2 * var(--gutter)); text-align: center; }
+    .closing .btn { margin-top: var(--s1); }
 
     /* ---------- Footer (blanco con línea superior) ---------- */
     .footer__grid { display: grid; gap: var(--s5); }
@@ -145,10 +169,11 @@
       .wdemo__nm { font-size: 0.9375rem; }
       .wdemo__title { font-size: 1.5rem; }
       .browser__body { padding: 48px 16px 16px; }
-      .browser__site { display: block; }
+      .browser__widget .tag { right: auto; left: 0; bottom: calc(100% + 4px); }
+      .wdemo { border-width: 1px; border-radius: 16px; }
+      .wdemo__grip { display: none; }
     }
     @media (min-width: 620px) {
-      .features { grid-template-columns: repeat(2, 1fr); }
       .footer__cols { grid-template-columns: repeat(3, 1fr); }
       .stage--hero { padding: var(--s4); }
     }
@@ -156,6 +181,7 @@
       .panels { grid-template-columns: repeat(2, 1fr); }
       .card--feature .stage { padding: var(--s4) var(--s3); }
       .plans { grid-template-columns: repeat(3, 1fr); }
+      .status__cols { grid-template-columns: repeat(3, 1fr); }
     }
     @media (min-width: 880px) {
       .hero { padding-block: var(--s8) var(--s10); }
@@ -170,9 +196,6 @@
       .plan { padding: var(--s4); }
       .footer__grid { grid-template-columns: 5fr 7fr; }
     }
-    @media (min-width: 1024px) {
-      .features { grid-template-columns: repeat(4, 1fr); }
-    }
   </style>
 </head>
 
@@ -185,6 +208,7 @@
 
       <nav class="nav" aria-label="Navegación principal">
         <a href="#caracteristicas">Producto</a>
+        <a href="#estado">Estado</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#faq">FAQ</a>
@@ -204,13 +228,13 @@
     <div class="mobile-menu" id="menu-movil" hidden>
       <nav aria-label="Secciones">
         <a href="#caracteristicas">Producto</a>
+        <a href="#estado">Estado</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#faq">FAQ</a>
       </nav>
       <div class="mobile-menu__actions">
         <a class="btn btn-secondary btn-block" href="/login">Iniciar sesión</a>
-        <a class="btn btn-primary btn-block" href="/login?signup">Empezar</a>
       </div>
     </div>
   </header>
@@ -221,10 +245,10 @@
       <div class="wrap">
         <div class="hero__top">
           <div class="hero__title">
-            <p class="label">Acceso anticipado</p>
-            <h1 id="hero-t">Ayuda para tu web, en una línea</h1>
+            <p class="label">En desarrollo</p>
+            <h1 id="hero-t">Ayuda para tus usuarios, en una línea</h1>
           </div>
-          <p class="lead">Un chat para tu sitio: pegás un script y lo ajustás en el panel. La IA se está conectando; hoy responde con un mensaje de espera.</p>
+          <p class="lead">Se instala con una línea y se ajusta en tu panel. La IA se está conectando: va a responder dudas, guiar y pasar el enlace correcto.</p>
         </div>
 
         <div class="hero__product">
@@ -247,6 +271,7 @@
                     <span class="tag" aria-hidden="true">walkylet</span>
                     <!-- Réplica estática del estado vacío de w.js (no interactiva) -->
                     <div class="wdemo" aria-hidden="true">
+                      <div class="wdemo__grip"></div>
                       <div class="wdemo__head">
                         <span class="wdemo__ico"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r=".8"/><circle cx="12" cy="12" r=".8"/><circle cx="12" cy="19" r=".8"/></svg></span>
                         <span class="wdemo__ava"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg></span>
@@ -287,7 +312,7 @@
   defer&gt;&lt;/script&gt;</code></pre>
             </div>
             <p class="sr-only" role="status" aria-live="polite" id="copy-status"></p>
-            <p class="small muted"><a href="/login?signup">Creá tu cuenta</a> para obtener tu ID. No pide tarjeta.</p>
+            <p class="small muted">Tu ID real lo copiás desde el panel. <a href="/login?signup">Crear cuenta</a></p>
             <div class="install__after">
               <p class="label">Al pegarlo</p>
               <ul class="checks small">
@@ -298,6 +323,12 @@
             </div>
           </div>
         </div>
+
+        <ul class="trust small" aria-label="Datos del widget">
+          <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Sin tarjeta para empezar</li>
+          <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22M17.5 15H9"/></svg>w.js pesa 28 KB con gzip</li>
+          <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Un solo archivo, sin dependencias</li>
+        </ul>
       </div>
     </section>
 
@@ -361,26 +392,34 @@
           </div>
         </div>
 
-        <div class="features">
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13.5 5l-3 14"/></svg>
-            <h3>Una línea, sin dependencias</h3>
-            <p>Un solo archivo con carga diferida. Sin build.</p>
+        <div class="status" id="estado">
+          <div class="status__head">
+            <h2 id="estado-t">Estado del proyecto</h2>
+            <p class="muted">Qué funciona hoy y en qué estamos trabajando.</p>
           </div>
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
-            <h3>Tu nombre y tu foto</h3>
-            <p>Nombre, foto y color del logo, desde el panel.</p>
-          </div>
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            <h3>Historial en el dispositivo</h3>
-            <p>Los chats quedan en el navegador del visitante, no en servidores.</p>
-          </div>
-          <div class="feature">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/><path d="M17 15l2 2 3-4"/></svg>
-            <h3>IA, en camino</h3>
-            <p>Ya cargás la información; la IA la usará al conectarse.</p>
+          <div class="status__cols">
+            <div class="status__col">
+              <p class="status__tag"><span class="dot dot--ok" aria-hidden="true"></span>disponible hoy</p>
+              <ul class="small">
+                <li>Widget que se instala con una línea</li>
+                <li>Panel para nombre, foto, color del logo y tema</li>
+                <li>Tema claro y oscuro</li>
+                <li>Historial guardado en el dispositivo del visitante</li>
+              </ul>
+            </div>
+            <div class="status__col">
+              <p class="status__tag"><span class="dot dot--dev" aria-hidden="true"></span>en desarrollo</p>
+              <ul class="small">
+                <li>Respuestas con IA según lo que cargás en el panel</li>
+              </ul>
+            </div>
+            <div class="status__col">
+              <p class="status__tag"><span class="dot" aria-hidden="true"></span>después</p>
+              <ul class="small">
+                <li>Planes de pago (hoy los precios son provisionales)</li>
+                <li>Dominio propio</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -391,7 +430,7 @@
       <div class="wrap how" data-active="1">
           <div class="section__head">
             <h2 id="how-t">Cómo funciona</h2>
-            <p class="muted">Tres pasos, sin tocar tu servidor.</p>
+            <p class="muted">Tres pasos y el widget queda en tu sitio.</p>
           </div>
           <!-- Dibujo 2: cambia según el paso activo -->
           <div class="stage" aria-hidden="true">
@@ -441,17 +480,17 @@
           </div>
         <ol class="how__steps">
           <li data-step="1" tabindex="0">
-            <span class="how__n" aria-hidden="true">01</span>
+            <span class="how__n" aria-hidden="true"><svg class="icon how__hand" viewBox="0 0 24 24"><g transform="rotate(90 12 12)"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></g></svg>01</span>
             <h3>Creás tu widget</h3>
             <p>Te registrás y el panel le asigna un identificador propio.</p>
           </li>
           <li data-step="2" tabindex="0">
-            <span class="how__n" aria-hidden="true">02</span>
+            <span class="how__n" aria-hidden="true"><svg class="icon how__hand" viewBox="0 0 24 24"><g transform="rotate(90 12 12)"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></g></svg>02</span>
             <h3>Pegás una línea</h3>
             <p>Copiás el script del panel y lo pegás en tu sitio.</p>
           </li>
           <li data-step="3" tabindex="0">
-            <span class="how__n" aria-hidden="true">03</span>
+            <span class="how__n" aria-hidden="true"><svg class="icon how__hand" viewBox="0 0 24 24"><g transform="rotate(90 12 12)"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></g></svg>03</span>
             <h3>Lo ajustás desde el panel</h3>
             <p>Nombre, foto, color y tema. Se actualiza sin reinstalar nada.</p>
           </li>
@@ -466,7 +505,7 @@
         <div class="section__head section__head--center">
           <p class="label">Provisionales</p>
           <h2 id="price-t">Precios</h2>
-          <p class="muted">Empezá gratis. Los planes pagos llegan pronto.</p>
+          <p class="muted">Empezá gratis. Los planes pagos todavía no están disponibles.</p>
         </div>
         <div class="plans">
           <article class="plan plan--free">
@@ -479,7 +518,7 @@
             </ul>
             <div class="plan__foot">
               <p class="plan__price"><span class="plan__amount">$0</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
-              <a class="btn btn-primary btn-block" href="/login?signup">Empezar gratis</a>
+              <a class="btn btn-secondary btn-block" href="/login?signup">Empezar gratis</a>
               <p class="plan__note">Sin tarjeta.</p>
             </div>
           </article>
@@ -492,7 +531,7 @@
             </ul>
             <div class="plan__foot">
               <p class="plan__price"><span class="plan__amount">$19</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
-              <span class="btn btn-primary btn-block soon">Próximamente</span>
+              <span class="btn btn-secondary btn-block soon">Próximamente</span>
               <p class="plan__note">Todavía no se puede contratar.</p>
             </div>
           </article>
@@ -507,7 +546,7 @@
             </ul>
             <div class="plan__foot">
               <p class="plan__price"><span class="plan__amount">$49</span><span class="small muted">/mes</span><span class="small muted plan__cur">USD</span></p>
-              <span class="btn btn-primary btn-block soon">Próximamente</span>
+              <span class="btn btn-secondary btn-block soon">Próximamente</span>
               <p class="plan__note">Todavía no se puede contratar.</p>
             </div>
           </article>
@@ -526,7 +565,11 @@
         <div class="faq">
           <details>
             <summary>¿Qué es Walkylet?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Un chat de ayuda que sumás a tu web con una línea de código. Está en acceso anticipado: hoy responde con un mensaje de espera.</p>
+            <p>Un asistente de ayuda que instalás en tu web con una línea de código y configurás desde tu panel. Está en desarrollo activo.</p>
+          </details>
+          <details>
+            <summary>¿Ya responde la IA?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Todavía no: hoy el chat contesta con un mensaje de espera. Estamos conectando la IA para que responda con la información que cargás en el panel.</p>
           </details>
           <details>
             <summary>¿Cómo lo instalo?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
@@ -535,10 +578,6 @@
           <details>
             <summary>¿Necesito saber programar?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
             <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel.</p>
-          </details>
-          <details>
-            <summary>¿De dónde va a sacar las respuestas?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>De la información que cargues en el panel. Esa parte todavía no está activa.</p>
           </details>
           <details>
             <summary>¿Necesito una clave de IA o una cuenta aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
@@ -556,6 +595,7 @@
     <section class="section band-alt" aria-labelledby="end-t">
       <div class="wrap closing">
         <h2 id="end-t">Probalo en tu sitio</h2>
+        <p class="muted">Instalalo con una línea y ajustalo desde tu panel.</p>
         <a class="btn btn-primary" href="/login?signup">Empezar gratis</a>
       </div>
     </section>
@@ -577,6 +617,7 @@
             <h2 id="f-prod">Producto</h2>
             <ul>
               <li><a href="#caracteristicas">Producto</a></li>
+              <li><a href="#estado">Estado</a></li>
               <li><a href="#precios">Precios</a></li>
               <li><a href="#faq">FAQ</a></li>
             </ul>
@@ -598,7 +639,7 @@
           </nav>
         </div>
       </div>
-      <p class="small muted footer__bottom">© 2026 Walkylet · Servicio de soporte con IA</p>
+      <p class="small muted footer__bottom">© 2026 Walkylet · Asistente de ayuda para sitios web</p>
     </div>
   </footer>
 
@@ -616,7 +657,7 @@
     btn.addEventListener("click", function () { setMenu(menu.hidden); });
     menu.addEventListener("click", function (e) { if (e.target.closest("a")) setMenu(false); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { setMenu(false); btn.focus(); } });
-    window.matchMedia("(min-width: 768px)").addEventListener("change", function (m) { if (m.matches) setMenu(false); });
+    window.matchMedia("(min-width: 1024px)").addEventListener("change", function (m) { if (m.matches) setMenu(false); });
 
     // Cómo funciona: el paso con hover, foco o toque elige el dibujo
     var how = document.querySelector(".how");
