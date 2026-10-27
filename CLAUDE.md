@@ -33,7 +33,7 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Accesibilidad y `prefers-reduced-motion` en todo lo nuevo.
 
 ## Sistema visual web
-(Aplica a la landing `index.html`. Tokens, fuentes y componentes base en `/brand.css`, enlazado solo desde `index.html`. No aplica al widget ni al panel.)
+(Aplica a la landing `index.html`. Tokens, fuentes y componentes base en `/brand.css`; el panel también lo importa, con sus propias reglas en "Sistema visual app". No aplica al widget.)
 - Paleta (variables en `:root`): `--bg #FFFFFF`, `--surface #F6F7F8`, `--border #E5E7EA`, `--text-2 #6B7079`, `--text #0E1014`, `--accent #0164FD`, `--ok #079455`.
 - Botón principal: fondo `--text` con texto blanco. Secundario: borde `--border`, sin relleno.
 - El azul solo para enlaces, foco (`focus-visible`) y estado activo/seleccionado. Máximo un elemento azul visible por pantalla. Nunca en títulos, íconos decorativos ni etiquetas. Excepción (pedido de Keylor): las palomas de las listas de Precios van en azul solo en la primera tarjeta (Gratis) y en verde (`--ok`) en Pro y Business.
@@ -56,6 +56,22 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Datos verificables bajo el hero: fila centrada con íconos de línea (no palomas; ya hay muchas en la página). En celular, 2 arriba y 1 abajo con el ícono sobre el texto; mismo aire arriba (desde la línea) y abajo (hasta la banda gris).
 - Números de los pasos de "Cómo funciona" en Geist normal con cifras tabulares (el 0 de Geist Mono va tachado). El paso activo muestra una manita de línea negra que señala (estilo 👉, SVG, no emoji de color).
 - El snippet de instalación vive en un solo lugar (`#snippet` en `index.html`) y apunta a `https://walkylo.vercel.app/w.js` hasta que haya dominio propio.
+
+## Sistema visual app
+(Aplica al panel `app/index.html`. Misma dirección que la landing; no aplica al interior de la vista previa del chat, que imita a `w.js`.)
+- Tokens compartidos: el panel importa `/brand.css` con ruta absoluta en la capa `brand` (`@import url("/brand.css") layer(brand)`), así sus reglas ganan sin pelear especificidad. Su CSS propio sigue inline en `app/index.html`; no crear archivos dentro de `/app/` (el rewrite de `vercel.json` los taparía).
+- Tema: `data-theme="dark"` en `<html>` (se guarda en `localStorage` `wu-theme`). Los valores oscuros viven en `brand.css` (`:root[data-theme="dark"]`, tomados del tema oscuro de `w.js`). `--danger` (rojo) solo para acciones destructivas y errores.
+- Tipografía: Geist 400/500, nunca más. Título de vista 1.5rem/1.2 peso 500, `letter-spacing -0.01em`; cuerpo 0.9375rem; secundario 0.8125rem; etiquetas en oración, sin mayúsculas ni tracking. Geist Mono solo para números o códigos chicos.
+- Fondos: contenido en `--bg`; menú en `--surface` con borde derecho 1px `--border`. Prohibido: sombras, gradientes (excepción: la muestra "Paleta" y el selector de color, que son el color mismo) y grises azulados.
+- Botones: principal con fondo `--text` y texto `--bg`, radio 6px, alto 40px, y uno solo por vista. Secundario con borde 1px `--border`, sin relleno. Destructivo: texto `--danger`, sin relleno. No existe el botón azul lleno.
+- Campos: fondo `--bg`, borde 1px `--border`, radio 6px, alto 40px (44px en móvil); al enfocar, borde y anillo `--accent`.
+- Control segmentado: radio 6px; seleccionado con fondo `--bg` y borde.
+- Paneles y tarjetas: borde 1px `--border`, radio 10px, fondo `--bg`. Radios solo 6/10 (4px solo en un control anidado dentro de otro de 6px).
+- Íconos de línea de 20px, trazo 1.5px, sin fondo tintado.
+- Azul solo en enlaces, foco (`focus-visible`) y el punto de notificaciones no leídas (8px). El ítem activo del menú y los seleccionados van en negro/gris, nunca en azul. Verde solo para estados confirmados.
+- Menú lateral (≥769px): 240px fijo; logo arriba; grupos con etiqueta chica gris: "Producto" (Resumen, Conversaciones, Widget, Analíticas) y "Cuenta" (Notificaciones, Configuración); abajo, separados por una línea, Soporte y Cerrar sesión. Ítem de 40px, radio 6px, texto `--text-2`; hover `--text`; activo con fondo `--bg`, borde 1px y texto `--text` peso 500. Sin barra superior en escritorio.
+- Móvil (≤768px): barra fija de 56px con el logo a la izquierda y ≡ a la derecha (44px). El ≡ abre un cajón desde la izquierda con la misma lista, más un velo `--text` al 40% (negro al 60% en oscuro). Cierra con Escape, al tocar un enlace y al tocar el velo; bloquea el scroll del fondo; sin animaciones. Objetivos táctiles de 44px o más.
+- Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
 ## Cómo trabajar con Keylor
 - Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
