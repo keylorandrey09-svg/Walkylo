@@ -141,7 +141,7 @@ a:hover { text-decoration-thickness: 2px; }
   display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px;
   font-size: 0.875rem;
 }
-.nav a:hover, .footer a:hover { color: var(--text); }
+.nav a:hover, .footer a:hover, .footer a.logo { color: var(--text); }
 .site-header__actions { display: none; gap: 4px; }
 .site-header__actions .btn { padding-inline: 10px; }
 
@@ -184,17 +184,21 @@ a:hover { text-decoration-thickness: 2px; }
 }
 
 /* ---------- Secciones ---------- */
-.section { padding-block: var(--s10); }
-.section + .section { border-top: 1px solid var(--border); }
-.section__head { display: grid; gap: var(--s2); max-width: 640px; margin-bottom: var(--s6); }
+/* Bandas a todo el ancho: blanco y --surface alternados.
+   Regla: una superficie nunca va sobre el mismo color de su fondo. */
+.section { padding-block: var(--s8); }
+.band-alt { background: var(--surface); }
+.section__head { display: grid; gap: var(--s2); max-width: 640px; margin-bottom: var(--s5); }
 @media (min-width: 880px) {
-  .section { padding-block: var(--s16); }
-  .section__head { margin-bottom: var(--s8); }
+  .section { padding-block: var(--s12); }
+  .section__head { margin-bottom: var(--s6); }
 }
 
-/* Lista con líneas divisorias */
-.rule-list > li { border-top: 1px solid var(--border); }
-.rule-list > li:last-child { border-bottom: 1px solid var(--border); }
+/* Escenario de dibujo: --surface sin borde (va sobre blanco) */
+.stage { background: var(--surface); border-radius: var(--r-box); }
+
+/* Panel: blanco con borde (va sobre una banda --surface) */
+.card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-box); }
 
 /* ---------- Bloque de código con copiar ---------- */
 .code {
@@ -227,18 +231,23 @@ a:hover { text-decoration-thickness: 2px; }
 .copy-btn.is-copied .icon-copy { display: none; }
 .copy-btn.is-copied .icon-check { display: block; }
 
-/* ---------- Ilustraciones (vocabulario visual) ----------
-   Punteado = lo ajeno (tu sitio, tu CSS). Sólido = lo de Walkylet.
-   Trazo 1px, sin relleno salvo --surface, sin animación. */
+/* ---------- Dibujos (vocabulario visual) ----------
+   Cuadrícula de 8px, radios 6 y 10, trazo 1px, sin animación.
+   --border = sitio ajeno · --text-2 = secundario · --text = lo de Walkylet (protagonista).
+   Punteado solo para UN límite que importa. Relleno solo blanco o --surface. */
 .art { display: block; width: 100%; height: auto; }
-.art * { vector-effect: non-scaling-stroke; }
-.art .s, .art .g, .art .d, .art .lb, .art .fl { fill: none; stroke-width: 1; }
-.art .s { stroke: var(--text); }                               /* Walkylet */
-.art .g { stroke: var(--text-2); }                             /* detalle interno */
-.art .d { stroke: var(--text-2); stroke-dasharray: 3 3; }      /* lo ajeno */
-.art .lb, .art .fl { fill: var(--surface); stroke: var(--border); }
-.art .fl { stroke: var(--text-2); }
+.art * { vector-effect: non-scaling-stroke; stroke-width: 1; stroke-linecap: round; }
+.art .b  { fill: none; stroke: var(--border); }                   /* estructura ajena */
+.art .m  { fill: none; stroke: var(--text-2); }                   /* secundario */
+.art .p  { fill: none; stroke: var(--text); }                     /* protagonista */
+.art .wb { fill: var(--bg); stroke: var(--border); }              /* página ajena */
+.art .wm { fill: var(--bg); stroke: var(--text-2); }
+.art .wp { fill: var(--bg); stroke: var(--text); }                /* Walkylet */
+.art .sb { fill: var(--surface); stroke: var(--border); }
+.art .sm { fill: var(--surface); stroke: var(--text-2); }
+.art .dash { fill: none; stroke: var(--text-2); stroke-dasharray: 4 4; } /* el límite que importa */
 .art text { font: 400 11px var(--mono); fill: var(--text-2); }
+.art text.k { fill: var(--text); }
 .tag {
   display: inline-block; padding: 3px 7px;
   font: 400 0.75rem/1.3 var(--mono); color: var(--text-2);
