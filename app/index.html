@@ -211,6 +211,32 @@
     .wg-field__label{display:block;margin-bottom:6px;font-size:.875rem;font-weight:500;color:var(--text);}
     .wg-field__hint{margin-top:6px;font-size:.8125rem;color:var(--text-2);}
     .wg-row2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+    /* Pestañas de la vista Widget: texto, línea fina abajo y subrayado en la activa */
+    .wg-tabbar{margin-top:24px;border-bottom:1px solid var(--border);}
+    .wg-tabs{position:relative;display:flex;gap:4px;margin-bottom:-1px;overflow-x:auto;scrollbar-width:none;}
+    .wg-tabs::-webkit-scrollbar{display:none;}
+    .wg-tab{flex-shrink:0;min-height:44px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:none;
+      font:400 .9375rem var(--font);color:var(--text-2);white-space:nowrap;cursor:pointer;}
+    .wg-tab:hover{color:var(--text);}
+    .wg-tab[aria-selected="true"]{color:var(--text);font-weight:500;border-bottom-color:var(--text);}
+    .wg-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:6px;}
+    .wg-grid.is-full{grid-template-columns:minmax(0,1fr);}
+    .wg-grid.is-full .wg-preview{display:none;}
+    .wg-panel[hidden]{display:none;}
+    .wg-panel:focus-visible{outline-offset:4px;border-radius:6px;}
+    .wg-panel__hint{margin:0 0 4px;font-size:.8125rem;color:var(--text-2);}
+    .wg-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .wg-state .wg-field__hint{margin:0;}
+    .wg-install{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;color:var(--text);}
+    .wg-todo{margin:0 0 12px;padding:0;list-style:none;}
+    .wg-todo:last-child{margin-bottom:0;}
+    .wg-todo li{display:flex;align-items:center;gap:8px;min-height:32px;font-size:.875rem;color:var(--text);}
+    .wg-todo svg{width:20px;height:20px;flex-shrink:0;color:var(--ok);}
+    .wg-link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);text-align:left;cursor:pointer;}
+    .wg-link:hover{text-decoration:underline;}
+    .wg-soon{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 12px;
+      border:1px solid var(--border);border-radius:6px;font-size:.875rem;color:var(--text);}
+    .wg-soon__tag{padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;color:var(--text-2);}
     /* ===== Color del logo: Blanco · Negro · Paleta ===== */
     .wg-logo{display:flex;gap:12px;align-items:center;}
     .wg-logo__opt{position:relative;width:48px;height:48px;border:0;background:none;padding:0;cursor:pointer;border-radius:50%;display:grid;place-items:center;flex-shrink:0;}
@@ -475,10 +501,6 @@
     .cw-theme button.on{background:var(--bg);color:var(--ink);}
     .cw-sheet__foot{text-align:center;font-size:.72rem;color:var(--ink2);padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:4px;}
     .cw-sheet__foot a{color:var(--ink2);text-decoration:none;}
-    .wg-analyze-status[hidden]{display:none;}
-    .wg-analyze-status{display:flex;align-items:center;gap:8px;font-size:.8125rem;color:var(--text-2);margin-top:8px;}
-    .wg-analyze-status .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:wa-spin .7s linear infinite;}
-    .wg-analyze-status .ok{color:var(--ok);}
     @keyframes wa-spin{to{transform:rotate(360deg)}}
     @media (prefers-reduced-motion:reduce){
       .cw.has-hero .cw-hero h2{animation:none;}
@@ -837,22 +859,41 @@
             <div class="wg-actions" id="wgActions"></div>
           </div>
 
-          <div class="wg-grid">
+          <div class="wg-tabbar">
+            <div class="wg-tabs" id="wgTabs" role="tablist" aria-label="Secciones del widget">
+              <button class="wg-tab" id="wgTab-general" type="button" role="tab" aria-selected="true" aria-controls="wgPanel-general" data-tab="general">General</button>
+              <button class="wg-tab" id="wgTab-apariencia" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-apariencia" data-tab="apariencia" tabindex="-1">Apariencia</button>
+              <button class="wg-tab" id="wgTab-conocimiento" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-conocimiento" data-tab="conocimiento" tabindex="-1">Conocimiento</button>
+              <button class="wg-tab" id="wgTab-comportamiento" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-comportamiento" data-tab="comportamiento" tabindex="-1">Comportamiento</button>
+              <button class="wg-tab" id="wgTab-contacto" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-contacto" data-tab="contacto" tabindex="-1">Contacto y privacidad</button>
+            </div>
+          </div>
+
+          <div class="wg-grid is-full" id="wgGrid">
             <div class="wg-form">
-              <!-- Instalación / guía -->
-              <div class="cfg-card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                <div>
-                  <h2 class="cfg-card__title" style="margin-bottom:4px">Estado del chat</h2>
-                  <p class="wg-field__hint" style="margin:0" id="wgStateHint">El chat está activo en tu sitio.</p>
+              <!-- General -->
+              <div class="wg-panel" id="wgPanel-general" role="tabpanel" aria-labelledby="wgTab-general" tabindex="0">
+                <p class="wg-panel__hint">Estado del chat y lo que falta por completar.</p>
+                <div class="wg-field wg-state">
+                  <div>
+                    <span class="wg-field__label">Estado del chat</span>
+                    <p class="wg-field__hint" id="wgStateHint">El chat está activo en tu sitio.</p>
+                  </div>
+                  <div class="wg-row2" style="gap:8px">
+                    <button class="wa-btn" id="wgGuide" type="button">Ver guía</button>
+                    <button class="wa-btn" id="wgToggle" type="button">Deshabilitar chat</button>
+                  </div>
                 </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <button class="wa-btn" id="wgGuide" type="button">Ver guía</button>
-                  <button class="wa-btn" id="wgToggle" type="button">Deshabilitar chat</button>
+                <div class="wg-field wg-state">
+                  <span class="wg-field__label" style="margin:0">Instalación</span>
+                  <span class="wg-install" id="wgInstall"></span>
                 </div>
+                <div class="wg-field" id="wgTodo"></div>
               </div>
+
               <!-- Apariencia -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Apariencia</h2>
+              <div class="wg-panel" id="wgPanel-apariencia" role="tabpanel" aria-labelledby="wgTab-apariencia" tabindex="0" hidden>
+                <p class="wg-panel__hint">Cómo se ve el chat en tu sitio.</p>
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgName">Nombre del asistente</label>
                   <input class="wg-input" id="wgName" type="text" maxlength="40" disabled />
@@ -883,7 +924,8 @@
                       <span class="wg-logo__dot"><span class="wg-logo__fill"></span></span>
                     </button>
                   </div>
-                  <p class="wg-field__hint">Sin elegir, el logo se adapta al chat (claro u oscuro).</p>
+                  <p class="wg-field__hint" id="wgLogoHint">Sin elegir, el logo se adapta al chat (claro u oscuro).</p>
+                  <p class="wg-field__hint" id="wgLogoNote" hidden>El color aplica solo a los logos incluidos.</p>
                   <div class="wg-row2" style="margin-top:4px"><span class="wg-hex" id="wgHex" hidden></span></div>
                   <div class="wg-cp" id="wgCp" hidden>
                     <div class="wg-cp__sv" id="wgCpSv"><span class="wg-cp__thumb" id="wgCpThumb"></span></div>
@@ -896,40 +938,41 @@
                   </div>
                 </div>
                 <div class="wg-field">
-                  <label class="wg-field__label">Tema por defecto</label>
+                  <label class="wg-field__label">Tema por defecto del chat</label>
                   <div class="cfg-toggle" id="wgTheme">
                     <button type="button" data-th="light" disabled>Claro</button>
                     <button type="button" data-th="dark" disabled>Oscuro</button>
                   </div>
                 </div>
-                <div class="wg-field">
-                  <label class="wg-field__label" for="wgWelcome">Mensaje de bienvenida</label>
-                  <input class="wg-input" id="wgWelcome" type="text" maxlength="120" disabled />
-                </div>
               </div>
 
               <!-- Conocimiento -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Conocimiento</h2>
+              <div class="wg-panel" id="wgPanel-conocimiento" role="tabpanel" aria-labelledby="wgTab-conocimiento" tabindex="0" hidden>
+                <p class="wg-panel__hint">Lo que el asistente usará para responder cuando la IA esté conectada.</p>
                 <div class="wg-field">
-                  <label class="wg-field__label" for="wgSite">URL de tu sitio o app</label>
-                  <div class="wg-row2" style="gap:8px;align-items:stretch">
-                    <input class="wg-input" id="wgSite" type="url" placeholder="https://tuapp.com" disabled style="flex:1" />
-                    <button class="wa-btn wa-btn-ghost" id="wgAnalyze" type="button" disabled>Analizar</button>
-                  </div>
-                  <div class="wg-analyze-status" id="wgAnalyzeStatus" hidden></div>
-                  <p class="wg-field__hint">Walkylet lee tu sitio y arma un resumen acá abajo. <span style="opacity:.75">El análisis se activa al conectar la IA.</span></p>
+                  <label class="wg-field__label" for="wgKnow">Información para responder</label>
+                  <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
                 </div>
                 <div class="wg-field">
-                  <label class="wg-field__label" for="wgKnow">Información que usa para responder</label>
-                  <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
-                  <p class="wg-field__hint">Cuanto más completa, mejores respuestas. La IA responde con esta info.</p>
+                  <label class="wg-field__label" for="wgSite">URL de tu sitio o app</label>
+                  <input class="wg-input" id="wgSite" type="url" placeholder="https://tuapp.com" disabled />
+                </div>
+                <div class="wg-field">
+                  <div class="wg-soon">
+                    <span>Capturas y archivos</span>
+                    <span class="wg-soon__tag">Próximamente</span>
+                  </div>
+                  <p class="wg-field__hint">Se podrán agregar cuando la IA esté conectada.</p>
                 </div>
               </div>
 
               <!-- Comportamiento -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Comportamiento</h2>
+              <div class="wg-panel" id="wgPanel-comportamiento" role="tabpanel" aria-labelledby="wgTab-comportamiento" tabindex="0" hidden>
+                <p class="wg-panel__hint">Cómo saluda y responde el asistente.</p>
+                <div class="wg-field">
+                  <label class="wg-field__label" for="wgWelcome">Mensaje de bienvenida</label>
+                  <input class="wg-input" id="wgWelcome" type="text" maxlength="120" disabled />
+                </div>
                 <div class="wg-field">
                   <label class="wg-field__label">Tono</label>
                   <div class="cfg-toggle" id="wgTone">
@@ -956,17 +999,15 @@
               </div>
 
               <!-- Contacto y privacidad -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Contacto y privacidad</h2>
+              <div class="wg-panel" id="wgPanel-contacto" role="tabpanel" aria-labelledby="wgTab-contacto" tabindex="0" hidden>
+                <p class="wg-panel__hint">Aparecen en el menú del chat para tus visitantes.</p>
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgEmail">Correo de contacto</label>
                   <input class="wg-input" id="wgEmail" type="email" placeholder="soporte@tuempresa.com" disabled />
-                  <p class="wg-field__hint">Aparece en el menú del chat para que el visitante te escriba.</p>
                 </div>
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgPrivacy">URL de privacidad</label>
                   <input class="wg-input" id="wgPrivacy" type="url" placeholder="https://tuempresa.com/privacidad" disabled />
-                  <p class="wg-field__hint">Link a la política de privacidad de tu empresa (menú del chat).</p>
                 </div>
               </div>
 
@@ -1289,7 +1330,7 @@
       if (view === "analiticas") renderAnalytics();
       if (view === "config") renderConfig();
       if (view === "conversaciones") renderConversations();
-      if (view === "widget") renderWidget();
+      if (view === "widget"){ renderWidget(); wgTabSet("general"); }
       window.scrollTo(0,0);
     }
     function setActive(a){ navLinks.forEach(function(x){ x.classList.remove("is-active"); }); if(a) a.classList.add("is-active"); }
@@ -2172,7 +2213,57 @@
       }
       renderWidgetPreview();
       renderChatState();
+      wgRenderExtras();
     }
+
+    // ===== Pestañas de la vista Widget (en memoria, sin tocar la URL; todos los paneles quedan en el DOM) =====
+    var WG_TABS = ['general','apariencia','conocimiento','comportamiento','contacto'];
+    var WG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    function wgTabSet(name, focus){
+      WG_TABS.forEach(function(t){
+        var b = wgId('wgTab-' + t), p = wgId('wgPanel-' + t), on = (t === name);
+        b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; p.hidden = !on;
+        if (!on) return;
+        if (focus) b.focus();
+        var bar = wgId('wgTabs'), l = b.offsetLeft, r = l + b.offsetWidth;   // acerca la pestaña activa dentro de su barra
+        if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
+      });
+      wgId('wgGrid').classList.toggle('is-full', name !== 'apariencia' && name !== 'comportamiento');
+    }
+    // "Hecho" y "Falta" (solo campos que empiezan vacíos, según lo guardado), instalación y color del logo.
+    function wgRenderExtras(){
+      var w = appState.widget || {}, c = wgCfg();
+      var items = [['knowledge','Información para responder','conocimiento'],['siteUrl','URL del sitio','conocimiento'],
+                   ['contactEmail','Correo de contacto','contacto'],['privacyUrl','URL de privacidad','contacto']];
+      var done = '', todo = '';
+      items.forEach(function(it){
+        if (String(w[it[0]] || '').trim()) done += '<li>' + WG_CHECK + it[1] + '</li>';
+        else todo += '<li><button class="wg-link" type="button" data-goto="' + it[2] + '">' + it[1] + '</button></li>';
+      });
+      var box = wgId('wgTodo');
+      if (box) box.innerHTML = (done ? '<span class="wg-field__label">Hecho</span><ul class="wg-todo">' + done + '</ul>' : '') +
+        (todo ? '<span class="wg-field__label">Falta</span><ul class="wg-todo">' + todo + '</ul>' : '<p class="wg-field__hint" style="margin:0">No falta nada por completar.</p>');
+      var inst = wgId('wgInstall');
+      if (inst) inst.innerHTML = w.installed ? '<span class="cfg-dot"></span>Instalado' : 'Sin detectar todavía';
+      // El color solo aplica a los logos incluidos (no a una foto subida ni con la foto oculta).
+      var logoOk = !c.avatarHidden && !!WG_AVATARS[c.avatar];
+      Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt')).forEach(function(b){ b.disabled = !wgEditing || !logoOk; });
+      if (wgId('wgLogoNote')) wgId('wgLogoNote').hidden = logoOk;
+      if (wgId('wgLogoHint')) wgId('wgLogoHint').hidden = !logoOk;
+      if (!logoOk && wgId('wgCp')){ wgId('wgCp').hidden = true; wgId('wgCustomWrap').setAttribute('aria-expanded', 'false'); }
+    }
+    (function(){
+      var bar = wgId('wgTabs'); if (!bar) return;
+      bar.addEventListener('click', function(e){ var b = e.target.closest('[role=tab]'); if (b) wgTabSet(b.getAttribute('data-tab')); });
+      bar.addEventListener('keydown', function(e){
+        var i = WG_TABS.indexOf((e.target.getAttribute('data-tab')) || ''), n = WG_TABS.length;
+        var k = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
+        if (i < 0 || k === undefined) return;
+        e.preventDefault(); wgTabSet(WG_TABS[k], true);
+      });
+      var todo = wgId('wgTodo');
+      if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'); if (b) wgTabSet(b.getAttribute('data-goto'), true); });
+    })();
 
     function renderChatState(){
       var btn = wgId('wgToggle'), hint = wgId('wgStateHint');
