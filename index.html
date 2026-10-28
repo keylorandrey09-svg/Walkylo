@@ -39,7 +39,7 @@
     .browser__url {
       display: flex; align-items: center; flex: 1; max-width: 240px; height: 24px; padding: 0 var(--s1);
       border: 1px solid var(--border); border-radius: var(--r-ctl);
-      font: 400 0.75rem/1 var(--mono); color: var(--text-2);
+      font: 400 0.75rem/1 var(--mono); font-feature-settings: var(--mono-zero); color: var(--text-2);
     }
     /* Móvil: el sitio asoma arriba y el widget sube como hoja desde abajo (igual que w.js en celular) */
     .browser__body { position: relative; display: flex; justify-content: flex-end; padding: 96px 8px 0; background: #F1F2F4; }
@@ -104,7 +104,7 @@
     .status__head { display: grid; gap: var(--s2); max-width: 640px; }
     .status__cols { display: grid; gap: var(--s4); }
     .status__col { display: grid; gap: var(--s1); align-content: start; }
-    .status__tag { display: inline-flex; align-items: center; gap: var(--s1); font: 400 0.8125rem/1.4 var(--mono); color: var(--text); }
+    .status__tag { display: inline-flex; align-items: center; gap: var(--s1); font: 400 0.8125rem/1.4 var(--mono); font-feature-settings: var(--mono-zero); color: var(--text); }
     .dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--text-2); }
     .dot--ok { background: var(--ok); border-color: var(--ok); }            /* verde: confirmado, funciona hoy */
     .dot--dev { background: var(--accent); border-color: var(--accent); }   /* azul: estado activo */
