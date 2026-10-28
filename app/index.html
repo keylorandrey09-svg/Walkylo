@@ -88,14 +88,32 @@
       font:400 .9375rem var(--font);color:var(--text-2);cursor:pointer;white-space:nowrap;}
     .wa-tab:hover{color:var(--text);}
     .wa-tab.is-active{color:var(--text);border-bottom-color:var(--text);}
-    .wa-chart{position:relative;padding:12px 12px 6px;}
-    .wa-chart svg{width:100%;height:auto;}
-    .wa-hit{cursor:pointer;}
-    .wa-tip{position:absolute;z-index:5;pointer-events:none;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:1px;
-      padding:6px 10px;border-radius:6px;background:var(--text);color:var(--bg);font-size:.75rem;line-height:1.3;white-space:nowrap;}
-    .wa-tip[hidden]{display:none;}
-    .wa-tip strong{font-weight:500;}
-    .wa-tip span{opacity:.72;}
+    /* achart:start */
+    /* Gráfico de barras. Verde (--chart-series) y azul (--accent) solo dentro del gráfico.
+       Las barras llevan radio 3px en la punta: excepción documentada para marcas de datos. */
+    :root{--chart-series:#059669;}
+    :root[data-theme="dark"]{--chart-series:#34D399;}
+    .achart{padding:20px;}
+    .achart__label{font-size:.875rem;color:var(--text-2);}
+    .achart__num{margin-top:4px;font-size:2rem;line-height:1.15;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+    .achart__sub{font-size:.8125rem;color:var(--text-2);}
+    .achart__plot{position:relative;margin-top:16px;touch-action:pan-y;border-radius:6px;cursor:default;}
+    .achart__plot:focus{outline:none;}
+    .achart__plot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}
+    .achart__max{position:absolute;top:0;left:0;font:400 11px/1 var(--mono);color:var(--text-2);}
+    .achart__bars{display:flex;align-items:flex-end;height:200px;padding-top:20px;border-bottom:1px solid var(--border);}
+    .achart__slot{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;padding:0 2px;}
+    .achart--dense .achart__slot{padding:0 1px;}
+    .achart__bar{width:100%;max-width:28px;min-height:2px;border-radius:3px 3px 0 0;background:var(--chart-series);}
+    .achart__bar.is-zero{height:2px;border-radius:0;background:var(--border);}
+    .achart__slot.is-sel .achart__bar{background:var(--accent);}
+    .achart__axis{position:relative;height:24px;font:400 11px/1 var(--mono);color:var(--text-2);}
+    .achart__axis span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap;}
+    .achart__axis span:first-child{left:0 !important;transform:none;}
+    .achart__axis span:last-child{left:auto !important;right:0;transform:none;}
+    .achart__live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+    @media (max-width:768px){ .achart{padding:16px;} .achart__bars{height:160px;} }
+    /* achart:end */
 
     /* Configuración */
     .cfg-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:stretch;margin-top:24px;}
@@ -721,13 +739,9 @@
             </div>
           </div>
 
-          <div class="wa-panel" style="margin-top:20px">
-            <div class="wa-panel__head"><span class="wa-panel__title" id="anChartTitle">Respuestas enviadas · últimas 24 horas</span></div>
-            <div class="wa-chart" id="anChart">
-              <div id="anChartSvg"></div>
-              <div class="wa-tip" id="anTip" hidden></div>
-            </div>
-          </div>
+          <!-- achart:start -->
+          <div class="wa-panel achart" id="anChart" style="margin-top:20px"></div>
+          <!-- achart:end -->
         </section>
 
         <!-- VIEW: Configuración -->
@@ -1558,7 +1572,6 @@
          - TODO Supabase: refreshData()/Realtime/polling van en el chat guía (ver §6 del .md).
        ============================================================ */
     var appState = { events: [], usage: null };
-    var AN_C = { bar: "#0164FD", line: "#34D399", grid: "#ECECEF", txt: "#8A9199" };
     var AN_MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     var AN_DAY = ['dom','lun','mar','mié','jue','vie','sáb'];
     var anCurrent = 24;
@@ -1595,13 +1608,6 @@
       if (!isNaN(ms)) return ms;
       return now - 90*24*3600000;
     }
-    function anNiceMax(m){
-      if (m <= 4) return 4;
-      var step = Math.pow(10, Math.floor(Math.log10(m)));
-      var cand = [1,2,2.5,5,10].map(function(x){ return x*step; });
-      for (var i=0;i<cand.length;i++){ if (cand[i] >= m) return Math.ceil(cand[i]); }
-      return Math.ceil(m);
-    }
     function anCompute(){
       var now = Date.now(), buckets = anBuckets(anCurrent, now), win = buckets[0].start;
       var q=0,a=0,l=0;
@@ -1617,53 +1623,87 @@
       });
       return { buckets: buckets, q: q, a: a, l: l };
     }
-    function anRenderChart(buckets){
-      var host = document.getElementById('anChartSvg'); if (!host) return;
-      var total = buckets.reduce(function(s,b){ return s+b.count; }, 0);
-      // Tamaño responsivo: en viewport angosto (celular) usamos un viewBox más alto y
-      // cuadrado para que el gráfico no quede aplastado. En escritorio se mantiene 700x188.
-      var mobile = (typeof window !== 'undefined') && window.innerWidth <= 640;
-      var W = mobile ? 360 : 700, H = mobile ? 260 : 188;
-      var padL=30, padR=12, padT=12, padB = mobile ? 28 : 24, n=buckets.length;
-      var max = anNiceMax(Math.max.apply(null, buckets.map(function(b){ return b.count; })));
-      var iW=W-padL-padR, iH=H-padT-padB;
-      var every = mobile ? (n>16 ? 6 : n>8 ? 4 : n>4 ? 2 : 1)
-                         : (n>16 ? 4 : n>8 ? 2 : 1);
-      var baseY = padT+iH;
-      function px(i){ return padL + (n===1 ? iW/2 : iW*i/(n-1)); }
-      function py(v){ return padT + iH*(1 - v/max); }
-      var s = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
-      // guías horizontales + etiquetas del eje Y (0 / mitad / max)
-      [0,0.5,1].forEach(function(f){
-        var y = (padT + iH*(1-f));
-        s += '<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" stroke="'+AN_C.grid+'"/>';
-        s += '<text x="'+(padL-7)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="'+AN_C.txt+'">'+Math.round(max*f)+'</text>';
+    /* achart:start */
+    /* Gráfico de barras de analíticas. Función pura: depende solo de sus argumentos
+       (sin Supabase ni estado global). buckets = [{label, value, title, at}];
+       opts = {range: 'últimas 24 horas', rangeIn: 'las últimas 24 horas'}. */
+    function renderAnalyticsChart(el, buckets, opts){
+      opts = opts || {};
+      var n = buckets.length, total = 0, peak = 0, sel = -1, nf = new Intl.NumberFormat('es');
+      buckets.forEach(function(b, i){ total += b.value; if (b.value > buckets[peak].value) peak = i; });
+      var empty = total === 0, scale = Math.max(4, n ? buckets[peak].value : 0);
+      // Etiquetas del eje: la última siempre, hacia atrás cada "step"; la primera si no choca.
+      var step = n <= 6 ? 1 : Math.ceil((n - 1) / 4), labels = [];
+      for (var k = n - 1; k >= 0; k -= step) labels.unshift(k);
+      if (labels.length && labels[0] >= Math.ceil(step / 2)) labels.unshift(0);
+      function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return '&#' + c.charCodeAt(0) + ';'; }); }
+      var p = buckets[peak], aria = 'Respuestas enviadas, ' + (opts.range || '') + ', ' +
+        (empty ? 'sin actividad' : 'total ' + total + ', pico de ' + p.value + ' ' + (p.at || p.title));
+      el.classList.toggle('achart--dense', n > 12);
+      el.innerHTML = '<div class="achart__label">Respuestas enviadas</div>' +
+        '<div class="achart__num"></div><div class="achart__sub"></div>' +
+        '<div class="achart__plot" tabindex="0" role="img" aria-label="' + esc(aria) + '">' +
+          (empty ? '' : '<span class="achart__max">' + nf.format(scale) + '</span>') +
+          '<div class="achart__bars">' + buckets.map(function(b){
+            return '<div class="achart__slot"><div class="achart__bar' + (b.value ? '" style="height:' +
+              (b.value / scale * 100).toFixed(2) + '%"' : ' is-zero"') + '></div></div>';
+          }).join('') + '</div>' +
+          '<div class="achart__axis">' + labels.map(function(i){
+            return '<span style="left:' + ((i + .5) / n * 100).toFixed(2) + '%">' + esc(buckets[i].label) + '</span>';
+          }).join('') + '</div>' +
+        '</div><div class="achart__live" aria-live="polite"></div>';
+      var plot = el.querySelector('.achart__plot'), slots = el.querySelectorAll('.achart__slot');
+      var num = el.querySelector('.achart__num'), sub = el.querySelector('.achart__sub'), live = el.querySelector('.achart__live');
+      // i = -1 muestra el total del rango. byKey: solo la selección por teclado se anuncia.
+      function show(i, byKey){
+        if (sel >= 0) slots[sel].classList.remove('is-sel');
+        sel = i;
+        if (i < 0){
+          num.textContent = nf.format(total);
+          sub.textContent = empty ? 'Sin actividad en ' + (opts.rangeIn || '') : (opts.range || '');
+        } else {
+          slots[i].classList.add('is-sel');
+          num.textContent = nf.format(buckets[i].value);
+          sub.textContent = (buckets[i].value === 1 ? 'respuesta' : 'respuestas') + ' · ' + buckets[i].title;
+        }
+        if (byKey) live.textContent = num.textContent + ' ' + (i < 0 ? 'respuestas en total' : sub.textContent);
+      }
+      function at(e){
+        var r = plot.getBoundingClientRect();
+        return Math.min(n - 1, Math.max(0, Math.floor((e.clientX - r.left) / r.width * n)));
+      }
+      if (n){
+        plot.addEventListener('pointerdown', function(e){
+          if (e.pointerType !== 'mouse') plot.focus({ preventScroll: true });
+          show(at(e));
+        });
+        plot.addEventListener('pointermove', function(e){ if (e.pointerType === 'mouse' || e.buttons) show(at(e)); });
+        plot.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse') show(-1); });
+        // En táctil la selección queda hasta tocar otra barra o fuera (fuera = pierde el foco).
+        plot.addEventListener('blur', function(){ show(-1); });
+        plot.addEventListener('keydown', function(e){
+          var key = e.key, i = key === 'ArrowRight' ? Math.min(n - 1, sel + 1)
+            : key === 'ArrowLeft' ? (sel < 0 ? n - 1 : Math.max(0, sel - 1))
+            : key === 'Home' ? 0 : key === 'End' ? n - 1 : key === 'Escape' ? -1 : null;
+          if (i === null) return;
+          e.preventDefault(); show(i, true);
+        });
+      }
+      show(-1);
+    }
+    /* achart:end */
+    // Adapta los buckets de anBuckets() a la forma del gráfico (no cambia la agrupación).
+    function anChartData(buckets, h){
+      function fmt(d, o){ return new Intl.DateTimeFormat('es', o).format(d).replace(/[,.]/g, ''); }
+      var dm = { day: 'numeric', month: 'short' };
+      return buckets.map(function(b){
+        var s = new Date(b.start), t, at;
+        if (h === 24){ t = b.full; at = 'a las ' + t; }
+        else if (h === 168){ t = fmt(s, { weekday: 'short', day: 'numeric', month: 'short' }); at = 'el ' + t; }
+        else if (h === 720){ t = 'semana del ' + fmt(s, dm); at = 'la ' + t; }
+        else { var e = new Date(b.end - 1); t = fmt(s, dm) + ' – ' + fmt(e, dm); at = 'del ' + fmt(s, dm) + ' al ' + fmt(e, dm); }
+        return { label: h === 24 ? b.full : b.label, value: b.count, title: t, at: at };
       });
-      // línea (área + trazo). En 0 queda pegada a la base (verde).
-      var linePts = buckets.map(function(b,i){ return px(i).toFixed(1)+','+py(b.count).toFixed(1); }).join(' ');
-      var areaPts = padL.toFixed(1)+','+baseY.toFixed(1)+' '+linePts+' '+(padL+iW).toFixed(1)+','+baseY.toFixed(1);
-      s += '<polygon points="'+areaPts+'" fill="'+AN_C.bar+'" fill-opacity="0.08"/>';
-      s += '<polyline points="'+linePts+'" fill="none" stroke="'+AN_C.line+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-      // puntos: se dibujan solo donde hay valor > 0 (se "levantan")
-      buckets.forEach(function(b,i){
-        if (b.count > 0) s += '<circle cx="'+px(i).toFixed(1)+'" cy="'+py(b.count).toFixed(1)+'" r="3.2" fill="'+AN_C.bar+'"/>';
-      });
-      // etiquetas eje X
-      buckets.forEach(function(b,i){
-        if (i % every === 0 || i === n-1) s += '<text x="'+px(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="'+AN_C.txt+'">'+b.label+'</text>';
-      });
-      if (total === 0) s += '<text x="'+(padL+iW/2).toFixed(1)+'" y="'+(padT+iH/2).toFixed(1)+'" text-anchor="middle" font-size="13" fill="'+AN_C.txt+'">Sin datos en este rango</text>';
-      // guía vertical punteada (sigue el cursor) — oculta por defecto
-      s += '<line id="anGuide" x1="0" y1="'+padT+'" x2="0" y2="'+baseY+'" stroke="'+AN_C.txt+'" stroke-width="1" stroke-dasharray="4 4" opacity="0"/>';
-      s += '<circle id="anGuideDot" cx="0" cy="0" r="4.5" fill="'+AN_C.bar+'" stroke="#fff" stroke-width="2" opacity="0"/>';
-      // zonas sensibles por tramo (para hover/tap), guardan la posición del punto
-      buckets.forEach(function(b,i){
-        var half = n>1 ? iW/(n-1)/2 : iW/2;
-        var cx = px(i), left = Math.max(padL, cx-half), w = Math.min(padL+iW, cx+half) - left;
-        s += '<rect class="wa-hit" x="'+left.toFixed(1)+'" y="'+padT+'" width="'+w.toFixed(1)+'" height="'+iH+'" fill="transparent" data-full="'+b.full+'" data-count="'+b.count+'" data-cx="'+cx.toFixed(1)+'" data-cy="'+py(b.count).toFixed(1)+'"/>';
-      });
-      s += '</svg>';
-      host.innerHTML = s;
     }
     function anSet(id,v){ var el=document.getElementById(id); if (el) el.textContent = v; }
     function renderAnalytics(){
@@ -1671,8 +1711,8 @@
       anSet('anQ', r.q); anSet('anA', r.a); anSet('anL', r.l);
       anSet('anFoot1', foot); anSet('anFoot2', foot); anSet('anFoot3', foot);
       anSet('anSub', 'Tu actividad de ' + anArt(anCurrent) + foot);
-      anSet('anChartTitle', 'Respuestas enviadas · ' + foot);
-      anRenderChart(r.buckets);
+      var chart = document.getElementById('anChart');
+      if (chart) renderAnalyticsChart(chart, anChartData(r.buckets, anCurrent), { range: foot, rangeIn: anArt(anCurrent) + foot });
     }
     Array.prototype.slice.call(document.querySelectorAll('.wa-tab')).forEach(function(t){
       t.addEventListener('click', function(){
@@ -1682,38 +1722,6 @@
         renderAnalytics();
       });
     });
-
-    /* Tooltip + guía vertical del gráfico (hover / tap) */
-    (function(){
-      var svgHost = document.getElementById('anChartSvg');
-      var tip = document.getElementById('anTip');
-      var chart = document.getElementById('anChart');
-      if (!svgHost || !tip || !chart) return;
-      function place(hit){
-        var cont = chart.getBoundingClientRect(), hr = hit.getBoundingClientRect();
-        tip.style.left = (hr.left + hr.width/2 - cont.left) + 'px';
-        tip.style.top  = (hr.top - cont.top) + 'px';
-        var c = parseInt(hit.getAttribute('data-count'), 10) || 0;
-        tip.innerHTML = '<strong>' + hit.getAttribute('data-full') + '</strong>' +
-                        '<span>' + c + (c === 1 ? ' respuesta' : ' respuestas') + '</span>';
-        tip.hidden = false;
-        var cx = hit.getAttribute('data-cx'), cy = hit.getAttribute('data-cy');
-        var g = document.getElementById('anGuide'), d = document.getElementById('anGuideDot');
-        if (g){ g.setAttribute('x1', cx); g.setAttribute('x2', cx); g.setAttribute('opacity','1'); }
-        if (d){ d.setAttribute('cx', cx); d.setAttribute('cy', cy); d.setAttribute('opacity','1'); }
-      }
-      function hide(){
-        tip.hidden = true;
-        var g = document.getElementById('anGuide'), d = document.getElementById('anGuideDot');
-        if (g) g.setAttribute('opacity','0');
-        if (d) d.setAttribute('opacity','0');
-      }
-      function hitFrom(e){ return e.target && e.target.closest ? e.target.closest('.wa-hit') : null; }
-      svgHost.addEventListener('pointermove', function(e){ var h = hitFrom(e); if (h) place(h); });
-      svgHost.addEventListener('pointerdown', function(e){ var h = hitFrom(e); if (h) place(h); });
-      svgHost.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse') hide(); });
-      document.addEventListener('pointerdown', function(e){ if (!svgHost.contains(e.target)) hide(); });
-    })();
 
     /* Arrastre progresivo del menú móvil: el panel sigue el dedo; al soltar decide. */
     (function(){
