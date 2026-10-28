@@ -101,18 +101,19 @@
     .achart__plot:focus{outline:none;}
     .achart__plot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}
     .achart__max{position:absolute;top:0;left:0;font:400 11px/1 var(--mono);color:var(--text-2);}
-    .achart__bars{display:flex;align-items:flex-end;height:200px;padding-top:20px;border-bottom:1px solid var(--border);}
+    .achart__bars{display:flex;flex:none;align-items:flex-end;height:200px;padding-top:20px;border-bottom:1px solid var(--border);}
     .achart__slot{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;padding:0 2px;}
     .achart--dense .achart__slot{padding:0 1px;}
     .achart__bar{width:100%;max-width:28px;min-height:2px;border-radius:3px 3px 0 0;background:var(--chart-series);}
     .achart__bar.is-zero{height:2px;border-radius:0;background:var(--border);}
     .achart__slot.is-sel .achart__bar{background:var(--accent);}
     .achart__axis{position:relative;height:24px;font:400 11px/1 var(--mono);color:var(--text-2);}
-    .achart__axis span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap;}
-    .achart__axis span:first-child{left:0 !important;transform:none;}
-    .achart__axis span:last-child{left:auto !important;right:0;transform:none;}
+    .achart__axis span{position:absolute;top:8px;white-space:nowrap;}
     .achart__live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
     @media (max-width:768px){ .achart{padding:16px;} .achart__bars{height:160px;} }
+    /* Vacío: área más baja y tocones de 6px (mismo ancho que las barras reales) sobre la línea base */
+    .achart--empty .achart__bars{height:120px;padding-top:0;}
+    .achart--empty .achart__bar.is-zero{height:6px;border-radius:3px 3px 0 0;}
     /* achart:end */
 
     /* Configuración */
@@ -1640,6 +1641,7 @@
       var p = buckets[peak], aria = 'Respuestas enviadas, ' + (opts.range || '') + ', ' +
         (empty ? 'sin actividad' : 'total ' + total + ', pico de ' + p.value + ' ' + (p.at || p.title));
       el.classList.toggle('achart--dense', n > 12);
+      el.classList.toggle('achart--empty', empty);
       el.innerHTML = '<div class="achart__label">Respuestas enviadas</div>' +
         '<div class="achart__num"></div><div class="achart__sub"></div>' +
         '<div class="achart__plot" tabindex="0" role="img" aria-label="' + esc(aria) + '">' +
@@ -1649,7 +1651,9 @@
               (b.value / scale * 100).toFixed(2) + '%"' : ' is-zero"') + '></div></div>';
           }).join('') + '</div>' +
           '<div class="achart__axis">' + labels.map(function(i){
-            return '<span style="left:' + ((i + .5) / n * 100).toFixed(2) + '%">' + esc(buckets[i].label) + '</span>';
+            // Centrada bajo su barra, sin salirse por los bordes (en mono, 1ch = 1 carácter).
+            var w = String(buckets[i].label).length;
+            return '<span style="left:clamp(0px,calc(' + ((i + .5) / n * 100).toFixed(2) + '% - ' + w / 2 + 'ch),calc(100% - ' + w + 'ch))">' + esc(buckets[i].label) + '</span>';
           }).join('') + '</div>' +
         '</div><div class="achart__live" aria-live="polite"></div>';
       var plot = el.querySelector('.achart__plot'), slots = el.querySelectorAll('.achart__slot');
