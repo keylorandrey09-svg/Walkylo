@@ -75,8 +75,8 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
 ## Sistema visual login
-- `login/index.html` importa `/brand.css` en la capa `brand` (como el panel). Página en `--surface` con encabezado (logo a "/" y "Volver al sitio"); el formulario va en una caja `--bg` con borde 1px `--border`, radio 10px y máximo 400px.
-- Un solo botón negro lleno por pantalla (Entrar / Crear cuenta); Google es secundario con borde y queda deshabilitado con "Próximamente". Campos de 44px, radio 6px, texto de 16px.
+- `login/index.html` importa `/brand.css` en la capa `brand` (como el panel). Desde 901px: dos columnas; a la izquierda banda `--surface` con borde derecho, logo y el mensaje del hero recortado; a la derecha "Volver al sitio" y el formulario sin caja sobre `--bg`. Hasta 900px: barra con logo y "Volver al sitio", sin banda.
+- Un solo botón negro lleno (Entrar / Crear cuenta), sin botones decorativos ni deshabilitados. Campos de 44px, radio 6px, texto de 16px. Tiene que caber completo sin scroll en 640px de alto (360x640 y 1280x640), en los dos modos y con un error visible.
 - Error en `--danger` (texto y borde del campo); aviso (`.is-ok`) en `--text` sobre `--surface` con borde. Sin spinners: cargando = botón deshabilitado con su texto.
 
 ## Cómo trabajar con Keylor
