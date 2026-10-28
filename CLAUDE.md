@@ -75,6 +75,9 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Menú lateral (≥769px): 240px fijo; logo arriba; grupos con etiqueta chica gris: "Producto" (Resumen, Conversaciones, Widget, Analíticas) y "Cuenta" (Notificaciones, Configuración); abajo, separados por una línea, Soporte y Cerrar sesión. Ítem de 40px, radio 6px, texto `--text-2`; hover `--text`; activo con fondo `--bg`, borde 1px y texto `--text` peso 500. Sin barra superior en escritorio.
 - Móvil (≤768px): barra fija de 56px con el logo a la izquierda y ≡ a la derecha (44px). El ≡ abre un cajón desde la izquierda con la misma lista, más un velo `--text` al 40% (negro al 60% en oscuro). Cierra con Escape, al tocar un enlace y al tocar el velo; bloquea el scroll del fondo; sin animaciones. Objetivos táctiles de 44px o más.
 - Vista Widget: 5 pestañas (General, Apariencia, Conocimiento, Comportamiento, Contacto y privacidad) en memoria, sin cambiar la URL; todos los paneles quedan en el DOM (`hidden`) y un solo Editar/Guardar vale para todas. La vista previa solo se muestra en Apariencia y Comportamiento.
+- Vista Preguntas (ruta `/app/conversaciones`, vista interna "conversaciones"): una fila por pregunta con resultado "Respondida" o "Sin respuesta" (nunca "Resuelta"). Sin color de estado ni píldoras.
+- El resultado se distingue por ícono y contraste: "Sin respuesta" = círculo vacío + `--text` 500; "Respondida" = check + `--text-2` 400.
+- Componente `mountQuestions` + adaptador `toQuestionItems` (hoy devuelve `[]`, lo completa la Fase 3), marcado con `qview:start`/`qview:end` en HTML, CSS y JS; CSS con prefijo `.qview`.
 - Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
 ## Sistema visual login
