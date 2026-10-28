@@ -100,14 +100,14 @@
     .achart__plot{position:relative;margin-top:16px;touch-action:pan-y;border-radius:6px;cursor:default;}
     .achart__plot:focus{outline:none;}
     .achart__plot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}
-    .achart__max{position:absolute;top:0;left:0;font:400 11px/1 var(--mono);color:var(--text-2);}
+    .achart__max{position:absolute;top:0;left:0;font:400 11px/1 var(--mono);font-feature-settings:var(--mono-zero);color:var(--text-2);}
     .achart__bars{display:flex;flex:none;align-items:flex-end;height:200px;padding-top:20px;border-bottom:1px solid var(--border);}
     .achart__slot{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;padding:0 2px;}
     .achart--dense .achart__slot{padding:0 1px;}
     .achart__bar{width:100%;max-width:28px;min-height:2px;border-radius:3px 3px 0 0;background:var(--chart-series);}
     .achart__bar.is-zero{height:2px;border-radius:0;background:var(--border);}
     .achart__slot.is-sel .achart__bar{background:var(--accent);}
-    .achart__axis{position:relative;height:24px;font:400 11px/1 var(--mono);color:var(--text-2);}
+    .achart__axis{position:relative;height:24px;font:400 11px/1 var(--mono);font-feature-settings:var(--mono-zero);color:var(--text-2);}
     .achart__axis span{position:absolute;top:8px;white-space:nowrap;}
     .achart__live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
     @media (max-width:768px){ .achart{padding:16px;} .achart__bars{height:160px;} }
