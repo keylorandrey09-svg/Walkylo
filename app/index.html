@@ -91,8 +91,8 @@
     /* achart:start */
     /* Gráfico de línea con área plana. Verde (--chart-series) y azul (--accent) solo dentro del gráfico.
        El trazo de la serie es de 2px con puntas redondeadas: excepción documentada para la marca de datos. */
-    :root{--chart-series:#16A34A;--chart-fill:.14;}
-    :root[data-theme="dark"]{--chart-series:#4ADE80;--chart-fill:.16;}
+    :root{--chart-series:#16A34A;--chart-fill:.08;}
+    :root[data-theme="dark"]{--chart-series:#4ADE80;--chart-fill:.06;}
     .achart{padding:20px;}
     .achart__label{font-size:.875rem;color:var(--text-2);}
     .achart__num{margin-top:4px;font-size:2rem;line-height:1.15;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
@@ -107,6 +107,10 @@
     .achart__line{fill:none;stroke:var(--chart-series);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
     .achart__fill{fill:var(--chart-series);fill-opacity:var(--chart-fill);}
     .achart__pt{fill:var(--chart-series);}
+    /* En vivo: el tramo hacia la hora en curso va más tenue y "ahora" lleva un punto fijo (sin animación) */
+    .achart__line--live{stroke-opacity:.45;}
+    .achart__now{fill:var(--chart-series);stroke:var(--bg);stroke-width:2;}
+    .achart--empty .achart__now{fill:var(--text-2);}
     .achart__guide{stroke:var(--border);stroke-width:1;}
     .achart__dot{fill:var(--accent);stroke:var(--bg);stroke-width:2;}
     .achart--empty .achart__line{stroke:var(--border);}
@@ -1629,7 +1633,7 @@
     /* achart:start */
     /* Gráfico de línea con área de analíticas. Función pura: depende solo de sus argumentos
        (sin Supabase ni estado global). buckets = [{label, value, title, at}];
-       opts = {range: 'últimas 24 horas', rangeIn: 'las últimas 24 horas'}.
+       opts = {range: 'últimas 24 horas', rangeIn: 'las últimas 24 horas', live: true si el último tramo está en curso}.
        SVG en píxeles reales: se mide el ancho con ResizeObserver y se redibuja. */
     function renderAnalyticsChart(el, buckets, opts){
       opts = opts || {};
@@ -1657,7 +1661,7 @@
       var selG = null, W = 0, yb = 0;
       // Curva monótona (Fritsch-Carlson): nunca pasa por debajo del piso ni inventa picos.
       function curve(){
-        var d = [], m = [], i, out = 'M' + xs[0] + ',' + ys[0];
+        var d = [], m = [], i, seg = [];
         for (i = 0; i < n - 1; i++) d.push((ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]));
         m[0] = d[0]; m[n - 1] = d[n - 2];
         for (i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
@@ -1668,10 +1672,10 @@
         }
         for (i = 0; i < n - 1; i++){
           var h = (xs[i + 1] - xs[i]) / 3;
-          out += 'C' + r1(xs[i] + h) + ',' + r1(ys[i] + m[i] * h) + ' ' + r1(xs[i + 1] - h) + ',' +
-            r1(ys[i + 1] - m[i + 1] * h) + ' ' + xs[i + 1] + ',' + ys[i + 1];
+          seg.push('C' + r1(xs[i] + h) + ',' + r1(ys[i] + m[i] * h) + ' ' + r1(xs[i + 1] - h) + ',' +
+            r1(ys[i + 1] - m[i + 1] * h) + ' ' + xs[i + 1] + ',' + ys[i + 1]);
         }
-        return out;
+        return seg;  // un tramo por par de puntos, para poder separar el que está en curso
       }
       function draw(){
         W = area.clientWidth; var H = area.clientHeight; if (!W || !H) return;
@@ -1682,10 +1686,12 @@
           '<line class="achart__base" x1="0" x2="' + W + '" y1="' + (H - .5) + '" y2="' + (H - .5) + '"/>';
         if (n === 1) s += '<circle class="achart__pt" cx="' + xs[0] + '" cy="' + ys[0] + '" r="3"/>';
         else if (n > 1){
-          var c = curve();
+          var seg = curve(), M = function(i){ return 'M' + xs[i] + ',' + ys[i]; }, c = M(0) + seg.join('');
           if (!empty) s += '<path class="achart__fill" d="' + c + 'L' + xs[n - 1] + ',' + yb + 'L' + xs[0] + ',' + yb + 'Z"/>';
-          s += '<path class="achart__line" d="' + c + '"/>';
+          s += opts.live ? '<path class="achart__line" d="' + M(0) + seg.slice(0, -1).join('') + '"/>' +
+            '<path class="achart__line achart__line--live" d="' + M(n - 2) + seg[n - 2] + '"/>' : '<path class="achart__line" d="' + c + '"/>';
         }
+        if (opts.live && n) s += '<circle class="achart__now" cx="' + xs[n - 1] + '" cy="' + ys[n - 1] + '" r="4"/>';
         area.innerHTML = s + '<g class="achart__sel"></g></svg>';
         selG = area.querySelector('.achart__sel');
         // Etiquetas centradas bajo su punto, sin salirse por los bordes; se omiten las que no
@@ -1732,8 +1738,7 @@
         var x = e.clientX - area.getBoundingClientRect().left;
         return Math.min(n - 1, Math.max(0, Math.round((x - PAD) / (W - 2 * PAD) * (n - 1))));
       }
-      // En vacío no hay punto que elegir: el gráfico solo recibe foco para leer su resumen.
-      if (!empty){
+      if (n){
         plot.addEventListener('pointerdown', function(e){
           if (e.pointerType !== 'mouse') plot.focus({ preventScroll: true });
           show(at(e));
@@ -1759,13 +1764,15 @@
     function anChartData(buckets, h){
       function fmt(d, o){ return new Intl.DateTimeFormat('es', o).format(d).replace(/[,.]/g, ''); }
       var dm = { day: 'numeric', month: 'short' };
+      var now = Date.now();
       return buckets.map(function(b){
-        var s = new Date(b.start), t, at;
+        var s = new Date(b.start), t, at, live = b.end > now;
         if (h === 24){ t = b.full; at = 'a las ' + t; }
         else if (h === 168){ t = fmt(s, { weekday: 'short', day: 'numeric', month: 'short' }); at = 'el ' + t; }
         else if (h === 720){ t = 'semana del ' + fmt(s, dm); at = 'la ' + t; }
         else { var e = new Date(b.end - 1); t = fmt(s, dm) + ' – ' + fmt(e, dm); at = 'del ' + fmt(s, dm) + ' al ' + fmt(e, dm); }
-        return { label: h === 24 ? b.full : b.label, value: b.count, title: t, at: at };
+        if (live){ t += ', en curso'; at += ', en curso'; }
+        return { label: live && h === 24 ? 'ahora' : live && h === 168 ? 'hoy' : h === 24 ? b.full : b.label, value: b.count, title: t, at: at };
       });
     }
     function anSet(id,v){ var el=document.getElementById(id); if (el) el.textContent = v; }
@@ -1775,7 +1782,8 @@
       anSet('anFoot1', foot); anSet('anFoot2', foot); anSet('anFoot3', foot);
       anSet('anSub', 'Tu actividad de ' + anArt(anCurrent) + foot);
       var chart = document.getElementById('anChart');
-      if (chart) renderAnalyticsChart(chart, anChartData(r.buckets, anCurrent), { range: foot, rangeIn: anArt(anCurrent) + foot });
+      if (chart) renderAnalyticsChart(chart, anChartData(r.buckets, anCurrent),
+        { range: foot, rangeIn: anArt(anCurrent) + foot, live: r.buckets[r.buckets.length - 1].end > Date.now() });
     }
     Array.prototype.slice.call(document.querySelectorAll('.wa-tab')).forEach(function(t){
       t.addEventListener('click', function(){
@@ -3165,6 +3173,15 @@
       var seen=false; try{ seen=localStorage.getItem('wu_ob_seen')==='1'; }catch(e){}
       if (!seen){ obShow(); }
     })();
+
+    // En vivo: con Analíticas a la vista, cada minuto se piden los eventos (misma consulta) y se
+    // redibuja; así avanza la hora en curso. No interrumpe a quien está eligiendo un punto.
+    setInterval(function(){
+      if (document.visibilityState !== 'visible' || !window.__wuUser || wuViewFromPath() !== 'analiticas') return;
+      var chart = document.getElementById('anChart');
+      if (chart && (chart.contains(document.activeElement) || chart.matches(':hover'))) return;
+      wuLoadEvents().then(renderAnalytics);
+    }, 60000);
 
     // Al volver a la pestaña, refrescar eventos si estás en Analíticas
     document.addEventListener('visibilitychange', function(){
