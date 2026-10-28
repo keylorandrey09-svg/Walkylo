@@ -74,6 +74,11 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Vista Widget: 5 pestañas (General, Apariencia, Conocimiento, Comportamiento, Contacto y privacidad) en memoria, sin cambiar la URL; todos los paneles quedan en el DOM (`hidden`) y un solo Editar/Guardar vale para todas. La vista previa solo se muestra en Apariencia y Comportamiento.
 - Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
+## Sistema visual login
+- `login/index.html` importa `/brand.css` en la capa `brand` (como el panel). Página en `--surface` con encabezado (logo a "/" y "Volver al sitio"); el formulario va en una caja `--bg` con borde 1px `--border`, radio 10px y máximo 400px.
+- Un solo botón negro lleno por pantalla (Entrar / Crear cuenta); Google es secundario con borde y queda deshabilitado con "Próximamente". Campos de 44px, radio 6px, texto de 16px.
+- Error en `--danger` (texto y borde del campo); aviso (`.is-ok`) en `--text` sobre `--surface` con borde. Sin spinners: cargando = botón deshabilitado con su texto.
+
 ## Cómo trabajar con Keylor
 - Keylor es principiante: explicá en español sencillo, con voseo costarricense, respuestas cortas.
 - Un cambio pequeño por vez, siempre en una rama. Nunca commit directo a main. El push a ramas de trabajo está autorizado, nunca a main.
