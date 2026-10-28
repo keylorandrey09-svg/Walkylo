@@ -32,6 +32,7 @@
 
   --font: "Geist", system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, monospace;
+  --mono-zero: "ss09" 1;  /* Geist Mono: cero sin raya. Toda regla con var(--mono) lo lleva */
 
   --r-ctl: 999px;      /* controles: píldora (botones, etiquetas, Próximamente) */
   --r-box: 20px;       /* contenedores: paneles, escenarios, precios, código */
@@ -64,7 +65,7 @@ h1, h2, h3, p, ol, ul, dl, dd, figure { margin: 0; }
 ol, ul { padding: 0; list-style: none; }
 img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
-code, kbd, pre { font-family: var(--mono); }
+code, kbd, pre { font-family: var(--mono); font-feature-settings: var(--mono-zero); }
 
 h1, h2, h3 { font-weight: 400; color: var(--text); letter-spacing: -0.02em; }
 h1 { font-size: clamp(2.25rem, 5vw, 3.75rem); line-height: 1.08; text-wrap: balance; }
@@ -211,7 +212,7 @@ a:hover { text-decoration-thickness: 2px; }
 .code__bar {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
   padding-left: 20px; border-bottom: 1px solid var(--border);
-  font: 400 0.75rem/1.4 var(--mono); color: var(--text-2);
+  font: 400 0.75rem/1.4 var(--mono); font-feature-settings: var(--mono-zero); color: var(--text-2);
 }
 /* Saltos de línea entre atributos; nunca corta a mitad de palabra (scroll interno si hace falta) */
 .code pre {
@@ -248,11 +249,11 @@ a:hover { text-decoration-thickness: 2px; }
 .art .sb { fill: var(--surface); stroke: var(--border); }
 .art .sm { fill: var(--surface); stroke: var(--text-2); }
 .art .dash { fill: none; stroke: var(--text-2); stroke-dasharray: 4 4; } /* el límite que importa */
-.art text { font: 400 11px var(--mono); fill: var(--text-2); }
+.art text { font: 400 11px var(--mono); font-feature-settings: var(--mono-zero); fill: var(--text-2); }
 .art text.k { fill: var(--text); }
 .tag {
   display: inline-block; padding: 3px 10px;
-  font: 400 0.75rem/1.3 var(--mono); color: var(--text-2);
+  font: 400 0.75rem/1.3 var(--mono); font-feature-settings: var(--mono-zero); color: var(--text-2);
   background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-ctl);
 }
 
