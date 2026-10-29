@@ -265,9 +265,6 @@
       .qview__x[hidden]{display:none;}
     }
     /* qview:end */
-    .cv-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-2);padding:32px;}
-    .cv-empty svg{width:32px;height:32px;margin-bottom:8px;}
-    .cv-empty .cv-empty__sub{margin-top:4px;font-size:.8125rem;}
 
     /* Widget */
     .wg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
@@ -343,7 +340,7 @@
     .wg-av-upload{border:1px dashed var(--border);color:var(--text-2);display:grid;place-items:center;background:var(--surface);}
     .wg-av-upload svg{width:20px;height:20px;}
 
-    /* Notificaciones */
+    /* Notificaciones: tarjetas del menú desplegable de la campanita (oculto hoy) */
     .wa-noti{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-top:16px;}
     .wa-noti.is-unread{border-color:var(--text-2);}
     .wa-noti__top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
@@ -351,11 +348,42 @@
     .wa-noti__time{font-size:.8125rem;color:var(--text-2);}
     .wa-noti__title{margin:0 0 4px;font-size:1rem;font-weight:500;}
     .wa-noti__body{margin:0;color:var(--text-2);}
-    .noti-wrap{margin:16px auto 0;max-width:880px;display:flex;flex-direction:column;gap:10px;max-height:clamp(440px,calc(100vh - 250px),640px);overflow-y:auto;}
-    .noti-wrap.is-empty{min-height:280px;border:1px solid var(--border);border-radius:10px;}
-    .noti-wrap .wa-noti{margin:0;}
-    .wa-view[data-view="notificaciones"] .cv-toolbar{max-width:880px;margin-left:auto;margin-right:auto;}
-    .wa-view[data-view="notificaciones"] .wa-page-sub{max-width:60ch;}
+    /* nview:start */
+    /* Vista Notificaciones: filas sin tarjetas; punto azul solo para nuevas; "Importante" sin color */
+    /* Patrón de vista estándar (valores de la vista Conversaciones vieja, commit 0198538: .cv-toolbar y .cv-wrap):
+       una fila de controles (filtro a la izquierda, resumen a la derecha) y una caja --bg con borde que contiene lista o vacío. */
+    .nview__ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px;}
+    .nview__sum{margin:0 0 0 auto;font-size:.875rem;color:var(--text-2);text-align:right;font-variant-numeric:tabular-nums;}
+    .nview__sum span{white-space:nowrap;}
+    .nview__box{margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
+    .nview__box.is-empty{display:grid;min-height:280px;}
+    .nview__list{margin:0;padding:0;list-style:none;}
+    .nview__list li + li,.nview__foot{border-top:1px solid var(--border);}
+    .nview__foot{padding:12px 16px;}
+    /* Fila: <div> si el cuerpo cabe; <button> con chevron si se corta. La 3a columna se reserva siempre (mismo ancho y alto). */
+    .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr) 16px;column-gap:12px;width:100%;min-height:64px;padding:12px 16px;
+      border:0;border-radius:6px;background:none;font:inherit;color:var(--text-2);text-align:left;}
+    button.nview__row{cursor:pointer;}
+    .nview__row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+    .nview__meta,.nview__title,.nview__body{grid-column:2;min-width:0;overflow-wrap:anywhere;}
+    .nview__meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.8125rem;line-height:1.5;}
+    .nview__imp{margin:-1px 0;padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;line-height:1.3;} /* margen negativo: no agranda la línea del meta */
+    .nview__dot{grid-column:1;grid-row:2;width:8px;height:8px;margin-top:10px;border-radius:50%;} /* centrado en la 1a línea del título (2px de margen + 24px de línea) */
+    .nview__title{margin-top:2px;font-size:.9375rem;line-height:1.6;}
+    button.nview__row:hover .nview__title,.nview__row.is-un .nview__title{color:var(--text);}
+    .nview__row.is-un .nview__title{font-weight:500;}
+    .nview__row.is-un .nview__dot{background:var(--accent);}
+    .nview__chev{display:none;grid-column:3;grid-row:2;width:16px;height:16px;margin-top:6px;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    button.nview__row .nview__chev{display:block;}
+    .nview__row[aria-expanded="true"] .nview__chev{transform:rotate(180deg);}
+    .nview__body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:68ch;margin-top:2px;font-size:.9375rem;line-height:1.6;} /* 68ch: en escritorio el texto largo también se corta y lleva chevron */
+    .nview__row[aria-expanded="true"] .nview__body{display:block;white-space:pre-line;}
+    .nview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px 16px;text-align:center;color:var(--text-2);}
+    .nview__empty svg{width:20px;height:20px;margin-bottom:4px;}
+    .nview__empty p{margin:0;} .nview__empty p:first-of-type{color:var(--text);}
+    .nview__link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;}
+    @media (max-width:768px){ .nview__sum{flex:1 1 100%;margin:0;text-align:left;} } /* se apila: filtro arriba, resumen debajo */
+    /* nview:end */
 
     /* Modales (Soporte, ir a la landing, contraseña, eliminar cuenta) */
     .wa-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;}
@@ -397,7 +425,6 @@
       .cfg-toggle{margin-left:0;width:100%;}
       .cfg-toggle button{flex:1;}
       .cfg-row .wa-btn{margin-left:0;}
-      .noti-wrap{max-width:none;max-height:clamp(460px,calc(100dvh - 210px),660px);}
       .wg-preview{position:static;}
       .wg-head{flex-direction:column;}
       .wg-actions{width:100%;}
@@ -735,16 +762,11 @@
 
         <!-- VIEW: Notificaciones -->
         <section class="wa-view" data-view="notificaciones">
+          <!-- nview:start -->
           <h1 class="wa-page-title">Notificaciones</h1>
-          <p class="wa-page-sub">Novedades, actualizaciones y avisos del equipo de Walkylet.</p>
-          <div class="cv-toolbar">
-            <div class="cv-tabs" id="notiTabs">
-              <button class="cv-tab is-active" type="button" data-nf="all">Todas</button>
-              <button class="cv-tab" type="button" data-nf="important">Importantes</button>
-              <button class="cv-tab" type="button" data-nf="unread">No leídas</button>
-            </div>
-          </div>
-          <div class="noti-wrap" id="notiWrap"></div>
+          <p class="wa-page-sub">Novedades y avisos de Walkylet para tu cuenta.</p>
+          <div class="nview" id="nview"></div>
+          <!-- nview:end -->
         </section>
 
         <!-- VIEW: Analíticas -->
@@ -1313,7 +1335,7 @@
     function wuLogout(){ SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); }); }
     /* ============================================================
        PUNTOS DE ENGANCHE PARA SUPABASE (se cablean en el chat guía):
-       1) Notificaciones: leer del backend y marcar como leídas.        -> markRead()
+       1) Notificaciones: leer del backend y marcar como leídas.        -> markSeen() / markRead()
        2) Soporte límite (4 envíos / 30 min): el CONTEO lo hace Supabase -> canSubmitSupport()
        3) Soporte envío: subir fotos a Storage + insertar el mensaje.    -> submitSupport()
        La UI de abajo ya está lista; solo hay que reemplazar los TODO.
@@ -1357,7 +1379,7 @@
     function showView(view, label){
       views.forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === view); });
       if (view === "placeholder" && phTitle) phTitle.textContent = label || "";
-      if (view === "notificaciones") markRead();
+      if (view === "notificaciones") enterNotis();
       if (view === "analiticas") renderAnalytics();
       if (view === "config") renderConfig();
       if (view === "conversaciones") renderConversations();
@@ -1401,28 +1423,146 @@
         '<p class="wa-noti__title">' + cvEsc(n.title || '') + '</p>' +
         '<p class="wa-noti__body">' + cvEsc(n.body || '') + '</p></div>';
     }
-    var notiFilter = 'all';
-    function notiList(){
-      if (notiFilter === 'unread') return wuNotis.filter(function(n){ return !n.read_at; });
-      if (notiFilter === 'important') return wuNotis.filter(function(n){ return n.important; });
-      return wuNotis;
-    }
-    function renderNotis(){
-      hasUnread = wuNotis.some(function(n){ return !n.read_at; });
-      renderUnread();
-      var list = notiList();
-      var wrap = document.getElementById('notiWrap');
-      if (wrap){
-        if (list.length){
-          wrap.classList.remove('is-empty');
-          wrap.innerHTML = list.map(notiHTML).join('');
-        } else {
-          wrap.classList.add('is-empty');
-          var msg = 'Todavía no hay notificaciones.', sub = 'Cuando el equipo publique novedades, tus avisos aparecen acá.';
-          if (wuNotis.length && notiFilter === 'unread'){ msg = 'No hay notificaciones sin leer.'; sub = 'Cambiá a “Todas” para ver el resto.'; }
-          else if (notiFilter === 'important'){ msg = 'No hay notificaciones importantes.'; sub = 'Las importantes van a aparecer marcadas acá.'; }
-          wrap.innerHTML = '<div class="cv-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><p>' + msg + '</p><p class="cv-empty__sub">' + sub + '</p></div>';
+    /* nview:start */
+    // Componente autocontenido: no toca Supabase ni estado global; maneja su filtro y se redibuja.
+    // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onSeen(ids)}. Devuelve {update(opts), destroy()}.
+    // "Nuevas" es una foto de esta visita: las que llegan sin leer siguen marcadas aunque ya se hayan visto.
+    // Una nueva cuenta como vista si está ≥ 60% visible 1 s seguido con la pestaña visible, o al abrirla; onSeen recibe tandas de ids.
+    // Solo es expandible (botón con chevron) la fila cuyo cuerpo se corta. El cuerpo es texto plano: siempre se escapa, nunca va como HTML.
+    function mountNotifications(container, opts){
+      var o, items, st = { filter: 'all', shown: 20, open: {} };
+      var known = {}, fresh = {}, seen = {}, pend = [], timers = {}, inView = {}, flushT, lastW, ac = new AbortController();
+      var FILTERS = [['all', 'Todas'], ['new', 'Nuevas']];
+      var rtf = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat('es', { style: 'narrow' }) : null;
+      var FULL = new Intl.DateTimeFormat('es', { dateStyle: 'long', timeStyle: 'short' }), SHORT = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
+      var CHEV = '<svg class="nview__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+
+      // La foto de "nuevas" se toma la primera vez que aparece cada id (también si los datos llegan después de montar).
+      function set(next){ o = next || {}; items = (o.items || []).map(function(x){
+        if (!known[x.id]){ known[x.id] = 1; if (!x.readAt) fresh[x.id] = 1; }
+        return Object.assign({}, x); }); }
+      function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function now(){ return o.now != null ? +o.now : Date.now(); }
+      function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+      // "hace 5 min", "hace 3 h", "hace 2 d"; pasados 30 días, fecha corta ("12 oct").
+      function ago(t){
+        var s = Math.max(0, (now() - t) / 1000);
+        if (s >= 30 * 86400 || !rtf) return SHORT.format(t).replace('.', '');
+        if (s < 60) return 'ahora';
+        if (s < 3600) return rtf.format(-Math.floor(s / 60), 'minute');
+        if (s < 86400) return rtf.format(-Math.floor(s / 3600), 'hour');
+        return rtf.format(-Math.floor(s / 86400), 'day');
+      }
+      // Solo cambia cómo se muestra el tag ("NOVEDAD" -> "Novedad"); el dato guardado queda igual.
+      function tagLabel(t){ t = String(t || '').toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); }
+      function find(id){ return items.filter(function(x){ return String(x.id) === id; })[0]; }
+      function news(){ return items.filter(function(x){ return fresh[x.id]; }); }
+      function sum(){ var n = news().length; return '<span>' + plural(items.length, 'notificación', 'notificaciones') + '</span>' + (n ? ' · <span>' + plural(n, 'nueva', 'nuevas') + '</span>' : ''); }
+      // Todas las filas nacen como <div>; fit() convierte en botón las que tienen el cuerpo cortado.
+      function row(it, i){
+        var nu = !!fresh[it.id], t = new Date(it.createdAt).getTime();
+        return '<li data-id="' + esc(it.id) + '"><div class="nview__row' + (nu ? ' is-un' : '') + '">' +
+          '<span class="nview__meta"><span>' + esc(tagLabel(it.tag)) + '</span>' +
+          (isNaN(t) ? '' : '<span aria-hidden="true">·</span><time datetime="' + esc(it.createdAt) + '" title="' + esc(FULL.format(t)) + '">' + esc(ago(t)) + '</time>') +
+          (it.important ? '<span class="nview__imp">Importante</span>' : '') + '</span>' +
+          '<span class="nview__dot">' + (nu ? '<span class="sr-only">Nueva</span>' : '') + '</span>' +
+          '<span class="nview__title">' + esc(it.title) + '</span>' +
+          (it.body ? '<span class="nview__body" id="nv-b' + i + '">' + esc(it.body) + '</span>' : '') + CHEV + '</div></li>';
+      }
+      function empty(title, sub, action){
+        return '<div class="nview__empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><p>' + title + '</p>' + (sub ? '<p>' + sub + '</p>' : '') + (action || '') + '</div>';
+      }
+      // Expandible solo si el cuerpo (cerrado, 2 líneas) se corta. Se mide al dibujar, con las fuentes listas y si cambia el ancho.
+      function fit(){
+        Array.prototype.forEach.call(container.querySelectorAll('.nview__row:not([aria-expanded="true"])'), function(r){
+          var b = r.querySelector('.nview__body'), cut = !!b && b.scrollHeight > b.clientHeight + 1, id = r.parentNode.getAttribute('data-id');
+          if (cut === (r.tagName === 'BUTTON')) return;
+          var n = document.createElement(cut ? 'button' : 'div'); n.className = r.className;
+          if (cut){ n.type = 'button'; n.setAttribute('aria-controls', b.id); n.setAttribute('aria-expanded', !!st.open[id]); n.setAttribute('data-k', 'n:' + id); }
+          while (r.firstChild) n.appendChild(r.firstChild);
+          r.parentNode.replaceChild(n, r);
+        });
+      }
+      // Lectura al ver: temporizador de 1 s por fila nueva visible; se cancela si deja de verse o se oculta la pestaña.
+      function arm(id){
+        clearTimeout(timers[id]); delete timers[id];
+        if (inView[id] && document.visibilityState === 'visible') timers[id] = setTimeout(function(){ see(id); }, 1000);
+      }
+      function flush(){ clearTimeout(flushT); var ids = pend; pend = []; if (ids.length && o.onSeen) o.onSeen(ids); }
+      function see(id, now){
+        clearTimeout(timers[id]); delete timers[id];
+        var it = find(id); if (!it || it.readAt || seen[id]) return;
+        seen[id] = 1; pend.push(it.id); clearTimeout(flushT); flushT = setTimeout(flush, now ? 0 : 300);
+      }
+      var io = window.IntersectionObserver && new IntersectionObserver(function(es){
+        es.forEach(function(e){ var id = e.target.getAttribute('data-id'); inView[id] = e.isIntersecting && e.intersectionRatio >= 0.6; arm(id); });
+      }, { threshold: 0.6 });
+      var ro = window.ResizeObserver && new ResizeObserver(function(){ if (container.clientWidth !== lastW){ lastW = container.clientWidth; fit(); } });
+      if (ro) ro.observe(container);
+      document.addEventListener('visibilitychange', function(){ Object.keys(inView).forEach(arm); }, { signal: ac.signal });
+      if (document.fonts) document.fonts.ready.then(fit);
+
+      function render(){
+        var a = document.activeElement, focusKey = a && container.contains(a) ? a.getAttribute('data-k') : null;
+        var list = st.filter === 'new' ? news() : items;
+        var html = '<div class="nview__ctl"><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
+          var on = x[0] === st.filter;
+          return '<button class="cv-tab' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="f:' + x[0] + '">' + x[1] + '</button>';
+        }).join('') + '</div><p class="nview__sum">' + sum() + '</p></div><div class="nview__box' + (list.length ? '' : ' is-empty') + '">';
+        if (!items.length) html += empty('No tenés notificaciones.', 'Acá vas a ver novedades de Walkylet y avisos importantes.');
+        else if (!list.length) html += empty('No tenés notificaciones nuevas.', '', '<button class="nview__link" type="button" data-k="f:all">Ver todas</button>');
+        else html += '<ul class="nview__list">' + list.slice(0, st.shown).map(row).join('') + '</ul>' +
+          (list.length > st.shown ? '<div class="nview__foot"><button class="wa-btn" type="button" data-k="more">Mostrar más</button></div>' : '');
+        container.innerHTML = html + '</div>';
+        fit();
+        if (io){
+          io.disconnect(); Object.keys(timers).forEach(function(k){ clearTimeout(timers[k]); }); timers = {}; inView = {};
+          Array.prototype.forEach.call(container.querySelectorAll('li[data-id]'), function(li){
+            var it = find(li.getAttribute('data-id')); if (it && !it.readAt && !seen[it.id]) io.observe(li);
+          });
         }
+        // El redibujo reemplaza el DOM: devolver el foco al mismo control.
+        var f = focusKey && Array.prototype.filter.call(container.querySelectorAll('[data-k]'), function(el){ return el.getAttribute('data-k') === focusKey; })[0];
+        if (f) f.focus();
+      }
+
+      container.addEventListener('click', function(e){
+        var b = e.target.closest ? e.target.closest('[data-k]') : null; if (!b) return;
+        var k = b.getAttribute('data-k'), v = k.slice(2);
+        if (k.slice(0, 2) === 'n:'){ // abrir/cerrar en su lugar, sin redibujar; abrir una nueva la marca vista ya
+          st.open[v] = !st.open[v]; b.setAttribute('aria-expanded', st.open[v]);
+          if (st.open[v]) see(v, true); else fit();
+          return;
+        }
+        if (k === 'more') st.shown += 20;
+        else { st.filter = v === 'new' ? 'new' : 'all'; st.shown = 20; }
+        render();
+      }, { signal: ac.signal });
+      set(opts); render();
+      return {
+        update: function(next){ set(next); render(); },
+        // Al salir de la vista: se envía lo pendiente y se sueltan observadores, temporizadores y eventos.
+        destroy: function(){ flush(); ac.abort(); if (io) io.disconnect(); if (ro) ro.disconnect(); Object.keys(timers).forEach(function(k){ clearTimeout(timers[k]); }); }
+      };
+    }
+    /* nview:end */
+
+    // Enganche del panel: los datos siguen llegando de la misma consulta a notifications (sin cambios).
+    // Cada entrada a la vista monta el componente de nuevo (rehace la foto de "Nuevas"); lo visto se guarda con markSeen().
+    var nvApi = null, nvRetry = [];
+    function syncUnread(){ hasUnread = wuNotis.some(function(n){ return !n.read_at; }); renderUnread(); }
+    function renderNotis(){
+      syncUnread();
+      var el = document.getElementById('nview');
+      if (el){
+        var opts = {
+          items: wuNotis.map(function(n){
+            return { id: n.id, tag: n.tag || 'NOVEDAD', title: n.title || '', body: n.body || '', createdAt: n.created_at, readAt: n.read_at || null, important: !!n.important };
+          }),
+          onSeen: markSeen
+        };
+        if (nvApi) nvApi.update(opts); else nvApi = mountNotifications(el, opts);
       }
       var dropBody = document.querySelector('#drop .wa-drop__body');
       if (dropBody){
@@ -1432,22 +1572,24 @@
         var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
       });
     }
-    (function(){
-      var tabs = document.getElementById('notiTabs');
-      if (!tabs) return;
-      tabs.addEventListener('click', function(e){
-        var b = e.target.closest('button'); if (!b) return;
-        notiFilter = b.getAttribute('data-nf') || 'all';
-        Array.prototype.slice.call(tabs.querySelectorAll('button')).forEach(function(x){ x.classList.toggle('is-active', x === b); });
-        renderNotis();
-      });
-    })();
+    function enterNotis(){ if (nvApi) nvApi.destroy(); nvApi = null; renderNotis(); }
+    // markRead (todas) queda solo para "Ver todas" de la campanita oculta.
     function markRead(){
       if (!hasUnread) return;
       var nowIso = new Date().toISOString();
       wuNotis.forEach(function(n){ if (!n.read_at) n.read_at = nowIso; });
       hasUnread = false; renderNotis();
       SB.from('notifications').update({ read_at: nowIso }).is('read_at', null).then(function(){}, function(){});
+    }
+    // Guarda como leídas las vistas: una consulta por tanda. Si falla, sin alertas: esos ids van de nuevo en la próxima tanda.
+    function markSeen(ids){
+      ids = nvRetry.concat(ids); nvRetry = [];
+      var iso = new Date().toISOString(), on = {};
+      ids.forEach(function(id){ on[id] = 1; });
+      wuNotis.forEach(function(n){ if (on[n.id] && !n.read_at) n.read_at = iso; });
+      syncUnread();
+      function retry(){ nvRetry = nvRetry.concat(ids); }
+      SB.from('notifications').update({ read_at: iso }).in('id', ids).is('read_at', null).then(function(r){ if (r && r.error) retry(); }, retry);
     }
     renderUnread();
 
