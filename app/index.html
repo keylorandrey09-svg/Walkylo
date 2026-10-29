@@ -350,16 +350,18 @@
     .wa-noti__body{margin:0;color:var(--text-2);}
     /* nview:start */
     /* Vista Notificaciones: filas sin tarjetas; punto azul solo para nuevas; "Importante" sin color */
-    /* La vista es una columna que llena la pantalla (menos el padding de .wa-content) para que el vacío ocupe el resto */
-    .wa-view.is-active:has(> .nview){display:flex;flex-direction:column;min-height:calc(100dvh - 96px);}
-    .nview{flex:1;display:flex;flex-direction:column;}
-    .nview__sum{margin:16px 0 0;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    /* Patrón de vista estándar (valores de la vista Conversaciones vieja, commit 0198538: .cv-toolbar y .cv-wrap):
+       una fila de controles (filtro a la izquierda, resumen a la derecha) y una caja --bg con borde que contiene lista o vacío. */
+    .nview__ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px;}
+    .nview__sum{margin:0 0 0 auto;font-size:.875rem;color:var(--text-2);text-align:right;font-variant-numeric:tabular-nums;}
     .nview__sum span{white-space:nowrap;}
-    .nview > .cv-tabs,.nview__more{align-self:flex-start;margin-top:16px;}
-    .nview__list{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--border);}
-    .nview__list li{border-bottom:1px solid var(--border);}
+    .nview__box{margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
+    .nview__box.is-empty{display:grid;min-height:280px;}
+    .nview__list{margin:0;padding:0;list-style:none;}
+    .nview__list li + li,.nview__foot{border-top:1px solid var(--border);}
+    .nview__foot{padding:12px 16px;}
     /* Fila: <div> si el cuerpo cabe; <button> con chevron si se corta. La 3a columna se reserva siempre (mismo ancho y alto). */
-    .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr) 16px;column-gap:12px;width:100%;min-height:64px;padding:12px 8px;
+    .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr) 16px;column-gap:12px;width:100%;min-height:64px;padding:12px 16px;
       border:0;border-radius:6px;background:none;font:inherit;color:var(--text-2);text-align:left;}
     button.nview__row{cursor:pointer;}
     .nview__row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
@@ -376,12 +378,11 @@
     .nview__row[aria-expanded="true"] .nview__chev{transform:rotate(180deg);}
     .nview__body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:68ch;margin-top:2px;font-size:.9375rem;line-height:1.6;} /* 68ch: en escritorio el texto largo también se corta y lleva chevron */
     .nview__row[aria-expanded="true"] .nview__body{display:block;white-space:pre-line;}
-    .nview__empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:280px;margin-top:16px;
-      padding:24px 16px;border-radius:10px;background:var(--surface);text-align:center;color:var(--text-2);}
+    .nview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px 16px;text-align:center;color:var(--text-2);}
     .nview__empty svg{width:20px;height:20px;margin-bottom:4px;}
     .nview__empty p{margin:0;} .nview__empty p:first-of-type{color:var(--text);}
     .nview__link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;}
-    @media (max-width:768px){ .wa-view.is-active:has(> .nview){min-height:calc(100dvh - var(--top) - 72px);} }
+    @media (max-width:768px){ .nview__sum{flex:1 1 100%;margin:0;text-align:left;} } /* se apila: filtro arriba, resumen debajo */
     /* nview:end */
 
     /* Modales (Soporte, ir a la landing, contraseña, eliminar cuenta) */
@@ -1505,15 +1506,15 @@
       function render(){
         var a = document.activeElement, focusKey = a && container.contains(a) ? a.getAttribute('data-k') : null;
         var list = st.filter === 'new' ? news() : items;
-        var html = '<p class="nview__sum">' + sum() + '</p><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
+        var html = '<div class="nview__ctl"><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
           var on = x[0] === st.filter;
           return '<button class="cv-tab' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="f:' + x[0] + '">' + x[1] + '</button>';
-        }).join('') + '</div>';
+        }).join('') + '</div><p class="nview__sum">' + sum() + '</p></div><div class="nview__box' + (list.length ? '' : ' is-empty') + '">';
         if (!items.length) html += empty('No tenés notificaciones.', 'Acá vas a ver novedades de Walkylet y avisos importantes.');
         else if (!list.length) html += empty('No tenés notificaciones nuevas.', '', '<button class="nview__link" type="button" data-k="f:all">Ver todas</button>');
         else html += '<ul class="nview__list">' + list.slice(0, st.shown).map(row).join('') + '</ul>' +
-          (list.length > st.shown ? '<button class="wa-btn nview__more" type="button" data-k="more">Mostrar más</button>' : '');
-        container.innerHTML = html;
+          (list.length > st.shown ? '<div class="nview__foot"><button class="wa-btn" type="button" data-k="more">Mostrar más</button></div>' : '');
+        container.innerHTML = html + '</div>';
         fit();
         if (io){
           io.disconnect(); Object.keys(timers).forEach(function(k){ clearTimeout(timers[k]); }); timers = {}; inView = {};
