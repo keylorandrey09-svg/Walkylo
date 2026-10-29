@@ -360,8 +360,8 @@
     .nview__row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
     .nview__meta,.nview__title,.nview__body{grid-column:2;min-width:0;overflow-wrap:anywhere;}
     .nview__meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.8125rem;line-height:1.5;}
-    .nview__imp{padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;line-height:1.3;}
-    .nview__dot{grid-column:1;grid-row:2;width:8px;height:8px;margin-top:8px;border-radius:50%;}
+    .nview__imp{margin:-1px 0;padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;line-height:1.3;} /* margen negativo: no agranda la línea del meta */
+    .nview__dot{grid-column:1;grid-row:2;width:8px;height:8px;margin-top:10px;border-radius:50%;} /* centrado en la 1a línea del título (2px de margen + 24px de línea) */
     .nview__title{margin-top:2px;font-size:.9375rem;line-height:1.6;}
     .nview__row:hover .nview__title,.nview__row.is-un .nview__title{color:var(--text);}
     .nview__row.is-un .nview__title{font-weight:500;}
