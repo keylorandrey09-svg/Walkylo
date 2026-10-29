@@ -238,7 +238,8 @@
     .qview__ans{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;color:var(--text-2);}
     .qview__rest{margin:8px 0 0;}
     .qview__link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;}
-    .qview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:120px;max-height:160px;
+    /* Vacío: ocupa el espacio libre hasta el final de la pantalla (lo ajusta fitEmpty) y centra el texto ahí */
+    .qview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:200px;
       padding:24px 16px;text-align:center;color:var(--text-2);}
     .qview__empty svg{width:20px;height:20px;margin-bottom:4px;}
     .qview__empty p{margin:0;} .qview__empty p:first-of-type{color:var(--text);}
@@ -2136,7 +2137,7 @@
           (list.length > st.shown ? '<button class="wa-btn" type="button" data-k="more">Mostrar más</button>' : '') +
           '<p class="qview__legend">Sin respuesta: el chat no encontró información para responder.</p></div>';
         container.innerHTML = html;
-        syncSel();
+        syncSel(); fitEmpty();
         // El redibujo reemplaza el DOM: devolver el foco al mismo control.
         if (focusKey && byKey(focusKey)) byKey(focusKey).focus();
       }
@@ -2180,6 +2181,12 @@
         }
         render();
       });
+      // El vacío llena lo que queda de pantalla (menos el aire de abajo del panel), mínimo 200px.
+      function fitEmpty(){
+        var e = container.querySelector('.qview__empty'); if (!e || !e.offsetParent) return;
+        e.style.minHeight = Math.max(200, Math.floor(innerHeight - (e.getBoundingClientRect().top + scrollY) - 64)) + 'px';
+      }
+      window.addEventListener('resize', fitEmpty);
       render();
       return { update: function(next){ o = next || {}; items = o.items || []; render(); } };
     }
