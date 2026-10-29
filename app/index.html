@@ -176,54 +176,96 @@
     .wa-toast.is-on{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
 
     /* Campos */
-    .wg-input,.wg-textarea,.wg-select,.wa-textarea,.cv-search input{width:100%;min-height:40px;padding:8px 12px;
+    .wg-input,.wg-textarea,.wg-select,.wa-textarea{width:100%;min-height:40px;padding:8px 12px;
       border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font:inherit;}
-    :is(.wg-input,.wg-textarea,.wg-select,.wa-textarea,.cv-search input):focus{border-color:var(--accent);
+    :is(.wg-input,.wg-textarea,.wg-select,.wa-textarea):focus{border-color:var(--accent);
       outline:3px solid color-mix(in srgb,var(--accent) 25%,transparent);outline-offset:0;}
-    :is(.wg-input,.wg-textarea,.wa-textarea,.cv-search input)::placeholder{color:var(--text-2);}
+    :is(.wg-input,.wg-textarea,.wa-textarea)::placeholder{color:var(--text-2);}
     :is(.wg-input,.wg-textarea,.wg-select):disabled{background:var(--surface);color:var(--text-2);cursor:not-allowed;}
     .wg-textarea{min-height:104px;resize:vertical;line-height:1.5;}
     .wa-textarea{min-height:120px;resize:vertical;}
 
-    /* Conversaciones (bandeja) */
-    .cv-toolbar{display:flex;align-items:center;gap:12px;margin-top:24px;flex-wrap:wrap;}
-    .cv-search{position:relative;margin-left:auto;flex:1;max-width:280px;}
-    .cv-search input{padding-left:36px;}
-    .cv-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-2);pointer-events:none;}
-    .cv-banner{display:flex;align-items:center;gap:8px;margin-top:16px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;
-      background:var(--surface);color:var(--text-2);font-size:.8125rem;}
-    .cv-banner svg{width:16px;height:16px;flex-shrink:0;}
-    .cv-wrap{display:grid;grid-template-columns:320px 1fr;margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
-    .cv-wrap.is-empty{grid-template-columns:1fr;min-height:280px;}
-    .cv-wrap.is-empty .cv-list{display:none;}
-    .cv-list{border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;}
-    .cv-items{overflow-y:auto;flex:1;min-height:0;}
-    .cv-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
-    .cv-item:hover,.cv-item.is-active{background:var(--surface);}
-    .cv-avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);color:var(--text-2);display:grid;place-items:center;font-weight:500;font-size:.875rem;flex-shrink:0;}
-    .cv-item__body{min-width:0;flex:1;}
-    .cv-item__top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;}
-    .cv-item__name{font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .cv-item__time{font-size:.75rem;color:var(--text-2);flex-shrink:0;white-space:nowrap;}
-    .cv-item__prev{margin-top:2px;font-size:.875rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .cv-item__foot{display:flex;align-items:center;gap:8px;margin-top:6px;}
-    .cv-status{padding:1px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;color:var(--text-2);}
-    .cv-status--resolved{color:var(--ok);}
-    .cv-detail{display:flex;flex-direction:column;min-width:0;min-height:0;}
-    .cv-detail__head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .cv-detail__who{font-weight:500;}
-    .cv-back{display:none;width:44px;height:44px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;place-items:center;flex-shrink:0;}
-    .cv-back svg{width:20px;height:20px;pointer-events:none;}
-    .cv-detail__spacer{margin-left:auto;}
-    .cv-thread{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface);}
-    .cv-msg{max-width:78%;padding:8px 12px;border-radius:10px;font-size:.875rem;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;}
-    .cv-thread__rest{display:flex;flex-direction:column;gap:10px;}
-    .cv-more{display:none;}
-    .cv-msg__time{display:block;margin-top:4px;font-size:.6875rem;opacity:.65;}
-    .cv-msg--in{align-self:flex-start;background:var(--bg);border:1px solid var(--border);color:var(--text);}
-    .cv-msg--out{align-self:flex-end;background:var(--text);color:#fff;} /* el fondo real lo pone el color del widget */
-    .cv-detail__ph,.cv-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-2);padding:32px;}
-    .cv-detail__ph svg,.cv-empty svg{width:32px;height:32px;margin-bottom:8px;}
+    /* qview:start */
+    /* Preguntas: sin color de estado; el resultado se lee por ícono y contraste de texto */
+    .qview__sum{margin:16px 0 0;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .qview__sum span{white-space:nowrap;}
+    .qview__ctl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin-top:16px;}
+    .qview__ctl .wa-tabs{margin-top:0;}
+    .qview table{width:100%;margin-top:16px;border-collapse:collapse;table-layout:fixed;}
+    .qview th{height:40px;padding:0 12px;border-bottom:1px solid var(--border);text-align:left;font-size:.8125rem;font-weight:400;color:var(--text-2);}
+    .qview th:nth-last-child(3){width:156px;} .qview th:nth-last-child(2){width:80px;} .qview th:last-child{width:120px;}
+    .qview td{padding:0 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .qview__r{position:relative;}
+    .qview__r:has(+ .qview__x:not([hidden])) td{border-bottom:0;}
+    .qview td.qview__q{padding:0;}
+    /* Selección: casillas cuadradas de 16px (radio 4px) y una caja más en la fila de controles */
+    .qview .qview__s{width:44px;padding:0;}
+    .qview__hit{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:44px;min-height:56px;cursor:pointer;}
+    .qview__ck{position:relative;display:inline-flex;flex-shrink:0;width:16px;height:16px;}
+    .qview__ck input{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1px solid var(--text-2);border-radius:4px;background:var(--bg);cursor:pointer;}
+    .qview__ck input:is(:checked,:indeterminate){border-color:var(--text);background:var(--text);}
+    .qview__ck svg{position:absolute;inset:0;width:16px;height:16px;fill:none;stroke:var(--bg);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+    .qview__ck path{display:none;}
+    .qview__ck input:checked + svg .qview__ck-y,.qview__ck input:indeterminate + svg .qview__ck-p{display:inline;}
+    .qview__sel{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px;max-width:100%;padding:3px;border:1px solid var(--border);border-radius:6px;background:var(--surface);}
+    .qview__sel button,.qview__sel-all{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border:1px solid transparent;border-radius:4px;
+      background:none;font:400 .875rem var(--font);color:var(--text-2);cursor:pointer;}
+    .qview__sel button:hover,.qview__sel-all:hover{color:var(--text);}
+    .qview__sel button:disabled{opacity:.5;cursor:default;}
+    .qview__sel .qview__del{color:var(--danger);}
+    .qview__sel .qview__del.is-yes{border-color:var(--border);background:var(--bg);font-weight:500;}
+    .qview__sel-t{padding:0 8px;font-size:.875rem;color:var(--text);}
+    .qview__err{color:var(--danger);}
+    .qview__btn{display:block;width:100%;min-height:56px;padding:0 12px;border:0;background:none;font:inherit;color:var(--text);
+      text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+    .qview__btn::after{content:"";position:absolute;inset:0;border-radius:6px;}
+    .qview__btn:focus-visible{outline:none;}
+    .qview__btn:focus-visible::after{outline:2px solid var(--accent);outline-offset:-2px;}
+    .qview__res{color:var(--text-2);}
+    .qview__res.is-un{color:var(--text);font-weight:500;}
+    .qview__res.is-un .qview__ic{color:var(--text-2);}
+    .qview__ic{display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .qview .qview__n{text-align:right;font-variant-numeric:tabular-nums;}
+    .qview__m{display:none;}
+    .qview__t{color:var(--text-2);}
+    .qview__x td{padding:0 0 12px;white-space:normal;}
+    .qview__d{padding:12px 16px;border-radius:6px;background:var(--surface);}
+    .qview__d ul{margin:0;padding:0;list-style:none;}
+    .qview__d li{display:grid;gap:2px;min-width:0;padding:8px 0;}
+    .qview__d li + li{border-top:1px solid var(--border);}
+    .qview__w,.qview__rest,.qview__legend{font-size:.8125rem;color:var(--text-2);}
+    .qview__a{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--text);}
+    .qview__ans{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;color:var(--text-2);}
+    .qview__rest{margin:8px 0 0;}
+    .qview__link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;}
+    .qview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:120px;max-height:160px;
+      padding:24px 16px;text-align:center;color:var(--text-2);}
+    .qview__empty svg{width:20px;height:20px;margin-bottom:4px;}
+    .qview__empty p{margin:0;} .qview__empty p:first-of-type{color:var(--text);}
+    .qview__empty .qview__link{min-height:44px;}
+    .qview__foot{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-top:16px;}
+    .qview__legend{margin:0;}
+    @media (max-width:768px){
+      .qview thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+      .qview table,.qview tbody,.qview td{display:block;}
+      .qview__r{display:flex;flex-wrap:wrap;align-items:center;min-height:56px;padding:10px 0;border-bottom:1px solid var(--border);}
+      .qview__r:has(+ .qview__x:not([hidden])){border-bottom:0;}
+      .qview td{padding:0;border:0;font-size:.8125rem;}
+      .qview td.qview__q{flex:0 0 100%;margin-bottom:2px;}
+      .qview__r:has(> .qview__s){padding-left:44px;}
+      .qview td.qview__s{position:absolute;top:0;bottom:0;left:0;}
+      .qview__hit{height:100%;min-height:0;justify-content:flex-start;}
+      .qview__sel button,.qview__sel-all{min-height:44px;}
+      .qview__btn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:0;padding:0;white-space:normal;overflow-wrap:anywhere;}
+      .qview .qview__n,.qview__t{color:var(--text-2);}
+      .qview__res ~ td::before{content:"·";margin:0 6px;color:var(--text-2);}
+      .qview__m{display:inline;}
+      .qview__x{display:block;border-bottom:1px solid var(--border);}
+      .qview__x[hidden]{display:none;}
+    }
+    /* qview:end */
+    .cv-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-2);padding:32px;}
+    .cv-empty svg{width:32px;height:32px;margin-bottom:8px;}
     .cv-empty .cv-empty__sub{margin-top:4px;font-size:.8125rem;}
 
     /* Widget */
@@ -348,25 +390,13 @@
 
     /* Diseños de vista que se apilan antes que el menú (el contenido queda angosto) */
     @media (max-width:860px){
-      .cfg-grid,.wg-grid,.cv-wrap{grid-template-columns:1fr;}
+      .cfg-grid,.wg-grid{grid-template-columns:1fr;}
       .cfg-row{gap:10px;}
       .cfg-row__label{width:auto;}
       .cfg-toggle{margin-left:0;width:100%;}
       .cfg-toggle button{flex:1;}
       .cfg-row .wa-btn{margin-left:0;}
       .noti-wrap{max-width:none;max-height:clamp(460px,calc(100dvh - 210px),660px);}
-      .cv-detail{display:none;}
-      .cv-wrap.is-detail .cv-list{display:none;}
-      .cv-wrap.is-detail .cv-detail{display:flex;}
-      .cv-thread__rest{display:none;}
-      .cv-thread.is-expanded .cv-thread__rest{display:flex;}
-      .cv-more{display:inline-flex;align-items:center;align-self:center;min-height:44px;margin:4px auto 2px;padding:0 16px;
-        border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.875rem;cursor:pointer;}
-      .cv-thread.is-expanded .cv-more{display:none;}
-      .cv-detail__head{position:sticky;top:0;background:var(--bg);z-index:2;}
-      .cv-back{display:grid;}
-      .cv-search{max-width:none;flex:1 1 100%;}
-      .cv-wrap.is-empty .cv-detail{display:flex;}
       .wg-preview{position:static;}
       .wg-head{flex-direction:column;}
       .wg-actions{width:100%;}
@@ -385,7 +415,7 @@
       .wa-shell.is-open .wa-sidebar{transform:none;visibility:visible;}
       .wa-shell.is-open .wa-scrim{display:block;}
       .wa-nav a,.wa-btn,.cfg-toggle button,.cv-tab{min-height:44px;}
-      .wg-input,.wg-textarea,.wg-select,.wa-textarea,.cv-search input{min-height:44px;font-size:1rem;}
+      .wg-input,.wg-textarea,.wg-select,.wa-textarea{min-height:44px;font-size:1rem;}
       .wa-content{padding:24px 16px 48px;}
       .wa-stats{grid-template-columns:1fr;gap:12px;}
     }
@@ -621,7 +651,7 @@
         </a>
         <a href="/app/conversaciones" data-view="conversaciones" data-label="Conversaciones">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
-          Conversaciones
+          Preguntas
         </a>
         <a href="/app/widget" data-view="widget" data-label="Widget">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
@@ -840,34 +870,13 @@
           </div>
         </section>
 
-        <!-- VIEW: Conversaciones -->
+        <!-- VIEW: Conversaciones (en el menú: "Preguntas") -->
         <section class="wa-view" data-view="conversaciones">
-          <h1 class="wa-page-title">Conversaciones</h1>
-          <p class="wa-page-sub">Las charlas de tus visitantes con el asistente.</p>
-
-          <div class="cv-toolbar">
-            <div class="cv-tabs" id="cvTabs">
-              <button class="cv-tab is-active" type="button" data-f="all">Todas</button>
-              <button class="cv-tab" type="button" data-f="open">Abiertas</button>
-              <button class="cv-tab" type="button" data-f="resolved">Resueltas</button>
-            </div>
-            <div class="cv-search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-              <input type="search" id="cvSearch" placeholder="Buscar en conversaciones…" />
-            </div>
-          </div>
-
-          <div class="cv-banner" id="cvBanner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-            Vista de ejemplo · los datos reales aparecen acá cuando conectes tu widget.
-          </div>
-
-          <div class="cv-wrap" id="cvWrap">
-            <div class="cv-list">
-              <div class="cv-items" id="cvItems"></div>
-            </div>
-            <div class="cv-detail" id="cvDetail"></div>
-          </div>
+          <!-- qview:start -->
+          <h1 class="wa-page-title">Preguntas</h1>
+          <p class="wa-page-sub">Lo que preguntan tus visitantes y cómo respondió el chat.</p>
+          <div class="qview" id="qview"></div>
+          <!-- qview:end -->
         </section>
 
         <!-- VIEW: Widget -->
@@ -2002,141 +2011,193 @@
     })();
 
     /* ============================================================
-       CONVERSACIONES — bandeja de charlas del widget.
-       Vista de ejemplo hasta conectar Supabase.
-       Enganches:
-         - TODO Supabase: reemplazar el seed de ejemplo por appState.conversations reales
-           (cada una: {id,name,initial,status:'open'|'resolved',updatedAt,messages:[{from:'visitor'|'assistant',text,at}]}).
-         - TODO Supabase: al resolver, actualizar el estado en la base.
-         - Cuando haya datos reales: poné cvExample=false (se oculta el banner).
+       PREGUNTAS (vista interna "conversaciones") — una fila por pregunta
+       de visitantes, agrupada, con el resultado del chat.
        ============================================================ */
-    var cvExample = false;
-    function cvIso(minAgo){ return new Date(Date.now() - minAgo*60000).toISOString(); }
-    appState.conversations = cvExample ? [
-      { id:'c1', name:'Visitante · Ana', initial:'A', status:'resolved', updatedAt: cvIso(42), messages:[
-        { from:'visitor', text:'Hola, ¿cómo cambio mi plan?', at: cvIso(48) },
-        { from:'assistant', text:'¡Hola! Podés cambiarlo desde Configuración → Cambiar de plan. ¿Querés que te pase el enlace?', at: cvIso(47) },
-        { from:'visitor', text:'Sí, por favor', at: cvIso(44) },
-        { from:'assistant', text:'Acá lo tenés: /app → Configuración. Cualquier cosa me avisás.', at: cvIso(42) }
-      ]},
-      { id:'c2', name:'Visitante · Marco', initial:'M', status:'open', updatedAt: cvIso(15), messages:[
-        { from:'visitor', text:'No me llega el correo de confirmación', at: cvIso(18) },
-        { from:'assistant', text:'Gracias por avisar. ¿Podrías revisar la carpeta de spam? Si no aparece, reenvío la confirmación.', at: cvIso(15) }
-      ]},
-      { id:'c3', name:'Visitante · Lucía', initial:'L', status:'open', updatedAt: cvIso(3), messages:[
-        { from:'visitor', text:'¿Tienen app para iOS?', at: cvIso(4) },
-        { from:'assistant', text:'Por ahora Walkylet funciona desde el navegador. Te aviso apenas haya app nativa. ¿Querés que te anote?', at: cvIso(3) }
-      ]}
-    ] : [];
+    function cvEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); } // también la usa Notificaciones
 
-    var cvFilter = 'all', cvSearch = '', cvActiveId = null;
+    /* qview:start */
+    // Adaptador: filas de la base -> items de la vista
+    // {id, question, result:'answered'|'unanswered', chats, lastAt, details:[{when, asked, answer}]}.
+    // Hoy no existe el cierre de chat ni el resultado en la base: devuelve []. Lo completa la Fase 3.
+    function toQuestionItems(rows){ return []; }
 
-    function cvStatusEs(s){ return s === 'resolved' ? 'Resuelta' : 'Abierta'; }
-    function cvList(){
-      var q = cvSearch.trim().toLowerCase();
-      return (appState.conversations || []).filter(function(c){
-        if (cvFilter === 'open' && c.status !== 'open') return false;
-        if (cvFilter === 'resolved' && c.status !== 'resolved') return false;
-        if (q){
-          var hay = (c.name + ' ' + c.messages.map(function(m){ return m.text; }).join(' ')).toLowerCase();
-          if (hay.indexOf(q) === -1) return false;
+    // Componente autocontenido: no toca Supabase ni estado global; maneja sus filtros y se redibuja.
+    // opts: {items, inProgress, now, onAddKnowledge(item), onDelete(items) -> Promise}. Devuelve {update(opts)}.
+    // La zona de selección y borrado solo aparece si hay onDelete (cada botón funciona o no existe).
+    function mountQuestions(container, opts){
+      var o = opts || {}, items = o.items || [], list = [];
+      var st = { range: 'all', res: 'all', sort: 'freq', shown: 20, open: {}, sel: {}, ask: false, busy: false, err: false };
+      var RANGES = [['24', '24 horas'], ['168', '7 días'], ['720', '30 días'], ['all', 'Todo']];
+      var RESULTS = [['all', 'Todas'], ['unanswered', 'Sin respuesta'], ['answered', 'Respondidas']];
+      var SORTS = [['freq', 'Más frecuentes'], ['recent', 'Recientes']];
+      var IC = '<svg class="qview__ic" viewBox="0 0 16 16" aria-hidden="true">';
+      var IC_UN = IC + '<path d="M4 8h8"/></svg>', IC_OK = IC + '<path d="M3 8.5l3 3 7-7"/></svg>';
+      var CK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path class="qview__ck-y" d="M4 8.5l2.5 2.5 5.5-6"/><path class="qview__ck-p" d="M4.5 8h7"/></svg>';
+      // Formateadores creados una sola vez: crear uno por fecha (toLocaleString) era lo que trababa cada clic.
+      var rtf = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat('es', { style: 'narrow' }) : null;
+      var FULL = new Intl.DateTimeFormat('es', { dateStyle: 'long', timeStyle: 'short' }), SHORT = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
+
+      function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function now(){ return o.now != null ? +o.now : Date.now(); }
+      function ms(iso){ return new Date(iso).getTime(); }
+      function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+      function full(iso){ return FULL.format(new Date(iso)); }
+      // "hace 5 min", "hace 3 h", "hace 2 d"; pasados 30 días, fecha corta ("12 oct").
+      function ago(iso){
+        var s = Math.max(0, (now() - ms(iso)) / 1000);
+        if (s >= 30 * 86400 || !rtf) return SHORT.format(new Date(iso)).replace('.', '');
+        if (s < 60) return 'ahora';
+        if (s < 3600) return rtf.format(-Math.floor(s / 60), 'minute');
+        if (s < 86400) return rtf.format(-Math.floor(s / 3600), 'hour');
+        return rtf.format(-Math.floor(s / 86400), 'day');
+      }
+      function inRange(it){ return st.range === 'all' || now() - ms(it.lastAt) <= st.range * 3600000; }
+      function byKey(k){ return Array.prototype.filter.call(container.querySelectorAll('[data-k]'), function(el){ return el.getAttribute('data-k') === k; })[0]; }
+      function find(id){ return items.filter(function(x){ return String(x.id) === id; })[0]; }
+      function selected(){ return list.filter(function(x){ return st.sel[x.id]; }); }
+      // Rango: mismo marcado y clases que las pestañas de Analíticas. Resultado y orden: control segmentado.
+      function group(cls, btn, key, opts2, cur, label){
+        return '<div class="' + cls + '" role="group" aria-label="' + label + '">' + opts2.map(function(x){
+          var on = x[0] === cur;
+          return '<button class="' + btn + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="' + key + ':' + x[0] + '">' + x[1] + '</button>';
+        }).join('') + '</div>';
+      }
+      function check(key, label, on){
+        return '<span class="qview__ck"><input type="checkbox" data-k="' + key + '"' + (label ? ' aria-label="' + esc(label) + '"' : '') + (on ? ' checked' : '') + '>' + CK + '</span>';
+      }
+      // Detalle de una pregunta: se arma solo al abrir la fila.
+      function detail(it){
+        var un = it.result === 'unanswered', d = it.details || [];
+        var rest = Math.max(it.chats, d.length) - Math.min(d.length, 5); // details puede traer solo una muestra
+        return '<div class="qview__d">' +
+          (un ? '<button class="qview__link" type="button" data-k="add:' + esc(it.id) + '">Agregar a información →</button>' : '') +
+          '<ul>' + d.slice(0, 5).map(function(c){
+            return '<li><span class="qview__w">' + esc(full(c.when)) + '</span>' +
+              '<span class="qview__a" title="' + esc(c.asked) + '">' + esc(c.asked) + '</span>' +
+              '<span class="qview__ans">' + esc(c.answer) + '</span></li>';
+          }).join('') + '</ul>' +
+          (rest > 0 ? '<p class="qview__rest">y ' + plural(rest, 'chat más', 'chats más') + '</p>' : '') + '</div>';
+      }
+      function row(it, i){
+        var id = 'qv-d' + i, open = !!st.open[it.id], un = it.result === 'unanswered', cols = o.onDelete ? 5 : 4;
+        return '<tr class="qview__r">' +
+          (o.onDelete ? '<td class="qview__s"><label class="qview__hit">' + check('s:' + it.id, 'Seleccionar: ' + it.question, st.sel[it.id]) + '</label></td>' : '') +
+          '<td class="qview__q"><button class="qview__btn" type="button" aria-expanded="' + open + '" aria-controls="' + id + '" data-k="q:' + esc(it.id) + '" title="' + esc(it.question) + '">' + esc(it.question) + '</button></td>' +
+          '<td class="qview__res' + (un ? ' is-un' : '') + '">' + (un ? IC_UN + 'Sin respuesta' : IC_OK + 'Respondida') + '</td>' +
+          '<td class="qview__n">' + it.chats + '<span class="qview__m"> ' + (it.chats === 1 ? 'chat' : 'chats') + '</span></td>' +
+          '<td class="qview__t" title="' + esc(full(it.lastAt)) + '">' + esc(ago(it.lastAt)) + '</td></tr>' +
+          '<tr class="qview__x" id="' + id + '"' + (open ? '' : ' hidden') + '><td colspan="' + cols + '">' + (open ? detail(it) : '') + '</td></tr>';
+      }
+      function empty(title, sub, action){
+        return '<div class="qview__empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><p>' + title + '</p>' + (sub ? '<p>' + sub + '</p>' : '') + (action || '') + '</div>';
+      }
+      // Zona de selección (una caja más en la fila de controles): "Seleccionar todas" las de los filtros
+      // actuales y Borrar, con confirmación.
+      function selbar(){
+        var n = selected().length;
+        if (st.ask) return '<span class="qview__sel-t" role="alert">¿Borrar ' + plural(n, 'pregunta', 'preguntas') + '? No se puede deshacer.</span>' +
+          '<button type="button" data-k="no"' + (st.busy ? ' disabled' : '') + '>Cancelar</button>' +
+          '<button class="qview__del is-yes" type="button" data-k="yes"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Borrando…' : 'Borrar') + '</button>';
+        return '<label class="qview__sel-all">' + check('all', '', n && n === list.length) + 'Seleccionar todas</label>' +
+          '<button class="qview__del" type="button" data-k="del"' + (n ? '' : ' disabled') + '>' + (n ? 'Borrar (' + n + ')' : 'Borrar') + '</button>' +
+          (st.err ? '<span class="qview__sel-t qview__err" role="alert">No se pudieron borrar.</span>' : '');
+      }
+      function syncSel(){
+        var bar = container.querySelector('.qview__sel'); if (!bar) return;
+        var f = document.activeElement, fk = f && bar.contains(f) ? f.getAttribute('data-k') : null;
+        bar.innerHTML = selbar();
+        var all = byKey('all'), n = selected().length;
+        if (all) all.indeterminate = n > 0 && n < list.length;
+        if (fk && byKey(fk)) byKey(fk).focus(); else if (st.ask && byKey('no')) byKey('no').focus();
+      }
+
+      function render(){
+        var a = document.activeElement, focusKey = a && container.contains(a) ? a.getAttribute('data-k') : null;
+        var ranged = items.filter(inRange);
+        var unCount = ranged.filter(function(x){ return x.result === 'unanswered'; }).length;
+        list = ranged.filter(function(x){ return st.res === 'all' || x.result === st.res; }).sort(function(x, y){
+          return (st.sort === 'freq' ? y.chats - x.chats : 0) || ms(y.lastAt) - ms(x.lastAt);
+        });
+        var sum = items.length ? '<p class="qview__sum"><span>' + plural(ranged.length, 'pregunta', 'preguntas') + '</span> · <span>' + unCount + ' sin respuesta</span>' +
+          (o.inProgress > 0 ? ' · <span>' + plural(o.inProgress, 'chat en curso', 'chats en curso') + '</span>' : '') + '</p>' : '';
+        var html = sum + '<div class="qview__ctl">' +
+            group('wa-tabs', 'wa-tab', 'r', RANGES, st.range, 'Rango') +
+            group('cv-tabs', 'cv-tab', 'f', RESULTS, st.res, 'Resultado') +
+            group('cv-tabs', 'cv-tab', 'o', SORTS, st.sort, 'Orden') +
+            (o.onDelete && list.length ? '<div class="qview__sel" role="group" aria-label="Selección"></div>' : '') + '</div>' +
+          '<table><thead><tr>' + (o.onDelete ? '<th scope="col" class="qview__s"><span class="sr-only">Seleccionar</span></th>' : '') +
+          '<th scope="col">Pregunta</th><th scope="col">Resultado</th><th scope="col" class="qview__n">Chats</th><th scope="col">Última vez</th></tr></thead>' +
+          '<tbody>' + list.slice(0, st.shown).map(row).join('') + '</tbody></table>';
+        if (!items.length) html += empty('Todavía no hay preguntas.', 'Cuando un chat termina, su pregunta aparece acá con el resultado.');
+        else if (!list.length) html += empty('No hay preguntas con estos filtros.', '', '<button class="qview__link" type="button" data-k="clear">Quitar filtros</button>');
+        else html += '<div class="qview__foot">' +
+          (list.length > st.shown ? '<button class="wa-btn" type="button" data-k="more">Mostrar más</button>' : '') +
+          '<p class="qview__legend">Sin respuesta: el chat no encontró información para responder.</p></div>';
+        container.innerHTML = html;
+        syncSel();
+        // El redibujo reemplaza el DOM: devolver el foco al mismo control.
+        if (focusKey && byKey(focusKey)) byKey(focusKey).focus();
+      }
+
+      container.addEventListener('change', function(e){
+        var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return;
+        if (k === 'all'){ var on = e.target.checked; list.forEach(function(x){ st.sel[x.id] = on; }); }
+        else if (k.slice(0, 2) === 's:') st.sel[k.slice(2)] = e.target.checked;
+        else return;
+        st.err = false;
+        Array.prototype.forEach.call(container.querySelectorAll('input[data-k^="s:"]'), function(c){ c.checked = !!st.sel[c.getAttribute('data-k').slice(2)]; });
+        syncSel();
+      });
+      container.addEventListener('click', function(e){
+        var b = e.target.closest ? e.target.closest('[data-k]') : null; if (!b || b.tagName === 'INPUT') return;
+        var k = b.getAttribute('data-k'), i = k.indexOf(':'), t = i < 0 ? k : k.slice(0, i), v = k.slice(i + 1);
+        if (t === 'add'){ var it = find(v); if (it && o.onAddKnowledge) o.onAddKnowledge(it); return; }
+        if (t === 'q'){ // abrir/cerrar en su lugar, sin redibujar la vista
+          st.open[v] = !st.open[v];
+          var x = document.getElementById(b.getAttribute('aria-controls'));
+          b.setAttribute('aria-expanded', st.open[v]); x.hidden = !st.open[v];
+          x.firstChild.innerHTML = st.open[v] ? detail(find(v)) : '';
+          return;
         }
-        return true;
-      }).sort(function(a,b){ return new Date(b.updatedAt) - new Date(a.updatedAt); });
+        if (t === 'del'){ st.ask = true; st.err = false; syncSel(); return; }
+        if (t === 'no'){ st.ask = false; syncSel(); if (byKey('del')) byKey('del').focus(); return; }
+        if (t === 'yes'){
+          var gone = selected(); st.busy = true; syncSel();
+          Promise.resolve(o.onDelete(gone)).then(function(){
+            var ids = {}; gone.forEach(function(x){ ids[x.id] = 1; });
+            items = items.filter(function(x){ return !ids[x.id]; });
+            st.sel = {}; st.ask = false; st.busy = false; render();
+          }, function(){ st.ask = false; st.busy = false; st.err = true; syncSel(); });
+          return;
+        }
+        if (t === 'more') st.shown += 20;
+        else {
+          if (t === 'r') st.range = v; else if (t === 'f') st.res = v; else if (t === 'o') st.sort = v;
+          else if (t === 'clear'){ st.range = 'all'; st.res = 'all'; }
+          st.shown = 20; st.sel = {}; st.ask = false; st.err = false; // al cambiar filtros se limpia la selección
+        }
+        render();
+      });
+      render();
+      return { update: function(next){ o = next || {}; items = o.items || []; render(); } };
     }
-    function cvEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    /* qview:end */
 
+    // Enganche del panel. Los datos siguen llegando de wuLoadConversations (sin cambios);
+    // "chats en curso" todavía no existe en la base, por eso inProgress es 0.
+    var qvApi = null;
     function renderConversations(){
-      function cvCode(id){ return id ? '#' + String(id).replace(/[^A-Za-z0-9]/g,'').slice(-4).toUpperCase() : ''; }
-      var banner = document.getElementById('cvBanner');
-      if (banner) banner.style.display = cvExample ? '' : 'none';
-      var items = document.getElementById('cvItems');
-      var detail = document.getElementById('cvDetail');
-      var wrap = document.getElementById('cvWrap');
-      if (!items || !detail) return;
-
-      var all = appState.conversations || [];
-      if (all.length === 0){
-        if (wrap) wrap.classList.add('is-empty');
-        items.innerHTML = '';
-        detail.innerHTML = '<div class="cv-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><p>Todavía no hay conversaciones.</p><p class="cv-empty__sub">Cuando instales el widget, las charlas de tus visitantes aparecen acá.</p></div>';
-        return;
-      }
-      if (wrap) wrap.classList.remove('is-empty');
-
-      var list = cvList();
-      if (list.length === 0){
-        items.innerHTML = '<div class="cv-empty" style="min-height:200px"><p>Sin resultados.</p><p class="cv-empty__sub">Probá con otro filtro o búsqueda.</p></div>';
-      } else {
-        items.innerHTML = list.map(function(c){
-          var last = c.messages[c.messages.length - 1];
-          return '<div class="cv-item' + (c.id === cvActiveId ? ' is-active' : '') + '" data-id="' + c.id + '">' +
-            '<div class="cv-avatar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div>' +
-            '<div class="cv-item__body">' +
-              '<div class="cv-item__top"><span class="cv-item__name">' + 'Visitante ' + cvCode(c.id) + '</span><span class="cv-item__time" data-time="' + c.updatedAt + '"></span></div>' +
-              '<div class="cv-item__prev">' + cvEsc(last ? last.text : '') + '</div>' +
-              '<div class="cv-item__foot"><span class="cv-status cv-status--' + c.status + '">' + cvStatusEs(c.status) + '</span></div>' +
-            '</div></div>';
-        }).join('');
-      }
-
-      // detalle
-      var active = all.filter(function(c){ return c.id === cvActiveId; })[0];
-      if (!active){
-        detail.innerHTML = '<div class="cv-detail__ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><p>Elegí una conversación para leerla.</p></div>';
-        if (wrap) wrap.classList.remove('is-detail');
-      } else {
-        var msgHTML = function(m){
-          var isOut = m.from === 'assistant';
-          var _acc = (appState.widget && appState.widget.accent) || '';
-          var st = isOut ? ' style="background:' + (/^#[0-9a-fA-F]{6}$/.test(_acc) ? _acc : '#0164FD') + '"' : '';
-          return '<div class="cv-msg ' + (isOut ? 'cv-msg--out' : 'cv-msg--in') + '"' + st + '>' + cvEsc(m.text) + '<span class="cv-msg__time" data-time="' + m.at + '"></span></div>';
-        };
-        var ms = active.messages || [];
-        var head2 = ms.slice(0, 2).map(msgHTML).join('');
-        var moreBlk = ms.length > 2 ? '<button class="cv-more" type="button" id="cvMore">Ver más</button><div class="cv-thread__rest">' + ms.slice(2).map(msgHTML).join('') + '</div>' : '';
-        detail.innerHTML =
-          '<div class="cv-detail__head">' +
-            '<button class="cv-back" type="button" id="cvBack" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
-            '<span class="cv-detail__who">Visitante ' + cvCode(active.id) + '</span>' +
-            '<span class="cv-detail__spacer"></span>' +
-            '<span class="cv-status cv-status--' + active.status + '">' + cvStatusEs(active.status) + '</span>' +
-          '</div>' +
-          '<div class="cv-thread">' + head2 + moreBlk + '</div>';
-        var back = document.getElementById('cvBack');
-        if (back) back.addEventListener('click', function(){ cvActiveId = null; renderConversations(); });
-        var more = document.getElementById('cvMore');
-        if (more) more.addEventListener('click', function(){ if (more.parentNode) more.parentNode.classList.add('is-expanded'); });
-      }
-
-      // fechas relativas (reusa timeAgo de notificaciones)
-      Array.prototype.slice.call(document.querySelectorAll('#cvWrap [data-time]')).forEach(function(el){
-        var t = el.getAttribute('data-time'); if (t) el.textContent = timeAgo(t);
-      });
+      var el = document.getElementById('qview'); if (!el) return;
+      var opts = {
+        items: toQuestionItems(appState.conversations || []),
+        inProgress: 0,
+        // Misma navegación que el menú: el clic en el enlace "Widget" hace setActive, showView y pushState.
+        onAddKnowledge: function(){ var a = nav.querySelector('a[data-view="widget"]'); if (a) a.click(); }
+      };
+      if (qvApi) qvApi.update(opts); else qvApi = mountQuestions(el, opts);
     }
-
-    function cvSelect(id){
-      cvActiveId = id;
-      renderConversations();
-      var wrap = document.getElementById('cvWrap');
-      if (wrap) wrap.classList.add('is-detail'); // móvil: mostrar la transcripción
-    }
-
-    (function(){
-      var tabs = document.getElementById('cvTabs');
-      if (tabs) tabs.addEventListener('click', function(e){
-        var b = e.target.closest ? e.target.closest('.cv-tab') : null; if (!b) return;
-        Array.prototype.slice.call(tabs.querySelectorAll('.cv-tab')).forEach(function(x){ x.classList.remove('is-active'); });
-        b.classList.add('is-active'); cvFilter = b.getAttribute('data-f'); renderConversations();
-      });
-      var search = document.getElementById('cvSearch');
-      if (search) search.addEventListener('input', function(){ cvSearch = search.value; renderConversations(); });
-      var items = document.getElementById('cvItems');
-      if (items) items.addEventListener('click', function(e){
-        var it = e.target.closest ? e.target.closest('.cv-item') : null; if (!it) return;
-        cvSelect(it.getAttribute('data-id'));
-      });
-    })();
 
     /* ============================================================
        WIDGET — configuración del chat + vista previa en vivo.
