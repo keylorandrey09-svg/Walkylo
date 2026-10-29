@@ -349,31 +349,39 @@
     .wa-noti__title{margin:0 0 4px;font-size:1rem;font-weight:500;}
     .wa-noti__body{margin:0;color:var(--text-2);}
     /* nview:start */
-    /* Vista Notificaciones: filas sin tarjetas; punto azul solo para sin leer; "Importante" sin color */
+    /* Vista Notificaciones: filas sin tarjetas; punto azul solo para nuevas; "Importante" sin color */
+    /* La vista es una columna que llena la pantalla (menos el padding de .wa-content) para que el vacío ocupe el resto */
+    .wa-view.is-active:has(> .nview){display:flex;flex-direction:column;min-height:calc(100dvh - 96px);}
+    .nview{flex:1;display:flex;flex-direction:column;}
     .nview__sum{margin:16px 0 0;color:var(--text-2);font-variant-numeric:tabular-nums;}
     .nview__sum span{white-space:nowrap;}
-    .nview__ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px;}
+    .nview > .cv-tabs,.nview__more{align-self:flex-start;margin-top:16px;}
     .nview__list{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--border);}
     .nview__list li{border-bottom:1px solid var(--border);}
-    .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr);column-gap:12px;width:100%;min-height:64px;padding:12px 8px;
-      border:0;border-radius:6px;background:none;font:inherit;color:var(--text-2);text-align:left;cursor:pointer;}
+    /* Fila: <div> si el cuerpo cabe; <button> con chevron si se corta. La 3a columna se reserva siempre (mismo ancho y alto). */
+    .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr) 16px;column-gap:12px;width:100%;min-height:64px;padding:12px 8px;
+      border:0;border-radius:6px;background:none;font:inherit;color:var(--text-2);text-align:left;}
+    button.nview__row{cursor:pointer;}
     .nview__row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
     .nview__meta,.nview__title,.nview__body{grid-column:2;min-width:0;overflow-wrap:anywhere;}
     .nview__meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.8125rem;line-height:1.5;}
     .nview__imp{margin:-1px 0;padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;line-height:1.3;} /* margen negativo: no agranda la línea del meta */
     .nview__dot{grid-column:1;grid-row:2;width:8px;height:8px;margin-top:10px;border-radius:50%;} /* centrado en la 1a línea del título (2px de margen + 24px de línea) */
     .nview__title{margin-top:2px;font-size:.9375rem;line-height:1.6;}
-    .nview__row:hover .nview__title,.nview__row.is-un .nview__title{color:var(--text);}
+    button.nview__row:hover .nview__title,.nview__row.is-un .nview__title{color:var(--text);}
     .nview__row.is-un .nview__title{font-weight:500;}
     .nview__row.is-un .nview__dot{background:var(--accent);}
-    .nview__row.is-seen .nview__dot{background:none;} /* recién leída: solo se va el punto; el título no cambia hasta redibujar (misma altura) */
+    .nview__chev{display:none;grid-column:3;grid-row:2;width:16px;height:16px;margin-top:6px;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    button.nview__row .nview__chev{display:block;}
+    .nview__row[aria-expanded="true"] .nview__chev{transform:rotate(180deg);}
     .nview__body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;font-size:.9375rem;line-height:1.6;}
     .nview__row[aria-expanded="true"] .nview__body{display:block;white-space:pre-line;}
-    .nview__more{margin-top:16px;}
-    .nview__empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:160px;padding:24px 16px;text-align:center;color:var(--text-2);}
+    .nview__empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:280px;margin-top:16px;
+      padding:24px 16px;border-radius:10px;background:var(--surface);text-align:center;color:var(--text-2);}
     .nview__empty svg{width:20px;height:20px;margin-bottom:4px;}
     .nview__empty p{margin:0;} .nview__empty p:first-of-type{color:var(--text);}
     .nview__link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;}
+    @media (max-width:768px){ .wa-view.is-active:has(> .nview){min-height:calc(100dvh - var(--top) - 72px);} }
     /* nview:end */
 
     /* Modales (Soporte, ir a la landing, contraseña, eliminar cuenta) */
@@ -1326,7 +1334,7 @@
     function wuLogout(){ SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); }); }
     /* ============================================================
        PUNTOS DE ENGANCHE PARA SUPABASE (se cablean en el chat guía):
-       1) Notificaciones: leer del backend y marcar como leídas.        -> markOne() / markRead()
+       1) Notificaciones: leer del backend y marcar como leídas.        -> markSeen() / markRead()
        2) Soporte límite (4 envíos / 30 min): el CONTEO lo hace Supabase -> canSubmitSupport()
        3) Soporte envío: subir fotos a Storage + insertar el mensaje.    -> submitSupport()
        La UI de abajo ya está lista; solo hay que reemplazar los TODO.
@@ -1370,6 +1378,7 @@
     function showView(view, label){
       views.forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === view); });
       if (view === "placeholder" && phTitle) phTitle.textContent = label || "";
+      if (view === "notificaciones") enterNotis();
       if (view === "analiticas") renderAnalytics();
       if (view === "config") renderConfig();
       if (view === "conversaciones") renderConversations();
@@ -1415,15 +1424,22 @@
     }
     /* nview:start */
     // Componente autocontenido: no toca Supabase ni estado global; maneja su filtro y se redibuja.
-    // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onRead(item), onReadAll()}. Devuelve {update(opts)}.
-    // onRead se llama al abrir una fila sin leer; "Marcar todas como leídas" solo aparece si hay onReadAll y quedan sin leer. El cuerpo es texto plano: siempre se escapa, nunca va como HTML.
+    // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onSeen(ids)}. Devuelve {update(opts), destroy()}.
+    // "Nuevas" es una foto de esta visita: las que llegan sin leer siguen marcadas aunque ya se hayan visto.
+    // Una nueva cuenta como vista si está ≥ 60% visible 1 s seguido con la pestaña visible, o al abrirla; onSeen recibe tandas de ids.
+    // Solo es expandible (botón con chevron) la fila cuyo cuerpo se corta. El cuerpo es texto plano: siempre se escapa, nunca va como HTML.
     function mountNotifications(container, opts){
       var o, items, st = { filter: 'all', shown: 20, open: {} };
-      var FILTERS = [['all', 'Todas'], ['unread', 'Sin leer']];
+      var known = {}, fresh = {}, seen = {}, pend = [], timers = {}, inView = {}, flushT, lastW, ac = new AbortController();
+      var FILTERS = [['all', 'Todas'], ['new', 'Nuevas']];
       var rtf = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat('es', { style: 'narrow' }) : null;
       var FULL = new Intl.DateTimeFormat('es', { dateStyle: 'long', timeStyle: 'short' }), SHORT = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
+      var CHEV = '<svg class="nview__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
 
-      function set(next){ o = next || {}; items = (o.items || []).map(function(x){ return Object.assign({}, x); }); }
+      // La foto de "nuevas" se toma la primera vez que aparece cada id (también si los datos llegan después de montar).
+      function set(next){ o = next || {}; items = (o.items || []).map(function(x){
+        if (!known[x.id]){ known[x.id] = 1; if (!x.readAt) fresh[x.id] = 1; }
+        return Object.assign({}, x); }); }
       function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
       function now(){ return o.now != null ? +o.now : Date.now(); }
       function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
@@ -1439,38 +1455,72 @@
       // Solo cambia cómo se muestra el tag ("NOVEDAD" -> "Novedad"); el dato guardado queda igual.
       function tagLabel(t){ t = String(t || '').toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); }
       function find(id){ return items.filter(function(x){ return String(x.id) === id; })[0]; }
-      function unread(){ return items.filter(function(x){ return !x.readAt; }); }
-      function sum(){ var n = unread().length; return '<span>' + plural(items.length, 'notificación', 'notificaciones') + '</span>' + (n ? ' · <span>' + n + ' sin leer</span>' : ''); }
+      function news(){ return items.filter(function(x){ return fresh[x.id]; }); }
+      function sum(){ var n = news().length; return '<span>' + plural(items.length, 'notificación', 'notificaciones') + '</span>' + (n ? ' · <span>' + plural(n, 'nueva', 'nuevas') + '</span>' : ''); }
+      // Todas las filas nacen como <div>; fit() convierte en botón las que tienen el cuerpo cortado.
       function row(it, i){
-        var un = !it.readAt, open = !!st.open[it.id], id = 'nv-b' + i, t = new Date(it.createdAt).getTime();
-        return '<li><button class="nview__row' + (un ? ' is-un' : '') + '" type="button" aria-expanded="' + open + '"' +
-          (it.body ? ' aria-controls="' + id + '"' : '') + ' data-k="n:' + esc(it.id) + '">' +
+        var nu = !!fresh[it.id], t = new Date(it.createdAt).getTime();
+        return '<li data-id="' + esc(it.id) + '"><div class="nview__row' + (nu ? ' is-un' : '') + '">' +
           '<span class="nview__meta"><span>' + esc(tagLabel(it.tag)) + '</span>' +
           (isNaN(t) ? '' : '<span aria-hidden="true">·</span><time datetime="' + esc(it.createdAt) + '" title="' + esc(FULL.format(t)) + '">' + esc(ago(t)) + '</time>') +
           (it.important ? '<span class="nview__imp">Importante</span>' : '') + '</span>' +
-          '<span class="nview__dot">' + (un ? '<span class="sr-only">Sin leer</span>' : '') + '</span>' +
+          '<span class="nview__dot">' + (nu ? '<span class="sr-only">Nueva</span>' : '') + '</span>' +
           '<span class="nview__title">' + esc(it.title) + '</span>' +
-          (it.body ? '<span class="nview__body" id="' + id + '">' + esc(it.body) + '</span>' : '') + '</button></li>';
+          (it.body ? '<span class="nview__body" id="nv-b' + i + '">' + esc(it.body) + '</span>' : '') + CHEV + '</div></li>';
       }
       function empty(title, sub, action){
         return '<div class="nview__empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><p>' + title + '</p>' + (sub ? '<p>' + sub + '</p>' : '') + (action || '') + '</div>';
       }
+      // Expandible solo si el cuerpo (cerrado, 2 líneas) se corta. Se mide al dibujar, con las fuentes listas y si cambia el ancho.
+      function fit(){
+        Array.prototype.forEach.call(container.querySelectorAll('.nview__row:not([aria-expanded="true"])'), function(r){
+          var b = r.querySelector('.nview__body'), cut = !!b && b.scrollHeight > b.clientHeight + 1, id = r.parentNode.getAttribute('data-id');
+          if (cut === (r.tagName === 'BUTTON')) return;
+          var n = document.createElement(cut ? 'button' : 'div'); n.className = r.className;
+          if (cut){ n.type = 'button'; n.setAttribute('aria-controls', b.id); n.setAttribute('aria-expanded', !!st.open[id]); n.setAttribute('data-k', 'n:' + id); }
+          while (r.firstChild) n.appendChild(r.firstChild);
+          r.parentNode.replaceChild(n, r);
+        });
+      }
+      // Lectura al ver: temporizador de 1 s por fila nueva visible; se cancela si deja de verse o se oculta la pestaña.
+      function arm(id){
+        clearTimeout(timers[id]); delete timers[id];
+        if (inView[id] && document.visibilityState === 'visible') timers[id] = setTimeout(function(){ see(id); }, 1000);
+      }
+      function flush(){ clearTimeout(flushT); var ids = pend; pend = []; if (ids.length && o.onSeen) o.onSeen(ids); }
+      function see(id, now){
+        clearTimeout(timers[id]); delete timers[id];
+        var it = find(id); if (!it || it.readAt || seen[id]) return;
+        seen[id] = 1; pend.push(it.id); clearTimeout(flushT); flushT = setTimeout(flush, now ? 0 : 300);
+      }
+      var io = window.IntersectionObserver && new IntersectionObserver(function(es){
+        es.forEach(function(e){ var id = e.target.getAttribute('data-id'); inView[id] = e.isIntersecting && e.intersectionRatio >= 0.6; arm(id); });
+      }, { threshold: 0.6 });
+      var ro = window.ResizeObserver && new ResizeObserver(function(){ if (container.clientWidth !== lastW){ lastW = container.clientWidth; fit(); } });
+      if (ro) ro.observe(container);
+      document.addEventListener('visibilitychange', function(){ Object.keys(inView).forEach(arm); }, { signal: ac.signal });
+      if (document.fonts) document.fonts.ready.then(fit);
 
       function render(){
         var a = document.activeElement, focusKey = a && container.contains(a) ? a.getAttribute('data-k') : null;
-        var list = st.filter === 'unread' ? unread() : items, html;
-        if (!items.length) html = empty('No tenés notificaciones.', 'Acá vas a ver novedades de Walkylet y avisos importantes.');
-        else {
-          html = '<p class="nview__sum">' + sum() + '</p><div class="nview__ctl"><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
-            var on = x[0] === st.filter;
-            return '<button class="cv-tab' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="f:' + x[0] + '">' + x[1] + '</button>';
-          }).join('') + '</div>' + (o.onReadAll && unread().length ? '<button class="wa-btn" type="button" data-k="readall">Marcar todas como leídas</button>' : '') + '</div>';
-          if (!list.length) html += empty('No tenés notificaciones sin leer.', '', '<button class="nview__link" type="button" data-k="f:all">Ver todas</button>');
-          else html += '<ul class="nview__list">' + list.slice(0, st.shown).map(row).join('') + '</ul>' +
-            (list.length > st.shown ? '<button class="wa-btn nview__more" type="button" data-k="more">Mostrar más</button>' : '');
-        }
+        var list = st.filter === 'new' ? news() : items;
+        var html = '<p class="nview__sum">' + sum() + '</p><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
+          var on = x[0] === st.filter;
+          return '<button class="cv-tab' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="f:' + x[0] + '">' + x[1] + '</button>';
+        }).join('') + '</div>';
+        if (!items.length) html += empty('No tenés notificaciones.', 'Acá vas a ver novedades de Walkylet y avisos importantes.');
+        else if (!list.length) html += empty('No tenés notificaciones nuevas.', '', '<button class="nview__link" type="button" data-k="f:all">Ver todas</button>');
+        else html += '<ul class="nview__list">' + list.slice(0, st.shown).map(row).join('') + '</ul>' +
+          (list.length > st.shown ? '<button class="wa-btn nview__more" type="button" data-k="more">Mostrar más</button>' : '');
         container.innerHTML = html;
+        fit();
+        if (io){
+          io.disconnect(); Object.keys(timers).forEach(function(k){ clearTimeout(timers[k]); }); timers = {}; inView = {};
+          Array.prototype.forEach.call(container.querySelectorAll('li[data-id]'), function(li){
+            var it = find(li.getAttribute('data-id')); if (it && !it.readAt && !seen[it.id]) io.observe(li);
+          });
+        }
         // El redibujo reemplaza el DOM: devolver el foco al mismo control.
         var f = focusKey && Array.prototype.filter.call(container.querySelectorAll('[data-k]'), function(el){ return el.getAttribute('data-k') === focusKey; })[0];
         if (f) f.focus();
@@ -1479,36 +1529,27 @@
       container.addEventListener('click', function(e){
         var b = e.target.closest ? e.target.closest('[data-k]') : null; if (!b) return;
         var k = b.getAttribute('data-k'), v = k.slice(2);
-        if (k.slice(0, 2) === 'n:'){ // abrir/cerrar en su lugar, sin redibujar (en "Sin leer" la fila no desaparece bajo el dedo)
-          var it = find(v); st.open[v] = !st.open[v];
-          b.setAttribute('aria-expanded', st.open[v]);
-          if (st.open[v] && it && !it.readAt){
-            it.readAt = new Date(now()).toISOString();
-            b.classList.add('is-seen'); b.querySelector('.nview__dot').textContent = '';
-            container.querySelector('.nview__sum').innerHTML = sum();
-            var ra = container.querySelector('[data-k="readall"]'); if (ra && !unread().length) ra.remove();
-            if (o.onRead) o.onRead(it);
-          }
+        if (k.slice(0, 2) === 'n:'){ // abrir/cerrar en su lugar, sin redibujar; abrir una nueva la marca vista ya
+          st.open[v] = !st.open[v]; b.setAttribute('aria-expanded', st.open[v]);
+          if (st.open[v]) see(v, true); else fit();
           return;
         }
-        if (k === 'readall'){
-          var iso = new Date(now()).toISOString();
-          items.forEach(function(x){ if (!x.readAt) x.readAt = iso; });
-          render(); container.querySelector('.cv-tab.is-active').focus(); // el botón desaparece: el foco pasa al filtro
-          o.onReadAll(); return;
-        }
         if (k === 'more') st.shown += 20;
-        else { st.filter = v === 'unread' ? 'unread' : 'all'; st.shown = 20; }
+        else { st.filter = v === 'new' ? 'new' : 'all'; st.shown = 20; }
         render();
-      });
+      }, { signal: ac.signal });
       set(opts); render();
-      return { update: function(next){ set(next); render(); } };
+      return {
+        update: function(next){ set(next); render(); },
+        // Al salir de la vista: se envía lo pendiente y se sueltan observadores, temporizadores y eventos.
+        destroy: function(){ flush(); ac.abort(); if (io) io.disconnect(); if (ro) ro.disconnect(); Object.keys(timers).forEach(function(k){ clearTimeout(timers[k]); }); }
+      };
     }
     /* nview:end */
 
     // Enganche del panel: los datos siguen llegando de la misma consulta a notifications (sin cambios).
-    // Abrir una fila sin leer la marca sola (markOne); "Marcar todas como leídas" usa markRead(). Entrar a la vista no escribe nada.
-    var nvApi = null;
+    // Cada entrada a la vista monta el componente de nuevo (rehace la foto de "Nuevas"); lo visto se guarda con markSeen().
+    var nvApi = null, nvRetry = [];
     function syncUnread(){ hasUnread = wuNotis.some(function(n){ return !n.read_at; }); renderUnread(); }
     function renderNotis(){
       syncUnread();
@@ -1518,8 +1559,7 @@
           items: wuNotis.map(function(n){
             return { id: n.id, tag: n.tag || 'NOVEDAD', title: n.title || '', body: n.body || '', createdAt: n.created_at, readAt: n.read_at || null, important: !!n.important };
           }),
-          onRead: function(it){ markOne(it.id); },
-          onReadAll: markRead
+          onSeen: markSeen
         };
         if (nvApi) nvApi.update(opts); else nvApi = mountNotifications(el, opts);
       }
@@ -1531,6 +1571,8 @@
         var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
       });
     }
+    function enterNotis(){ if (nvApi) nvApi.destroy(); nvApi = null; renderNotis(); }
+    // markRead (todas) queda solo para "Ver todas" de la campanita oculta.
     function markRead(){
       if (!hasUnread) return;
       var nowIso = new Date().toISOString();
@@ -1538,13 +1580,15 @@
       hasUnread = false; renderNotis();
       SB.from('notifications').update({ read_at: nowIso }).is('read_at', null).then(function(){}, function(){});
     }
-    // Marca una sola fila. Si la escritura falla, vuelve a quedar sin leer (sin alertas).
-    function markOne(id){
-      var n = wuNotis.filter(function(x){ return x.id === id; })[0];
-      if (!n || n.read_at) return;
-      n.read_at = new Date().toISOString(); syncUnread();
-      function undo(){ n.read_at = null; renderNotis(); }
-      SB.from('notifications').update({ read_at: n.read_at }).eq('id', id).is('read_at', null).then(function(r){ if (r && r.error) undo(); }, undo);
+    // Guarda como leídas las vistas: una consulta por tanda. Si falla, sin alertas: esos ids van de nuevo en la próxima tanda.
+    function markSeen(ids){
+      ids = nvRetry.concat(ids); nvRetry = [];
+      var iso = new Date().toISOString(), on = {};
+      ids.forEach(function(id){ on[id] = 1; });
+      wuNotis.forEach(function(n){ if (on[n.id] && !n.read_at) n.read_at = iso; });
+      syncUnread();
+      function retry(){ nvRetry = nvRetry.concat(ids); }
+      SB.from('notifications').update({ read_at: iso }).in('id', ids).is('read_at', null).then(function(r){ if (r && r.error) retry(); }, retry);
     }
     renderUnread();
 
