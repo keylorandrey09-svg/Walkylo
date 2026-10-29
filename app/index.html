@@ -193,11 +193,29 @@
     .qview__ctl .wa-tabs{margin-top:0;}
     .qview table{width:100%;margin-top:16px;border-collapse:collapse;table-layout:fixed;}
     .qview th{height:40px;padding:0 12px;border-bottom:1px solid var(--border);text-align:left;font-size:.8125rem;font-weight:400;color:var(--text-2);}
-    .qview th:nth-child(2){width:156px;} .qview th:nth-child(3){width:80px;} .qview th:nth-child(4){width:120px;}
+    .qview th:nth-last-child(3){width:156px;} .qview th:nth-last-child(2){width:80px;} .qview th:last-child{width:120px;}
     .qview td{padding:0 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
     .qview__r{position:relative;}
     .qview__r:has(+ .qview__x:not([hidden])) td{border-bottom:0;}
     .qview td.qview__q{padding:0;}
+    /* Selección: casillas cuadradas de 16px (radio 4px) y una caja más en la fila de controles */
+    .qview .qview__s{width:44px;padding:0;}
+    .qview__hit{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:44px;min-height:56px;cursor:pointer;}
+    .qview__ck{position:relative;display:inline-flex;flex-shrink:0;width:16px;height:16px;}
+    .qview__ck input{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1px solid var(--text-2);border-radius:4px;background:var(--bg);cursor:pointer;}
+    .qview__ck input:is(:checked,:indeterminate){border-color:var(--text);background:var(--text);}
+    .qview__ck svg{position:absolute;inset:0;width:16px;height:16px;fill:none;stroke:var(--bg);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+    .qview__ck path{display:none;}
+    .qview__ck input:checked + svg .qview__ck-y,.qview__ck input:indeterminate + svg .qview__ck-p{display:inline;}
+    .qview__sel{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px;max-width:100%;padding:3px;border:1px solid var(--border);border-radius:6px;background:var(--surface);}
+    .qview__sel button,.qview__sel-all{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border:1px solid transparent;border-radius:4px;
+      background:none;font:400 .875rem var(--font);color:var(--text-2);cursor:pointer;}
+    .qview__sel button:hover,.qview__sel-all:hover{color:var(--text);}
+    .qview__sel button:disabled{opacity:.5;cursor:default;}
+    .qview__sel .qview__del{color:var(--danger);}
+    .qview__sel .qview__del.is-yes{border-color:var(--border);background:var(--bg);font-weight:500;}
+    .qview__sel-t{padding:0 8px;font-size:.875rem;color:var(--text);}
+    .qview__err{color:var(--danger);}
     .qview__btn{display:block;width:100%;min-height:56px;padding:0 12px;border:0;background:none;font:inherit;color:var(--text);
       text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
     .qview__btn::after{content:"";position:absolute;inset:0;border-radius:6px;}
@@ -234,6 +252,10 @@
       .qview__r:has(+ .qview__x:not([hidden])){border-bottom:0;}
       .qview td{padding:0;border:0;font-size:.8125rem;}
       .qview td.qview__q{flex:0 0 100%;margin-bottom:2px;}
+      .qview__r:has(> .qview__s){padding-left:44px;}
+      .qview td.qview__s{position:absolute;top:0;bottom:0;left:0;}
+      .qview__hit{height:100%;min-height:0;justify-content:flex-start;}
+      .qview__sel button,.qview__sel-all{min-height:44px;}
       .qview__btn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:0;padding:0;white-space:normal;overflow-wrap:anywhere;}
       .qview .qview__n,.qview__t{color:var(--text-2);}
       .qview__res ~ td::before{content:"·";margin:0 6px;color:var(--text-2);}
@@ -2001,67 +2023,101 @@
     function toQuestionItems(rows){ return []; }
 
     // Componente autocontenido: no toca Supabase ni estado global; maneja sus filtros y se redibuja.
-    // opts: {items, inProgress, now, onAddKnowledge(item)}. Devuelve {update(opts)}.
+    // opts: {items, inProgress, now, onAddKnowledge(item), onDelete(items) -> Promise}. Devuelve {update(opts)}.
+    // La zona de selección y borrado solo aparece si hay onDelete (cada botón funciona o no existe).
     function mountQuestions(container, opts){
-      var o = opts || {}, items = o.items || [];
-      var st = { range: 'all', res: 'all', sort: 'freq', shown: 20, open: {} };
+      var o = opts || {}, items = o.items || [], list = [];
+      var st = { range: 'all', res: 'all', sort: 'freq', shown: 20, open: {}, sel: {}, ask: false, busy: false, err: false };
       var RANGES = [['24', '24 horas'], ['168', '7 días'], ['720', '30 días'], ['all', 'Todo']];
       var RESULTS = [['all', 'Todas'], ['unanswered', 'Sin respuesta'], ['answered', 'Respondidas']];
       var SORTS = [['freq', 'Más frecuentes'], ['recent', 'Recientes']];
       var IC = '<svg class="qview__ic" viewBox="0 0 16 16" aria-hidden="true">';
       var IC_UN = IC + '<path d="M4 8h8"/></svg>', IC_OK = IC + '<path d="M3 8.5l3 3 7-7"/></svg>';
+      var CK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path class="qview__ck-y" d="M4 8.5l2.5 2.5 5.5-6"/><path class="qview__ck-p" d="M4.5 8h7"/></svg>';
+      // Formateadores creados una sola vez: crear uno por fecha (toLocaleString) era lo que trababa cada clic.
       var rtf = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat('es', { style: 'narrow' }) : null;
+      var FULL = new Intl.DateTimeFormat('es', { dateStyle: 'long', timeStyle: 'short' }), SHORT = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
 
       function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
       function now(){ return o.now != null ? +o.now : Date.now(); }
       function ms(iso){ return new Date(iso).getTime(); }
       function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
-      function full(iso){ return new Date(iso).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' }); }
+      function full(iso){ return FULL.format(new Date(iso)); }
       // "hace 5 min", "hace 3 h", "hace 2 d"; pasados 30 días, fecha corta ("12 oct").
       function ago(iso){
         var s = Math.max(0, (now() - ms(iso)) / 1000);
-        if (s >= 30 * 86400 || !rtf) return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short' }).replace('.', '');
+        if (s >= 30 * 86400 || !rtf) return SHORT.format(new Date(iso)).replace('.', '');
         if (s < 60) return 'ahora';
         if (s < 3600) return rtf.format(-Math.floor(s / 60), 'minute');
         if (s < 86400) return rtf.format(-Math.floor(s / 3600), 'hour');
         return rtf.format(-Math.floor(s / 86400), 'day');
       }
       function inRange(it){ return st.range === 'all' || now() - ms(it.lastAt) <= st.range * 3600000; }
+      function byKey(k){ return Array.prototype.filter.call(container.querySelectorAll('[data-k]'), function(el){ return el.getAttribute('data-k') === k; })[0]; }
+      function find(id){ return items.filter(function(x){ return String(x.id) === id; })[0]; }
+      function selected(){ return list.filter(function(x){ return st.sel[x.id]; }); }
       // Rango: mismo marcado y clases que las pestañas de Analíticas. Resultado y orden: control segmentado.
-      function group(cls, btn, key, list, cur, label){
-        return '<div class="' + cls + '" role="group" aria-label="' + label + '">' + list.map(function(x){
+      function group(cls, btn, key, opts2, cur, label){
+        return '<div class="' + cls + '" role="group" aria-label="' + label + '">' + opts2.map(function(x){
           var on = x[0] === cur;
           return '<button class="' + btn + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="' + key + ':' + x[0] + '">' + x[1] + '</button>';
         }).join('') + '</div>';
       }
-      function row(it, i){
-        var id = 'qv-d' + i, open = !!st.open[it.id], un = it.result === 'unanswered', d = it.details || [];
+      function check(key, label, on){
+        return '<span class="qview__ck"><input type="checkbox" data-k="' + key + '"' + (label ? ' aria-label="' + esc(label) + '"' : '') + (on ? ' checked' : '') + '>' + CK + '</span>';
+      }
+      // Detalle de una pregunta: se arma solo al abrir la fila.
+      function detail(it){
+        var un = it.result === 'unanswered', d = it.details || [];
         var rest = Math.max(it.chats, d.length) - Math.min(d.length, 5); // details puede traer solo una muestra
+        return '<div class="qview__d">' +
+          (un ? '<button class="qview__link" type="button" data-k="add:' + esc(it.id) + '">Agregar a información →</button>' : '') +
+          '<ul>' + d.slice(0, 5).map(function(c){
+            return '<li><span class="qview__w">' + esc(full(c.when)) + '</span>' +
+              '<span class="qview__a" title="' + esc(c.asked) + '">' + esc(c.asked) + '</span>' +
+              '<span class="qview__ans">' + esc(c.answer) + '</span></li>';
+          }).join('') + '</ul>' +
+          (rest > 0 ? '<p class="qview__rest">y ' + plural(rest, 'chat más', 'chats más') + '</p>' : '') + '</div>';
+      }
+      function row(it, i){
+        var id = 'qv-d' + i, open = !!st.open[it.id], un = it.result === 'unanswered', cols = o.onDelete ? 5 : 4;
         return '<tr class="qview__r">' +
+          (o.onDelete ? '<td class="qview__s"><label class="qview__hit">' + check('s:' + it.id, 'Seleccionar: ' + it.question, st.sel[it.id]) + '</label></td>' : '') +
           '<td class="qview__q"><button class="qview__btn" type="button" aria-expanded="' + open + '" aria-controls="' + id + '" data-k="q:' + esc(it.id) + '" title="' + esc(it.question) + '">' + esc(it.question) + '</button></td>' +
           '<td class="qview__res' + (un ? ' is-un' : '') + '">' + (un ? IC_UN + 'Sin respuesta' : IC_OK + 'Respondida') + '</td>' +
           '<td class="qview__n">' + it.chats + '<span class="qview__m"> ' + (it.chats === 1 ? 'chat' : 'chats') + '</span></td>' +
           '<td class="qview__t" title="' + esc(full(it.lastAt)) + '">' + esc(ago(it.lastAt)) + '</td></tr>' +
-          '<tr class="qview__x" id="' + id + '"' + (open ? '' : ' hidden') + '><td colspan="4"><div class="qview__d">' +
-            (un ? '<button class="qview__link" type="button" data-k="add:' + esc(it.id) + '">Agregar a información →</button>' : '') +
-            '<ul>' + d.slice(0, 5).map(function(c){
-              return '<li><span class="qview__w">' + esc(full(c.when)) + '</span>' +
-                '<span class="qview__a" title="' + esc(c.asked) + '">' + esc(c.asked) + '</span>' +
-                '<span class="qview__ans">' + esc(c.answer) + '</span></li>';
-            }).join('') + '</ul>' +
-            (rest > 0 ? '<p class="qview__rest">y ' + plural(rest, 'chat más', 'chats más') + '</p>' : '') +
-          '</div></td></tr>';
+          '<tr class="qview__x" id="' + id + '"' + (open ? '' : ' hidden') + '><td colspan="' + cols + '">' + (open ? detail(it) : '') + '</td></tr>';
       }
       function empty(title, sub, action){
         return '<div class="qview__empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><p>' + title + '</p>' + (sub ? '<p>' + sub + '</p>' : '') + (action || '') + '</div>';
+      }
+      // Zona de selección (una caja más en la fila de controles): "Seleccionar todas" las de los filtros
+      // actuales y Borrar, con confirmación.
+      function selbar(){
+        var n = selected().length;
+        if (st.ask) return '<span class="qview__sel-t" role="alert">¿Borrar ' + plural(n, 'pregunta', 'preguntas') + '? No se puede deshacer.</span>' +
+          '<button type="button" data-k="no"' + (st.busy ? ' disabled' : '') + '>Cancelar</button>' +
+          '<button class="qview__del is-yes" type="button" data-k="yes"' + (st.busy ? ' disabled' : '') + '>' + (st.busy ? 'Borrando…' : 'Borrar') + '</button>';
+        return '<label class="qview__sel-all">' + check('all', '', n && n === list.length) + 'Seleccionar todas</label>' +
+          '<button class="qview__del" type="button" data-k="del"' + (n ? '' : ' disabled') + '>' + (n ? 'Borrar (' + n + ')' : 'Borrar') + '</button>' +
+          (st.err ? '<span class="qview__sel-t qview__err" role="alert">No se pudieron borrar.</span>' : '');
+      }
+      function syncSel(){
+        var bar = container.querySelector('.qview__sel'); if (!bar) return;
+        var f = document.activeElement, fk = f && bar.contains(f) ? f.getAttribute('data-k') : null;
+        bar.innerHTML = selbar();
+        var all = byKey('all'), n = selected().length;
+        if (all) all.indeterminate = n > 0 && n < list.length;
+        if (fk && byKey(fk)) byKey(fk).focus(); else if (st.ask && byKey('no')) byKey('no').focus();
       }
 
       function render(){
         var a = document.activeElement, focusKey = a && container.contains(a) ? a.getAttribute('data-k') : null;
         var ranged = items.filter(inRange);
         var unCount = ranged.filter(function(x){ return x.result === 'unanswered'; }).length;
-        var list = ranged.filter(function(x){ return st.res === 'all' || x.result === st.res; }).sort(function(x, y){
+        list = ranged.filter(function(x){ return st.res === 'all' || x.result === st.res; }).sort(function(x, y){
           return (st.sort === 'freq' ? y.chats - x.chats : 0) || ms(y.lastAt) - ms(x.lastAt);
         });
         var sum = items.length ? '<p class="qview__sum"><span>' + plural(ranged.length, 'pregunta', 'preguntas') + '</span> · <span>' + unCount + ' sin respuesta</span>' +
@@ -2069,8 +2125,10 @@
         var html = sum + '<div class="qview__ctl">' +
             group('wa-tabs', 'wa-tab', 'r', RANGES, st.range, 'Rango') +
             group('cv-tabs', 'cv-tab', 'f', RESULTS, st.res, 'Resultado') +
-            group('cv-tabs', 'cv-tab', 'o', SORTS, st.sort, 'Orden') + '</div>' +
-          '<table><thead><tr><th scope="col">Pregunta</th><th scope="col">Resultado</th><th scope="col" class="qview__n">Chats</th><th scope="col">Última vez</th></tr></thead>' +
+            group('cv-tabs', 'cv-tab', 'o', SORTS, st.sort, 'Orden') +
+            (o.onDelete && list.length ? '<div class="qview__sel" role="group" aria-label="Selección"></div>' : '') + '</div>' +
+          '<table><thead><tr>' + (o.onDelete ? '<th scope="col" class="qview__s"><span class="sr-only">Seleccionar</span></th>' : '') +
+          '<th scope="col">Pregunta</th><th scope="col">Resultado</th><th scope="col" class="qview__n">Chats</th><th scope="col">Última vez</th></tr></thead>' +
           '<tbody>' + list.slice(0, st.shown).map(row).join('') + '</tbody></table>';
         if (!items.length) html += empty('Todavía no hay preguntas.', 'Cuando un chat termina, su pregunta aparece acá con el resultado.');
         else if (!list.length) html += empty('No hay preguntas con estos filtros.', '', '<button class="qview__link" type="button" data-k="clear">Quitar filtros</button>');
@@ -2078,27 +2136,47 @@
           (list.length > st.shown ? '<button class="wa-btn" type="button" data-k="more">Mostrar más</button>' : '') +
           '<p class="qview__legend">Sin respuesta: el chat no encontró información para responder.</p></div>';
         container.innerHTML = html;
-        // El redibujo reemplaza el DOM: devolver el foco al mismo control (o a la lista si ya no existe).
-        if (focusKey){
-          var next = Array.prototype.filter.call(container.querySelectorAll('[data-k]'), function(el){ return el.getAttribute('data-k') === focusKey; })[0];
-          if (next) next.focus();
-        }
+        syncSel();
+        // El redibujo reemplaza el DOM: devolver el foco al mismo control.
+        if (focusKey && byKey(focusKey)) byKey(focusKey).focus();
       }
 
+      container.addEventListener('change', function(e){
+        var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return;
+        if (k === 'all'){ var on = e.target.checked; list.forEach(function(x){ st.sel[x.id] = on; }); }
+        else if (k.slice(0, 2) === 's:') st.sel[k.slice(2)] = e.target.checked;
+        else return;
+        st.err = false;
+        Array.prototype.forEach.call(container.querySelectorAll('input[data-k^="s:"]'), function(c){ c.checked = !!st.sel[c.getAttribute('data-k').slice(2)]; });
+        syncSel();
+      });
       container.addEventListener('click', function(e){
-        var b = e.target.closest ? e.target.closest('[data-k]') : null; if (!b) return;
+        var b = e.target.closest ? e.target.closest('[data-k]') : null; if (!b || b.tagName === 'INPUT') return;
         var k = b.getAttribute('data-k'), i = k.indexOf(':'), t = i < 0 ? k : k.slice(0, i), v = k.slice(i + 1);
-        if (t === 'add'){
-          var it = items.filter(function(x){ return String(x.id) === v; })[0];
-          if (it && o.onAddKnowledge) o.onAddKnowledge(it);
+        if (t === 'add'){ var it = find(v); if (it && o.onAddKnowledge) o.onAddKnowledge(it); return; }
+        if (t === 'q'){ // abrir/cerrar en su lugar, sin redibujar la vista
+          st.open[v] = !st.open[v];
+          var x = document.getElementById(b.getAttribute('aria-controls'));
+          b.setAttribute('aria-expanded', st.open[v]); x.hidden = !st.open[v];
+          x.firstChild.innerHTML = st.open[v] ? detail(find(v)) : '';
           return;
         }
-        if (t === 'q') st.open[v] = !st.open[v];
-        else if (t === 'more') st.shown += 20;
+        if (t === 'del'){ st.ask = true; st.err = false; syncSel(); return; }
+        if (t === 'no'){ st.ask = false; syncSel(); if (byKey('del')) byKey('del').focus(); return; }
+        if (t === 'yes'){
+          var gone = selected(); st.busy = true; syncSel();
+          Promise.resolve(o.onDelete(gone)).then(function(){
+            var ids = {}; gone.forEach(function(x){ ids[x.id] = 1; });
+            items = items.filter(function(x){ return !ids[x.id]; });
+            st.sel = {}; st.ask = false; st.busy = false; render();
+          }, function(){ st.ask = false; st.busy = false; st.err = true; syncSel(); });
+          return;
+        }
+        if (t === 'more') st.shown += 20;
         else {
           if (t === 'r') st.range = v; else if (t === 'f') st.res = v; else if (t === 'o') st.sort = v;
           else if (t === 'clear'){ st.range = 'all'; st.res = 'all'; }
-          st.shown = 20;
+          st.shown = 20; st.sel = {}; st.ask = false; st.err = false; // al cambiar filtros se limpia la selección
         }
         render();
       });

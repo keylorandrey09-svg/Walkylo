@@ -78,6 +78,7 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Vista Preguntas (ruta `/app/conversaciones`, vista interna "conversaciones"): una fila por pregunta con resultado "Respondida" o "Sin respuesta" (nunca "Resuelta"). Sin color de estado ni píldoras.
 - El resultado se distingue por ícono y contraste: "Sin respuesta" = raya gris (`--text-2`, mismo tamaño y posición que el check) + texto `--text` 500; "Respondida" = check + `--text-2` 400.
 - Componente `mountQuestions` + adaptador `toQuestionItems` (hoy devuelve `[]`, lo completa la Fase 3), marcado con `qview:start`/`qview:end` en HTML, CSS y JS; CSS con prefijo `.qview`.
+- Selección y borrado (pedido de Keylor): casillas cuadradas de 16px con radio 4px y una caja "Seleccionar todas · Borrar (n)" en la fila de controles, con confirmación. Solo aparece si se pasa `onDelete`; el panel todavía NO lo pasa (no hay borrado en el servidor). Abrir una fila o marcar una casilla se actualiza en su lugar, sin redibujar la vista, y los `Intl` se crean una sola vez (así no se traba).
 - Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
 ## Sistema visual login
