@@ -740,7 +740,7 @@
               <div class="wa-stat__value">—</div><div class="wa-stat__foot">este mes</div>
             </div>
             <div class="wa-stat">
-              <div class="wa-stat__top"><span class="wa-stat__label">Resueltas</span>
+              <div class="wa-stat__top"><span class="wa-stat__label" id="sumClosedLabel">Cerradas</span>
                 <span class="wa-stat__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
               <div class="wa-stat__value">—</div><div class="wa-stat__foot">este mes</div>
             </div>
@@ -3250,6 +3250,11 @@
       else if (current === 'conversaciones') renderConversations();
       else if (current === 'analiticas') renderAnalytics();
     }
+
+    // El valor 'resolved' de la base significa chat cerrado; se renombra a 'closed' en la Fase 3 (migración de Supabase, no ahora).
+    var STATUS_LABEL = { open: 'Abierta', resolved: 'Cerrada' };
+    var STATUS_LABEL_PLURAL = { open: 'Abiertas', resolved: 'Cerradas' };
+    (function(){ var l = document.getElementById('sumClosedLabel'); if (l) l.textContent = STATUS_LABEL_PLURAL.resolved; })();
 
     function wuLoadConversations(uid){
       return SB.from('conversations').select('*').order('updated_at', { ascending: false }).then(function(cq){
