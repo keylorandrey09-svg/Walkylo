@@ -81,7 +81,7 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 - Selección y borrado (pedido de Keylor): casillas cuadradas de 16px con radio 4px y una caja "Seleccionar todas · Borrar (n)" en la fila de controles, con confirmación. Solo aparece si se pasa `onDelete`; el panel todavía NO lo pasa (no hay borrado en el servidor). Abrir una fila o marcar una casilla se actualiza en su lugar, sin redibujar la vista, y los `Intl` se crean una sola vez (así no se traba).
 - Vista Notificaciones: filas sin tarjetas ni fondos, separadas por línea 1px `--border`, alto mínimo 64px; toda la fila es un botón que abre el cuerpo (texto plano, nunca HTML). Filtro "Todas · Sin leer".
 - El punto azul (8px `--accent`) en una fila solo marca "sin leer"; la etiqueta "Importante" va sin color propio (borde `--border`, radio 6px), nunca en rojo.
-- Componente `mountNotifications` marcado con `nview:start`/`nview:end` en HTML, CSS y JS; CSS con prefijo `.nview`. Abrir una fila sin leer llama a `markRead()` existente (no hay marcado por fila en el servidor).
+- Componente `mountNotifications` marcado con `nview:start`/`nview:end` en HTML, CSS y JS; CSS con prefijo `.nview`. Lectura por fila: entrar a la vista no escribe nada; abrir una fila sin leer llama a `markOne(id)` (si falla, vuelve a sin leer). "Marcar todas como leídas" (secundario, solo si hay sin leer) usa `markRead()` (el otro uso es "Ver todas" de la campanita oculta).
 - Los IDs, clases y `data-*` que usa el JS (`#shell`, `#nav`, `#burger`, `#scrim`, `#navNoti`, `.wa-sidebar`, `.wa-brand`, `.is-open`, `.is-active`, `.has-unread`, `data-view`, `data-action`, etc.) no se renombran.
 
 ## Sistema visual login

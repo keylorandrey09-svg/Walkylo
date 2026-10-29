@@ -352,7 +352,7 @@
     /* Vista Notificaciones: filas sin tarjetas; punto azul solo para sin leer; "Importante" sin color */
     .nview__sum{margin:16px 0 0;color:var(--text-2);font-variant-numeric:tabular-nums;}
     .nview__sum span{white-space:nowrap;}
-    .nview .cv-tabs{margin-top:16px;}
+    .nview__ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px;}
     .nview__list{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--border);}
     .nview__list li{border-bottom:1px solid var(--border);}
     .nview__row{display:grid;grid-template-columns:8px minmax(0,1fr);column-gap:12px;width:100%;min-height:64px;padding:12px 8px;
@@ -366,6 +366,7 @@
     .nview__row:hover .nview__title,.nview__row.is-un .nview__title{color:var(--text);}
     .nview__row.is-un .nview__title{font-weight:500;}
     .nview__row.is-un .nview__dot{background:var(--accent);}
+    .nview__row.is-seen .nview__dot{background:none;} /* recién leída: solo se va el punto; el título no cambia hasta redibujar (misma altura) */
     .nview__body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;font-size:.9375rem;line-height:1.6;}
     .nview__row[aria-expanded="true"] .nview__body{display:block;white-space:pre-line;}
     .nview__more{margin-top:16px;}
@@ -1325,7 +1326,7 @@
     function wuLogout(){ SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); }); }
     /* ============================================================
        PUNTOS DE ENGANCHE PARA SUPABASE (se cablean en el chat guía):
-       1) Notificaciones: leer del backend y marcar como leídas.        -> markRead()
+       1) Notificaciones: leer del backend y marcar como leídas.        -> markOne() / markRead()
        2) Soporte límite (4 envíos / 30 min): el CONTEO lo hace Supabase -> canSubmitSupport()
        3) Soporte envío: subir fotos a Storage + insertar el mensaje.    -> submitSupport()
        La UI de abajo ya está lista; solo hay que reemplazar los TODO.
@@ -1369,7 +1370,6 @@
     function showView(view, label){
       views.forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === view); });
       if (view === "placeholder" && phTitle) phTitle.textContent = label || "";
-      if (view === "notificaciones") markRead();
       if (view === "analiticas") renderAnalytics();
       if (view === "config") renderConfig();
       if (view === "conversaciones") renderConversations();
@@ -1415,8 +1415,8 @@
     }
     /* nview:start */
     // Componente autocontenido: no toca Supabase ni estado global; maneja su filtro y se redibuja.
-    // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onRead(item)}. Devuelve {update(opts)}.
-    // onRead se llama al abrir una fila sin leer. El cuerpo es texto plano: siempre se escapa, nunca va como HTML.
+    // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onRead(item), onReadAll()}. Devuelve {update(opts)}.
+    // onRead se llama al abrir una fila sin leer; "Marcar todas como leídas" solo aparece si hay onReadAll y quedan sin leer. El cuerpo es texto plano: siempre se escapa, nunca va como HTML.
     function mountNotifications(container, opts){
       var o, items, st = { filter: 'all', shown: 20, open: {} };
       var FILTERS = [['all', 'Todas'], ['unread', 'Sin leer']];
@@ -1462,10 +1462,10 @@
         var list = st.filter === 'unread' ? unread() : items, html;
         if (!items.length) html = empty('No tenés notificaciones.', 'Acá vas a ver novedades de Walkylet y avisos importantes.');
         else {
-          html = '<p class="nview__sum">' + sum() + '</p><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
+          html = '<p class="nview__sum">' + sum() + '</p><div class="nview__ctl"><div class="cv-tabs" role="group" aria-label="Filtro">' + FILTERS.map(function(x){
             var on = x[0] === st.filter;
             return '<button class="cv-tab' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-k="f:' + x[0] + '">' + x[1] + '</button>';
-          }).join('') + '</div>';
+          }).join('') + '</div>' + (o.onReadAll && unread().length ? '<button class="wa-btn" type="button" data-k="readall">Marcar todas como leídas</button>' : '') + '</div>';
           if (!list.length) html += empty('No tenés notificaciones sin leer.', '', '<button class="nview__link" type="button" data-k="f:all">Ver todas</button>');
           else html += '<ul class="nview__list">' + list.slice(0, st.shown).map(row).join('') + '</ul>' +
             (list.length > st.shown ? '<button class="wa-btn nview__more" type="button" data-k="more">Mostrar más</button>' : '');
@@ -1484,11 +1484,18 @@
           b.setAttribute('aria-expanded', st.open[v]);
           if (st.open[v] && it && !it.readAt){
             it.readAt = new Date(now()).toISOString();
-            b.classList.remove('is-un'); b.querySelector('.nview__dot').textContent = '';
+            b.classList.add('is-seen'); b.querySelector('.nview__dot').textContent = '';
             container.querySelector('.nview__sum').innerHTML = sum();
+            var ra = container.querySelector('[data-k="readall"]'); if (ra && !unread().length) ra.remove();
             if (o.onRead) o.onRead(it);
           }
           return;
+        }
+        if (k === 'readall'){
+          var iso = new Date(now()).toISOString();
+          items.forEach(function(x){ if (!x.readAt) x.readAt = iso; });
+          render(); container.querySelector('.cv-tab.is-active').focus(); // el botón desaparece: el foco pasa al filtro
+          o.onReadAll(); return;
         }
         if (k === 'more') st.shown += 20;
         else { st.filter = v === 'unread' ? 'unread' : 'all'; st.shown = 20; }
@@ -1500,18 +1507,19 @@
     /* nview:end */
 
     // Enganche del panel: los datos siguen llegando de la misma consulta a notifications (sin cambios).
-    // Abrir una fila sin leer llama a markRead(), la lógica existente que marca read_at.
+    // Abrir una fila sin leer la marca sola (markOne); "Marcar todas como leídas" usa markRead(). Entrar a la vista no escribe nada.
     var nvApi = null;
+    function syncUnread(){ hasUnread = wuNotis.some(function(n){ return !n.read_at; }); renderUnread(); }
     function renderNotis(){
-      hasUnread = wuNotis.some(function(n){ return !n.read_at; });
-      renderUnread();
+      syncUnread();
       var el = document.getElementById('nview');
       if (el){
         var opts = {
           items: wuNotis.map(function(n){
             return { id: n.id, tag: n.tag || 'NOVEDAD', title: n.title || '', body: n.body || '', createdAt: n.created_at, readAt: n.read_at || null, important: !!n.important };
           }),
-          onRead: function(){ markRead(); }
+          onRead: function(it){ markOne(it.id); },
+          onReadAll: markRead
         };
         if (nvApi) nvApi.update(opts); else nvApi = mountNotifications(el, opts);
       }
@@ -1529,6 +1537,14 @@
       wuNotis.forEach(function(n){ if (!n.read_at) n.read_at = nowIso; });
       hasUnread = false; renderNotis();
       SB.from('notifications').update({ read_at: nowIso }).is('read_at', null).then(function(){}, function(){});
+    }
+    // Marca una sola fila. Si la escritura falla, vuelve a quedar sin leer (sin alertas).
+    function markOne(id){
+      var n = wuNotis.filter(function(x){ return x.id === id; })[0];
+      if (!n || n.read_at) return;
+      n.read_at = new Date().toISOString(); syncUnread();
+      function undo(){ n.read_at = null; renderNotis(); }
+      SB.from('notifications').update({ read_at: n.read_at }).eq('id', id).is('read_at', null).then(function(r){ if (r && r.error) undo(); }, undo);
     }
     renderUnread();
 
