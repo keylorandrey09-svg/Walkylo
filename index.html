@@ -95,10 +95,18 @@
     .value__rows li { padding-block: var(--s3); border-top: 1px solid var(--border); }
     .value__rows h3 { font-size: 1rem; line-height: 1.5; }
     .value__rows p { max-width: 44ch; margin-top: 4px; font-size: 0.9375rem; color: var(--text-2); }
-    /* Réplica estática de la vista Preguntas del panel: valores de .qview (app/index.html); todas "Respondida" (check, --text-2) */
+    /* Réplica estática de la vista Preguntas del panel: valores de .wa-page-*, .wa-tabs y .qview (app/index.html); todas "Respondida" */
     .pv { width: 100%; max-width: 560px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; pointer-events: none; user-select: none; -webkit-user-select: none; }
-    .pv__head { display: flex; align-items: center; min-height: 48px; padding: 0 var(--s2); border-bottom: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-2); }
-    .pv__r { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px var(--s3); min-height: 56px; padding: 8px var(--s2); font-size: 0.9375rem; }
+    .pv__top { padding: var(--s2) var(--s2) 0; }
+    .pv__title { font-size: 1.25rem; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em; }
+    .pv__sub { margin-top: 4px; font-size: 0.875rem; line-height: 1.5; color: var(--text-2); }
+    .pv__tabs { display: flex; gap: var(--s3); margin: var(--s2) calc(-1 * var(--s2)) 0; padding: 0 var(--s2); border-bottom: 1px solid var(--border); }
+    .pv__tabs span { display: flex; align-items: center; min-height: 44px; padding: 0 2px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 0.9375rem; color: var(--text-2); white-space: nowrap; }
+    .pv__tabs .is-on { color: var(--text); border-bottom-color: var(--text); }
+    .pv__cols, .pv__r { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--s3); padding: 0 var(--s2); }
+    .pv__cols { min-height: 40px; border-bottom: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-2); }
+    .pv__cols span + span, .pv__res { text-align: right; }
+    .pv__r { min-height: 56px; font-size: 0.9375rem; }
     .pv__r + .pv__r { border-top: 1px solid var(--border); }
     .pv__q { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pv__res { color: var(--text-2); white-space: nowrap; }
@@ -170,9 +178,11 @@
     .footer__bottom { margin-top: var(--s8); padding-top: var(--s3); border-top: 1px solid var(--border); }
 
     @media (max-width: 480px) {
-      /* Réplica de Preguntas: el resultado pasa debajo de la pregunta, como en la app */
-      .pv__r { grid-template-columns: minmax(0, 1fr); padding-block: 10px; }
-      .pv__res { font-size: 0.8125rem; }
+      /* Réplica de Preguntas como la app en celular: sin pestañas ni encabezados, resultado debajo de la pregunta */
+      .pv__tabs, .pv__cols { display: none; }
+      .pv__top { padding-bottom: var(--s2); border-bottom: 1px solid var(--border); }
+      .pv__r { grid-template-columns: minmax(0, 1fr); row-gap: 2px; padding-block: 10px; }
+      .pv__res { text-align: left; font-size: 0.8125rem; }
     }
     @media (min-width: 480px) {
       .wdemo { height: 420px; }
@@ -216,8 +226,12 @@
     }
     @media (min-width: 900px) {
       /* Producto: filas a la izquierda (~5/12) e imagen a la derecha (~7/12), alineadas arriba */
-      .value { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--s8); align-items: start; }
-      .pv { justify-self: end; }
+      /* La imagen ocupa el mismo alto que la lista: arriba en la línea de la primera fila, abajo en el fin del texto de la última */
+      .value { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--s8); align-items: stretch; }
+      .value__rows { display: flex; flex-direction: column; justify-content: space-between; }
+      .value__rows li:last-child { padding-bottom: 0; }
+      .pv { justify-self: end; display: flex; flex-direction: column; }
+      .pv__r { flex: 1 1 0; }
     }
   </style>
 </head>
@@ -366,11 +380,17 @@
           </ul>
           <!-- Réplica estática de la vista Preguntas del panel (valores de .qview en app/index.html) -->
           <figure class="pv" role="img" aria-label="Vista de la lista de Preguntas del panel de Walkylet con preguntas respondidas.">
-            <div class="pv__head">Preguntas</div>
+            <div class="pv__top">
+              <p class="pv__title">Preguntas</p>
+              <p class="pv__sub">Lo que preguntan tus visitantes y cómo respondió el chat.</p>
+              <div class="pv__tabs"><span>24 horas</span><span>7 días</span><span>30 días</span><span class="is-on">Todo</span></div>
+            </div>
+            <div class="pv__cols"><span>Pregunta</span><span>Resultado</span></div>
             <div class="pv__r"><span class="pv__q">¿Aceptan pagos en cuotas?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
             <div class="pv__r"><span class="pv__q">¿Dónde descargo mi factura?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
             <div class="pv__r"><span class="pv__q">¿Tienen soporte por teléfono?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
             <div class="pv__r"><span class="pv__q">¿Cómo cambio mi plan?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+            <div class="pv__r"><span class="pv__q">¿Cuál es el horario de atención?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
           </figure>
         </div>
       </div>
@@ -539,27 +559,27 @@
         <div class="faq">
           <details>
             <summary>¿Qué es Walkylet?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Un asistente de ayuda que instalás en tu web con una línea de código y configurás desde tu panel. Está en desarrollo activo.</p>
+            <p>Un asistente que instalás en tu sitio para que tus usuarios encuentren respuestas sin salir de la página. Lo configurás desde tu panel.</p>
           </details>
           <details>
-            <summary>¿Ya responde la IA?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Todavía no: hoy el chat contesta con un mensaje de espera. Estamos conectando la IA para que responda con la información que cargás en el panel.</p>
+            <summary>¿Con qué información responde?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Con la que cargás en tu panel: el texto sobre tu sitio y su dirección web. Si no sabe algo, lo dice y dirige a tu usuario a tu contacto.</p>
           </details>
           <details>
             <summary>¿Cómo lo instalo?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Creás tu cuenta, copiás tu línea desde el panel y la pegás en tu sitio. Sin build ni dependencias.</p>
+            <p>Creás tu cuenta, copiás una línea desde el panel y la pegás en tu sitio, antes del cierre de la página.</p>
           </details>
           <details>
             <summary>¿Necesito saber programar?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel.</p>
+            <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel, sin reinstalar nada.</p>
           </details>
           <details>
-            <summary>¿Necesito una clave de IA o una cuenta aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>No. No tenés que traer ninguna clave.</p>
+            <summary>¿Necesito una cuenta de IA aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>No. No necesitás claves ni cuentas aparte: todo se maneja desde tu panel de Walkylet.</p>
           </details>
           <details>
-            <summary>¿Cuánto cuesta?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Crear la cuenta es gratis y no pide tarjeta. Los planes pagos son provisionales: mirá <a href="#precios">Precios</a>.</p>
+            <summary>¿Cómo se tratan los datos?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Está explicado en nuestra <a href="/legal/privacidad">política de privacidad</a>. Ahí también explicamos cómo <a href="/legal/datos">pedir la eliminación de tus datos</a>.</p>
           </details>
         </div>
       </div>
