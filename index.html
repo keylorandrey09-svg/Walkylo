@@ -660,6 +660,16 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { setMenu(false); btn.focus(); } });
     window.matchMedia("(min-width: 1024px)").addEventListener("change", function (m) { if (m.matches) setMenu(false); });
 
+    // Logo: ya estamos en "/", así que sube al inicio sin recargar (en Android la recarga podía dejar el mismo scroll y pedir un segundo toque)
+    document.querySelectorAll("a.logo").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;   // abrir en pestaña nueva sigue igual
+        e.preventDefault(); setMenu(false);
+        if (location.hash) history.replaceState(null, "", "/");
+        window.scrollTo(0, 0);
+      });
+    });
+
     // Cómo funciona: el paso con hover, foco o toque elige el dibujo
     var how = document.querySelector(".how");
     how.querySelectorAll("[data-step]").forEach(function (li) {
