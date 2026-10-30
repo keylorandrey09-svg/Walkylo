@@ -69,16 +69,36 @@
     .wa-stat__label{font-size:.8125rem;color:var(--text-2);}
     .wa-stat__ic{display:grid;color:var(--text-2);}
     .wa-stat__ic svg{width:20px;height:20px;}
-    .wa-stat__value{font-size:1.75rem;font-weight:500;letter-spacing:-0.01em;line-height:1;font-variant-numeric:tabular-nums;}
+    .wa-stat__value{font-size:1.75rem;font-weight:500;letter-spacing:-0.01em;line-height:1;font-variant-numeric:normal;} /* cifras proporcionales: el "1" sin pie */
     .wa-stat__foot{margin-top:8px;font-size:.8125rem;color:var(--text-2);}
 
     .wa-panel{margin-top:24px;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
     .wa-panel__head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);}
     .wa-panel__title{font-size:1rem;font-weight:500;}
-    .wa-panel__link{font-size:.875rem;color:var(--accent);cursor:pointer;}
     .wa-empty{padding:40px 20px;text-align:center;color:var(--text-2);}
     .wa-empty svg{width:32px;height:32px;margin:0 auto 8px;}
     .wa-empty .wa-empty__sub{margin-top:4px;font-size:.8125rem;}
+    /* Resumen: el número se achica con el ancho (3 columnas desde 769px) y, como último recurso, ellipsis.
+       "Actividad de este mes": cada fila es una conversación que se abre con su mini resumen (links incluidos). */
+    [data-view="resumen"] .wa-stat__value{font-size:clamp(1.25rem,2.4vw,1.75rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .rs-q{display:flex;gap:12px;align-items:flex-start;min-height:56px;padding:10px 20px;border-top:1px solid var(--border);}
+    .rs-q:first-child{border-top:0;}
+    .rs-q__ic{flex-shrink:0;display:grid;margin-top:2px;color:var(--text-2);}
+    .rs-q__ic svg{width:20px;height:20px;}
+    .rs-q__b{min-width:0;flex:1;}
+    .rs-q__t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .rs-q__m{display:block;margin-top:2px;font-size:.8125rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .rs-sub{margin:2px 0 0;font-size:.8125rem;color:var(--text-2);}
+    button.rs-q{width:100%;background:none;border:0;border-top:1px solid var(--border);font:inherit;color:inherit;text-align:left;cursor:pointer;}
+    button.rs-q:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+    .rs-q__chev{flex-shrink:0;width:16px;height:16px;margin-top:4px;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .rs-q[aria-expanded="true"] .rs-q__chev{transform:rotate(180deg);}
+    .rs-d{padding:0 20px 14px 52px;font-size:.875rem;} /* 52px = sangría del texto de la fila (20 + ícono 20 + 12) */
+    .rs-d p{margin:6px 0 0;max-width:68ch;overflow-wrap:anywhere;white-space:pre-line;}
+    .rs-d .rs-d__meta{margin-top:0;font-size:.8125rem;color:var(--text-2);}
+    .rs-d__who{color:var(--text-2);}
+    .rs-d .rs-d__link{margin-top:2px;}
+    .rs-foot{padding:12px 20px;border-top:1px solid var(--border);}
 
     /* Analíticas: pestañas + gráfico */
     .wa-tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin-top:24px;
@@ -446,6 +466,8 @@
       .wg-input,.wg-textarea,.wg-select,.wa-textarea{min-height:44px;font-size:1rem;}
       .wa-content{padding:24px 16px 48px;}
       .wa-stats{grid-template-columns:1fr;gap:12px;}
+      [data-view="resumen"] .wa-stat__value{font-size:1.75rem;}
+      .rs-q__m{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
     }
     /* ===== Vista previa: ventana de chat real (mismo diseño que w.js) ===== */
     .wg-openchat{display:none;width:100%;justify-content:center;margin-bottom:12px;}
@@ -737,25 +759,27 @@
             <div class="wa-stat">
               <div class="wa-stat__top"><span class="wa-stat__label">Conversaciones</span>
                 <span class="wa-stat__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg></span></div>
-              <div class="wa-stat__value">—</div><div class="wa-stat__foot">este mes</div>
+              <div class="wa-stat__value" id="rsConv">—</div><div class="wa-stat__foot">este mes</div>
             </div>
             <div class="wa-stat">
               <div class="wa-stat__top"><span class="wa-stat__label" id="sumClosedLabel">Cerradas</span>
-                <span class="wa-stat__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
-              <div class="wa-stat__value">—</div><div class="wa-stat__foot">este mes</div>
+                <span class="wa-stat__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></svg></span></div>
+              <div class="wa-stat__value" id="rsClosed">—</div><div class="wa-stat__foot">este mes</div>
             </div>
             <div class="wa-stat">
               <div class="wa-stat__top"><span class="wa-stat__label">Links enviados</span>
                 <span class="wa-stat__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></span></div>
-              <div class="wa-stat__value">—</div><div class="wa-stat__foot">este mes</div>
+              <div class="wa-stat__value" id="rsLinks">—</div><div class="wa-stat__foot">este mes</div>
             </div>
           </div>
           <div class="wa-panel">
-            <div class="wa-panel__head"><span class="wa-panel__title">Conversaciones recientes</span><span class="wa-panel__link">Ver todas</span></div>
-            <div class="wa-empty">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
-              <p>Todavía no hay conversaciones.</p>
-              <p class="wa-empty__sub">Cuando instales el widget, acá vas a ver la actividad real.</p>
+            <div class="wa-panel__head"><div><span class="wa-panel__title">Actividad de este mes</span><p class="rs-sub" id="rsSub" hidden></p></div></div>
+            <div id="rsList" hidden></div>
+            <div class="rs-foot" id="rsFoot" hidden><button class="wa-btn" id="rsMore" type="button">Mostrar más</button></div>
+            <div class="wa-empty" id="rsEmpty" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
+              <p id="rsEmptyT">Todavía no hay preguntas.</p>
+              <p class="wa-empty__sub" id="rsEmptyS">Cuando un chat termina, su pregunta aparece acá con el resultado.</p>
             </div>
           </div>
         </section>
@@ -1379,6 +1403,7 @@
     function showView(view, label){
       views.forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === view); });
       if (view === "placeholder" && phTitle) phTitle.textContent = label || "";
+      if (view === "resumen") renderResumen();
       if (view === "notificaciones") enterNotis();
       if (view === "analiticas") renderAnalytics();
       if (view === "config") renderConfig();
@@ -3245,7 +3270,9 @@
 
     function wuRenderCurrent(){
       var current = wuViewFromPath() || 'resumen';
-      if (current === 'config') renderConfig();
+      rsReady = true; // la carga inicial terminó: desde acá Resumen muestra números
+      if (current === 'resumen') renderResumen();
+      else if (current === 'config') renderConfig();
       else if (current === 'widget') renderWidget();
       else if (current === 'conversaciones') renderConversations();
       else if (current === 'analiticas') renderAnalytics();
@@ -3256,8 +3283,139 @@
     var STATUS_LABEL_PLURAL = { open: 'Abiertas', resolved: 'Cerradas' };
     (function(){ var l = document.getElementById('sumClosedLabel'); if (l) l.textContent = STATUS_LABEL_PLURAL.resolved; })();
 
+    // Resumen: tarjetas con lo que ya cargan wuLoadConversations y wuLoadEvents (sin consultas propias).
+    // Mes = desde el día 1 a las 00:00 (hora local del navegador) hasta now. null = dato no cargado -> "—".
+    // "Cerradas" = status 'resolved' del mes. El cierre de chats todavía no está definido (ver CLAUDE.md):
+    // hoy nada marca 'resolved', así que la tarjeta queda en 0.
+    function rsInMonth(now){ // ¿la fecha cae entre el día 1 a las 00:00 (hora local) y now?
+      var d = new Date(now), from = new Date(d.getFullYear(), d.getMonth(), 1).getTime(), to = d.getTime();
+      return function(iso){ var t = new Date(iso).getTime(); return t >= from && t <= to; };
+    }
+    function computeResumenStats(convs, events, now){
+      var inMonth = rsInMonth(now);
+      var month = Array.isArray(convs) ? convs.filter(function(c){ return inMonth(c.createdAt); }) : null;
+      return {
+        conversations: month ? month.length : null,
+        closed: month ? month.filter(function(c){ return c.status === 'resolved'; }).length : null,
+        links: Array.isArray(events) ? events.filter(function(e){ return e.type === 'link' && inMonth(e.created_at); }).length : null
+      };
+    }
+    var rsReady = false, RS_NUM = new Intl.NumberFormat('es', { useGrouping: 'always' }), RS_SHORT = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
+    var RS_RTF = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat('es', { style: 'narrow' }) : null;
+    // Mismo formato que Preguntas: "hace 5 min", "hace 3 h", "hace 2 d"; pasados 30 días, fecha corta.
+    function rsAgo(iso, now){
+      var s = Math.max(0, (now - new Date(iso).getTime()) / 1000);
+      if (s >= 30 * 86400 || !RS_RTF) return RS_SHORT.format(new Date(iso)).replace('.', '');
+      if (s < 60) return 'ahora';
+      if (s < 3600) return RS_RTF.format(-Math.floor(s / 60), 'minute');
+      if (s < 86400) return RS_RTF.format(-Math.floor(s / 3600), 'hour');
+      return RS_RTF.format(-Math.floor(s / 86400), 'day');
+    }
+    function fmtN(n){ return RS_NUM.format(n); } // miles siempre con punto: "2.480"
+    // Actividad del mes: las conversaciones que cuentan las tarjetas, como lista, lo más reciente primero (máximo `max`).
+    // Conversación nueva = created_at del mes; chat cerrado = esas mismas con status 'resolved', a la hora de su
+    // última actividad (updated_at: la base no guarda la hora del cierre). Los links van DENTRO de cada conversación
+    // (rsLinksOf), no como filas sueltas. Pura: no toca el DOM.
+    function buildResumenActivity(convs, now, max){
+      var inMonth = rsInMonth(now), out = [];
+      (convs || []).filter(function(c){ return inMonth(c.createdAt); }).forEach(function(c){
+        var first = (c.messages || []).filter(function(m){ return m.from === 'visitor'; })[0];
+        out.push({ kind: 'new', at: c.createdAt, who: c.name, text: first ? first.text : '', conv: c });
+        if (c.status === 'resolved') out.push({ kind: 'closed', at: c.updatedAt || c.createdAt, who: c.name, text: '', conv: c });
+      });
+      return out.sort(function(a, b){ return new Date(b.at) - new Date(a.at); }).slice(0, max);
+    }
+    // Links que compartió el asistente en una conversación: las direcciones escritas en sus mensajes. (Los eventos
+    // 'link' que carga el panel solo traen type y created_at: no dicen de qué conversación son ni cuál link fue.)
+    var RS_URL = /https?:\/\/[^\s<>"'“”]+/g;
+    function rsLinksOf(c){
+      var out = [];
+      (c.messages || []).forEach(function(m){
+        if (m.from === 'visitor') return;
+        (String(m.text || '').match(RS_URL) || []).forEach(function(u){ u = u.replace(/[.,;:!?)\]]+$/, ''); if (out.indexOf(u) < 0) out.push(u); });
+      });
+      return out;
+    }
+    var RS_KIND = { new: 'Conversación nueva', closed: 'Chat cerrado' };
+    var RS_IC = { // mismos íconos que las tarjetas de arriba
+      new: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>',
+      closed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></svg>'
+    };
+    function rsCount(n, one, many){ return n == null ? '— ' + many : fmtN(n) + ' ' + (n === 1 ? one : many); }
+    var RS_STEP = 6, rsShown = RS_STEP, rsAll = [], rsNow = 0, RS_FULL = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    var RS_CHEV = '<svg class="rs-q__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+    function rsEl(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    // Mini resumen de una conversación: estado, mensajes, inicio y última actividad, los links que se compartieron
+    // y los primeros mensajes (todo texto plano; el link se muestra como texto, sin "https://", y entero en el title).
+    function rsDetail(c, now, links){
+      var d = rsEl('div', 'rs-d'), msgs = c.messages || [], n = msgs.length;
+      d.appendChild(rsEl('p', 'rs-d__meta', [STATUS_LABEL[c.status], rsCount(n, 'mensaje', 'mensajes'), 'empezó el ' + RS_FULL.format(new Date(c.createdAt)),
+        'última actividad ' + rsAgo(c.updatedAt || c.createdAt, now)].filter(Boolean).join(' · ')));
+      if (links.length){
+        d.appendChild(rsEl('p', 'rs-d__meta', links.length === 1 ? 'Link compartido' : 'Links compartidos (' + fmtN(links.length) + ')'));
+        links.forEach(function(u){ var p = rsEl('p', 'rs-d__link', u.replace(/^https?:\/\/(www\.)?/, '')); p.title = u; d.appendChild(p); });
+      }
+      msgs.slice(0, 4).forEach(function(m){
+        var p = rsEl('p'); p.appendChild(rsEl('span', 'rs-d__who', m.from === 'visitor' ? 'Visitante: ' : 'Asistente: '));
+        p.appendChild(document.createTextNode(String(m.text || '').trim() || '(mensaje vacío)')); d.appendChild(p);
+      });
+      if (n > 4) d.appendChild(rsEl('p', 'rs-d__meta', 'y ' + rsCount(n - 4, 'mensaje más', 'mensajes más')));
+      return d;
+    }
+    // Cada vez que se entra a Resumen: vuelve a 6 filas, todas cerradas.
+    function renderResumen(){
+      if (!rsReady) return; // hasta que termine la carga inicial, las tarjetas siguen en "—"
+      rsShown = RS_STEP;
+      // Error de carga != vacío: lo que no se pudo cargar va como null ("—"), nunca como 0.
+      var now = Date.now(), fail = wuLoadFailed.conv;
+      var s = computeResumenStats(fail ? null : appState.conversations, wuLoadFailed.events ? null : appState.events, now);
+      [['rsConv', s.conversations], ['rsClosed', s.closed], ['rsLinks', s.links]].forEach(function(x){
+        var el = document.getElementById(x[0]);
+        el.textContent = x[1] == null ? '—' : fmtN(x[1]); el.title = el.textContent;
+      });
+      rsAll = fail ? [] : buildResumenActivity(appState.conversations, now, Infinity); rsNow = now;
+      document.getElementById('rsList').textContent = '';
+      rsAppend();
+      var has = rsAll.length > 0;
+      document.getElementById('rsList').hidden = !has;
+      document.getElementById('rsEmpty').hidden = has;
+      document.getElementById('rsSub').hidden = !has;
+      document.getElementById('rsSub').textContent = rsCount(s.conversations, 'conversación', 'conversaciones') + ' · ' +
+        rsCount(s.closed, STATUS_LABEL.resolved.toLowerCase(), STATUS_LABEL_PLURAL.resolved.toLowerCase()) + ' · ' + rsCount(s.links, 'link', 'links') + ' · lo más reciente primero';
+      document.getElementById('rsEmptyT').textContent = fail ? 'No pudimos cargar los datos.' : 'Todavía no hay actividad este mes.';
+      document.getElementById('rsEmptyS').textContent = fail ? 'Probá recargar la página.' : 'Cuando tu widget reciba conversaciones, las vas a ver acá.';
+    }
+    // Agrega las filas que faltan hasta rsShown (las ya dibujadas, abiertas o no, quedan como están: "Mostrar más"
+    // no redibuja la lista, así no se pone más lento con mucho volumen).
+    function rsAppend(){
+      var list = document.getElementById('rsList'), from = list.querySelectorAll('.rs-q').length;
+      rsAll.slice(from, rsShown).forEach(function(a, k){ // siempre texto plano (textContent), nunca HTML (los íconos son fijos)
+        // Cada fila es una conversación y se abre con su mini resumen (incluidos los links que se compartieron).
+        var row = rsEl('button', 'rs-q'), ic = rsEl('span', 'rs-q__ic'), body = rsEl('div', 'rs-q__b'), links = rsLinksOf(a.conv);
+        ic.innerHTML = RS_IC[a.kind];
+        body.appendChild(rsEl('span', 'rs-q__t', RS_KIND[a.kind] + ' · ' + (a.who || 'Visitante')));
+        var said = String(a.text || '').trim();
+        var m = rsEl('span', 'rs-q__m', [said ? '“' + said + '”' : '', links.length ? rsCount(links.length, 'link', 'links') : '', rsAgo(a.at, rsNow)].filter(Boolean).join(' · '));
+        if (said) m.title = said;
+        body.appendChild(m); row.appendChild(ic); row.appendChild(body); list.appendChild(row);
+        var det = rsDetail(a.conv, rsNow, links);
+        det.id = 'rs-d' + (from + k); det.hidden = true;
+        row.type = 'button'; row.setAttribute('aria-expanded', 'false'); row.setAttribute('aria-controls', det.id);
+        row.insertAdjacentHTML('beforeend', RS_CHEV);
+        row.addEventListener('click', function(){ // se abre en su lugar, sin redibujar la lista
+          var v = row.getAttribute('aria-expanded') !== 'true'; row.setAttribute('aria-expanded', v); det.hidden = !v;
+        });
+        list.appendChild(det);
+      });
+      document.getElementById('rsFoot').hidden = rsAll.length <= rsShown;
+    }
+    document.getElementById('rsMore').addEventListener('click', function(){ rsShown += RS_STEP; rsAppend(); });
+
+    // Rastro de error de las cargas (lo lee Resumen). No cambia lo que devuelven: con error siguen dejando [].
+    var wuLoadFailed = { conv: false, events: false };
     function wuLoadConversations(uid){
       return SB.from('conversations').select('*').order('updated_at', { ascending: false }).then(function(cq){
+        wuLoadFailed.conv = !!(cq && cq.error);
         var convs = (cq && cq.data) || [];
         if (!convs.length){ appState.conversations = []; return; }
         var ids = convs.map(function(c){ return c.id; });
@@ -3266,7 +3424,7 @@
           var byConv = {};
           msgs.forEach(function(m){ (byConv[m.conversation_id] = byConv[m.conversation_id] || []).push({ from: m.from_role, text: m.text, at: m.created_at }); });
           appState.conversations = convs.map(function(c){
-            return { id: c.id, name: c.visitor_name, initial: c.initial, status: c.status, updatedAt: c.updated_at, messages: byConv[c.id] || [] };
+            return { id: c.id, name: c.visitor_name, initial: c.initial, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at, messages: byConv[c.id] || [] };
           });
         });
       });
@@ -3274,8 +3432,9 @@
 
     function wuLoadEvents(){
       return SB.from('events').select('type,created_at').then(function(eq){
+        wuLoadFailed.events = !!(eq && eq.error);
         appState.events = (eq && eq.data) || [];
-      }, function(){ appState.events = []; });
+      }, function(){ wuLoadFailed.events = true; appState.events = []; });
     }
 
     function wuInit(){
