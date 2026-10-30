@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Walkylet — Asistente de ayuda para tu web, en una línea</title>
-  <meta name="description" content="Walkylet es un asistente de ayuda que instalás en tu web con una línea y configurás desde tu panel. Las respuestas con IA se están conectando." />
+  <meta name="description" content="Walkylet ayuda a tus usuarios a entender tu producto, encontrar respuestas y llegar a donde necesitan. Todo desde un asistente integrado en tu sitio." />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Walkylet" />
   <meta property="og:locale" content="es_LA" />
   <meta property="og:title" content="Walkylet — Asistente de ayuda para tu web, en una línea" />
-  <meta property="og:description" content="Se instala con una línea y se configura desde tu panel. Las respuestas con IA se están conectando." />
+  <meta property="og:description" content="Walkylet ayuda a tus usuarios a entender tu producto, encontrar respuestas y llegar a donde necesitan. Todo desde un asistente integrado en tu sitio." />
   <meta name="theme-color" content="#FFFFFF" />
 
   <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
@@ -21,10 +21,8 @@
     /* ---------- Hero (banda blanca) ---------- */
     .hero { padding-block: var(--s6) var(--s4); }
     .hero__top { display: grid; gap: var(--s3); }
-    .hero__title { display: grid; gap: var(--s2); }
-    .hero__top .lead { max-width: 40ch; align-self: end; }
-    .hero__product { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); margin-top: var(--s6); align-items: start; }
-    .hero figcaption { margin-top: var(--s1); }
+    .hero__top .lead { max-width: 40ch; align-self: end; text-wrap: pretty; }
+    .hero__product { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); margin-top: var(--s5); align-items: start; }
     /* Datos verificables bajo el hero */
     /* Móvil: 2 arriba y 1 abajo, ícono sobre el texto; mismo aire arriba y abajo de la fila */
     .trust { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3) var(--s2); margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--border); color: var(--text-2); text-align: center; }
@@ -91,25 +89,28 @@
     .wdemo__send .icon { width: 16px; height: 16px; stroke-width: 2; }
     .wdemo__disc { padding: 10px 16px 12px; font-size: 0.6875rem; line-height: 1.45; color: #6b7280; text-align: center; }
 
-    /* ---------- Producto (banda gris): paneles blancos con escenario arriba ---------- */
+    /* ---------- Producto (banda gris): filas de texto y réplica de Preguntas ---------- */
     .section__head--center { margin-inline: auto; text-align: center; justify-items: center; }
-    .panels { display: grid; gap: var(--s2); margin-bottom: var(--s6); }
-    .card--feature { overflow: hidden; }
-    .card--feature .stage { border-radius: 0; padding: var(--s3) var(--s2); }
-    .card--feature .art { max-width: 400px; margin-inline: auto; }
-    .card__text { display: grid; gap: var(--s1); padding: var(--s3); }
-    .card__text p, .feature p { color: var(--text-2); }
-    /* Estado del proyecto: 3 columnas sobre la banda gris, sin tarjetas */
-    .status { display: grid; gap: var(--s4); margin-top: var(--s8); padding-top: var(--s6); border-top: 1px solid var(--border); }
-    .status__head { display: grid; gap: var(--s2); max-width: 640px; }
-    .status__cols { display: grid; gap: var(--s4); }
-    .status__col { display: grid; gap: var(--s1); align-content: start; }
-    .status__tag { display: inline-flex; align-items: center; gap: var(--s1); font: 400 0.8125rem/1.4 var(--mono); font-feature-settings: var(--mono-zero); color: var(--text); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--text-2); }
-    .dot--ok { background: var(--ok); border-color: var(--ok); }            /* verde: confirmado, funciona hoy */
-    .dot--dev { background: var(--accent); border-color: var(--accent); }   /* azul: estado activo */
-    .status__col ul { color: var(--text-2); }
-    .status__col li { padding-block: 12px; border-bottom: 1px solid var(--border); }
+    .value { display: grid; gap: var(--s5); }
+    .value__rows li { padding-block: var(--s3); border-top: 1px solid var(--border); }
+    .value__rows h3 { font-size: 1rem; line-height: 1.5; }
+    .value__rows p { max-width: 44ch; margin-top: 4px; font-size: 0.9375rem; color: var(--text-2); }
+    /* Réplica estática de la vista Preguntas del panel: valores de .wa-page-*, .wa-tabs y .qview (app/index.html); todas "Respondida" */
+    .pv { width: 100%; max-width: 560px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; pointer-events: none; user-select: none; -webkit-user-select: none; }
+    .pv__top { padding: var(--s2) var(--s2) 0; }
+    .pv__title { font-size: 1.25rem; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em; }
+    .pv__sub { margin-top: 4px; font-size: 0.875rem; line-height: 1.5; color: var(--text-2); }
+    .pv__tabs { display: flex; gap: var(--s3); margin: var(--s2) calc(-1 * var(--s2)) 0; padding: 0 var(--s2); border-bottom: 1px solid var(--border); }
+    .pv__tabs span { display: flex; align-items: center; min-height: 44px; padding: 0 2px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 0.9375rem; color: var(--text-2); white-space: nowrap; }
+    .pv__tabs .is-on { color: var(--text); border-bottom-color: var(--text); }
+    .pv__cols, .pv__r { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--s3); padding: 0 var(--s2); }
+    .pv__cols { min-height: 40px; border-bottom: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-2); }
+    .pv__cols span + span, .pv__res { text-align: right; }
+    .pv__r { min-height: 56px; font-size: 0.9375rem; }
+    .pv__r + .pv__r { border-top: 1px solid var(--border); }
+    .pv__q { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pv__res { color: var(--text-2); white-space: nowrap; }
+    .pv__ic { display: inline-block; width: 16px; height: 16px; margin-right: 8px; vertical-align: -3px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
     /* ---------- Cómo funciona (banda blanca) ---------- */
     .how { display: grid; gap: var(--s4); }
@@ -126,6 +127,15 @@
     .how[data-active="1"] [data-step="1"] h3, .how[data-active="2"] [data-step="2"] h3, .how[data-active="3"] [data-step="3"] h3 { color: var(--text); }
     .how[data-active="1"] [data-step="1"] .how__n, .how[data-active="2"] [data-step="2"] .how__n, .how[data-active="3"] [data-step="3"] .how__n { color: var(--accent); }
     .how[data-active="1"] [data-step="1"] .how__hand, .how[data-active="2"] [data-step="2"] .how__hand, .how[data-active="3"] [data-step="3"] .how__hand { visibility: visible; }
+    /* Lo que resuelve: al pie de Cómo funciona, dos columnas sin cajas, solo líneas entre ítems */
+    .incl { grid-column: 1 / -1; display: grid; gap: var(--s4); margin-top: var(--s2); padding-top: var(--s6); border-top: 1px solid var(--border); }
+    .incl h3 { font-size: 1rem; line-height: 1.5; }
+    .have { display: grid; gap: var(--s5); }
+    .have__h { margin: 0; padding-bottom: var(--s1); }
+    .have__list li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; padding-block: var(--s2); }
+    .have__list li + li { border-top: 1px solid var(--border); }
+    .have__list .icon { margin-top: 2px; }
+    .have__t { font-weight: 500; }
 
     /* ---------- Precios (banda gris): tres tarjetas separadas, la del medio oscura ---------- */
     .plans { display: grid; gap: var(--s2); }
@@ -167,6 +177,13 @@
     .footer__cols h2 { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; color: var(--text); margin-bottom: var(--s1); }
     .footer__bottom { margin-top: var(--s8); padding-top: var(--s3); border-top: 1px solid var(--border); }
 
+    @media (max-width: 480px) {
+      /* Réplica de Preguntas como la app en celular: sin pestañas ni encabezados, resultado debajo de la pregunta */
+      .pv__tabs, .pv__cols { display: none; }
+      .pv__top { padding-bottom: var(--s2); border-bottom: 1px solid var(--border); }
+      .pv__r { grid-template-columns: minmax(0, 1fr); row-gap: 2px; padding-block: 10px; }
+      .pv__res { text-align: left; font-size: 0.8125rem; }
+    }
     @media (min-width: 480px) {
       .wdemo { height: 420px; }
       .wdemo__head { gap: 4px; padding: 10px 8px 6px; }
@@ -187,20 +204,18 @@
       .trust li { flex-direction: row; }
     }
     @media (min-width: 768px) {
-      .panels { grid-template-columns: repeat(2, 1fr); }
-      .card--feature .stage { padding: var(--s4) var(--s3); }
       .plans { grid-template-columns: repeat(3, 1fr); }
-      .status__cols { grid-template-columns: repeat(3, 1fr); }
     }
     @media (min-width: 880px) {
-      .hero { padding-block: var(--s8) var(--s5); }
+      .hero { padding-block: calc(var(--s10) + var(--s1)) var(--s5); }   /* 88px arriba */
       .trust { padding-top: var(--s5); }
       .hero__top { grid-template-columns: 7fr 5fr; gap: var(--s6); }
-      .hero__product { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s6); margin-top: var(--s8); }
+      .hero__product { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s6); margin-top: var(--s6); }
       .how, .faq-wrap { grid-template-columns: 5fr 7fr; gap: var(--s6); }
       .how .section__head { grid-column: 1 / -1; }
       .how { row-gap: var(--s5); }
       .how__steps { grid-template-rows: repeat(3, 1fr); }   /* los pasos llenan el alto del escenario */
+      .have { grid-template-columns: 1fr 1fr; gap: var(--s6); }
       .faq-wrap .section__head { margin-bottom: 0; position: sticky; top: calc(var(--header-h) + var(--s4)); align-self: start; }
       .plans { grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
       .plan { padding: var(--s4); }
@@ -208,6 +223,15 @@
       /* Laptop: cierre como antes, título y descripción a la izquierda, botón a la derecha */
       .closing { max-width: var(--maxw); grid-template-columns: 1fr auto; align-items: center; justify-items: start; column-gap: var(--s6); text-align: left; }
       .closing .btn { margin-top: 0; justify-self: end; }
+    }
+    @media (min-width: 900px) {
+      /* Producto: filas a la izquierda (~5/12) e imagen a la derecha (~7/12), alineadas arriba */
+      /* La imagen ocupa el mismo alto que la lista: arriba en la línea de la primera fila, abajo en el fin del texto de la última */
+      .value { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--s8); align-items: stretch; }
+      .value__rows { display: flex; flex-direction: column; justify-content: space-between; }
+      .value__rows li:last-child { padding-bottom: 0; }
+      .pv { justify-self: end; display: flex; flex-direction: column; }
+      .pv__r { flex: 1 1 0; }
     }
   </style>
 </head>
@@ -221,7 +245,6 @@
 
       <nav class="nav" aria-label="Navegación principal">
         <a href="#caracteristicas">Producto</a>
-        <a href="#estado">Estado</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#faq">FAQ</a>
@@ -241,7 +264,6 @@
     <div class="mobile-menu" id="menu-movil" hidden>
       <nav aria-label="Secciones">
         <a href="#caracteristicas">Producto</a>
-        <a href="#estado">Estado</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#faq">FAQ</a>
@@ -257,11 +279,8 @@
     <section class="hero" id="inicio" aria-labelledby="hero-t">
       <div class="wrap">
         <div class="hero__top">
-          <div class="hero__title">
-            <p class="label">En desarrollo</p>
-            <h1 id="hero-t">Ayuda para tus usuarios, en una línea</h1>
-          </div>
-          <p class="lead">Se instala con una línea y se ajusta en tu panel. La IA se está conectando: va a responder dudas, guiar y pasar el enlace correcto.</p>
+          <h1 id="hero-t">Ayuda para tus usuarios, en una línea</h1>
+          <p class="lead">Walkylet ayuda a tus usuarios a entender tu producto, encontrar respuestas y llegar a donde necesitan. Todo desde un asistente integrado en tu sitio.</p>
         </div>
 
         <div class="hero__product">
@@ -305,7 +324,6 @@
                 </div>
               </div>
             </div>
-            <figcaption class="small muted">Vista estática del widget, sin conversación.</figcaption>
           </figure>
 
           <div class="install">
@@ -332,7 +350,7 @@
               <ul class="checks small">
                 <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Aparece un botón de chat abajo a la derecha de tu sitio.</span></li>
                 <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Usa el nombre, la foto y el tema que elegiste en el panel.</span></li>
-                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Mientras conectamos la IA, responde con un mensaje de espera.</span></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span>Se instala con una sola línea, sin tocar tu código.</span></li>
               </ul>
             </div>
           </div>
@@ -349,92 +367,31 @@
     <!-- ==================== PRODUCTO (gris) ==================== -->
     <section class="section band-alt" id="caracteristicas" aria-labelledby="prod-t">
       <div class="wrap">
-        <div class="section__head section__head--center">
-          <h2 id="prod-t">Lo que ya funciona</h2>
-          <p class="muted">Esto lo podés usar hoy.</p>
+        <div class="section__head">
+          <h2 id="prod-t">La respuesta ya está en tu sitio.</h2>
+          <p class="muted">Walkylet responde con tu información y te muestra qué falta.</p>
         </div>
 
-        <div class="panels">
-          <div class="card card--feature">
-            <div class="stage">
-              <!-- Dibujo 3a: el widget dentro de una página, aislado por su Shadow DOM -->
-              <svg class="art" viewBox="0 0 320 192" aria-hidden="true">
-                <rect class="wb" x="40" y="16" width="240" height="152" rx="10"/>
-                <line class="b" x1="40" y1="40" x2="280" y2="40"/>
-                <line class="b" x1="56" y1="64" x2="144" y2="64"/>
-                <line class="b" x1="56" y1="80" x2="128" y2="80"/>
-                <line class="b" x1="56" y1="96" x2="152" y2="96"/>
-                <rect class="sb" x="56" y="120" width="96" height="32" rx="6"/>
-                <text x="264" y="58" text-anchor="end">shadow dom</text>
-                <rect class="dash" x="176" y="64" width="88" height="96" rx="10"/>
-                <rect class="wp" x="184" y="72" width="72" height="80" rx="6"/>
-                <circle class="p" cx="196" cy="84" r="4"/>
-                <line class="m" x1="196" y1="108" x2="244" y2="108"/>
-                <rect class="m" x="192" y="132" width="56" height="12" rx="6"/>
-                <text x="40" y="184">tu css</text>
-              </svg>
+        <div class="value">
+          <ul class="value__rows">
+            <li><h3>Tus usuarios preguntan</h3><p>Escriben en el chat de tu sitio y reciben una respuesta con tu información y el enlace correcto.</p></li>
+            <li><h3>Si no sabe, lo dice</h3><p>No inventa. Si le falta información, lo dice y los dirige a tu contacto.</p></li>
+            <li><h3>Vos ves lo que preguntan</h3><p>Ves qué preguntan tus usuarios y cómo respondió el chat, para completar tu información.</p></li>
+          </ul>
+          <!-- Réplica estática de la vista Preguntas del panel (valores de .qview en app/index.html) -->
+          <figure class="pv" role="img" aria-label="Vista de la lista de Preguntas del panel de Walkylet con preguntas respondidas.">
+            <div class="pv__top">
+              <p class="pv__title">Preguntas</p>
+              <p class="pv__sub">Lo que preguntan tus visitantes y cómo respondió el chat.</p>
+              <div class="pv__tabs"><span>24 horas</span><span>7 días</span><span>30 días</span><span class="is-on">Todo</span></div>
             </div>
-            <div class="card__text">
-              <h3>No choca con tus estilos</h3>
-              <p>Vive en su propio Shadow DOM, aislado de tu CSS.</p>
-            </div>
-          </div>
-          <div class="card card--feature">
-            <div class="stage">
-              <!-- Dibujo 3b: dos widgets idénticos, claro y oscuro -->
-              <svg class="art" viewBox="0 0 320 192" aria-hidden="true">
-                <rect class="wp" x="64" y="16" width="88" height="136" rx="10"/>
-                <circle class="p" cx="80" cy="32" r="5"/>
-                <line class="m" x1="92" y1="32" x2="128" y2="32"/>
-                <line class="m" x1="80" y1="80" x2="136" y2="80"/>
-                <line class="m" x1="88" y1="96" x2="128" y2="96"/>
-                <rect class="m" x="72" y="128" width="72" height="16" rx="6"/>
-                <text x="108" y="176" text-anchor="middle">claro</text>
-                <rect x="168" y="16" width="88" height="136" rx="10" fill="var(--text)" stroke="var(--text)"/>
-                <circle class="b" cx="184" cy="32" r="5"/>
-                <line class="m" x1="196" y1="32" x2="232" y2="32"/>
-                <line class="m" x1="184" y1="80" x2="240" y2="80"/>
-                <line class="m" x1="192" y1="96" x2="232" y2="96"/>
-                <rect class="m" x="176" y="128" width="72" height="16" rx="6"/>
-                <text x="212" y="176" text-anchor="middle">oscuro</text>
-              </svg>
-            </div>
-            <div class="card__text">
-              <h3>Tema claro y oscuro</h3>
-              <p>Elegís uno por defecto; el visitante lo cambia desde el chat.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="status" id="estado">
-          <div class="status__head">
-            <h2 id="estado-t">Estado del proyecto</h2>
-            <p class="muted">Qué funciona hoy y en qué estamos trabajando.</p>
-          </div>
-          <div class="status__cols">
-            <div class="status__col">
-              <p class="status__tag"><span class="dot dot--ok" aria-hidden="true"></span>disponible hoy</p>
-              <ul class="small">
-                <li>Widget que se instala con una línea</li>
-                <li>Panel para nombre, foto, color del logo y tema</li>
-                <li>Tema claro y oscuro</li>
-                <li>Historial guardado en el dispositivo del visitante</li>
-              </ul>
-            </div>
-            <div class="status__col">
-              <p class="status__tag"><span class="dot dot--dev" aria-hidden="true"></span>en desarrollo</p>
-              <ul class="small">
-                <li>Respuestas con IA según lo que cargás en el panel</li>
-              </ul>
-            </div>
-            <div class="status__col">
-              <p class="status__tag"><span class="dot" aria-hidden="true"></span>después</p>
-              <ul class="small">
-                <li>Planes de pago (hoy los precios son provisionales)</li>
-                <li>Dominio propio</li>
-              </ul>
-            </div>
-          </div>
+            <div class="pv__cols"><span>Pregunta</span><span>Resultado</span></div>
+            <div class="pv__r"><span class="pv__q">¿Aceptan pagos en cuotas?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+            <div class="pv__r"><span class="pv__q">¿Dónde descargo mi factura?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+            <div class="pv__r"><span class="pv__q">¿Tienen soporte por teléfono?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+            <div class="pv__r"><span class="pv__q">¿Cómo cambio mi plan?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+            <div class="pv__r"><span class="pv__q">¿Cuál es el horario de atención?</span><span class="pv__res"><svg class="pv__ic" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Respondida</span></div>
+          </figure>
         </div>
       </div>
     </section>
@@ -509,6 +466,29 @@
             <p>Nombre, foto, color y tema. Se actualiza sin reinstalar nada.</p>
           </li>
         </ol>
+        <div class="incl">
+          <h3>Lo que resuelve</h3>
+          <div class="have">
+            <div>
+              <h4 class="label have__h">Para tus usuarios</h4>
+              <ul class="have__list">
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg><div><p class="have__t">Un chat en tu página</p><p class="small muted">Preguntan sin salir de tu sitio ni escribirte un correo.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><p class="have__t">Ayuda a cualquier hora</p><p class="small muted">Reciben respuesta aunque tu equipo no esté disponible.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><div><p class="have__t">Sin cuentas ni formularios</p><p class="small muted">Escriben y listo: no tienen que registrarse.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><div><p class="have__t">Retoman donde dejaron</p><p class="small muted">Su historial queda guardado en su propio dispositivo.</p></div></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="label have__h">Para vos</h4>
+              <ul class="have__list">
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg><div><p class="have__t">Responde por vos</p><p class="small muted">Atiende las dudas que se repiten, mientras vos hacés otra cosa.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1"/></svg><div><p class="have__t">Un chat con tu marca</p><p class="small muted">Elegís nombre, logo y color desde tu panel.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><div><p class="have__t">Vos decidís qué sabe</p><p class="small muted">Cargás tu información y definís cómo habla.</p></div></li>
+                <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/></svg><div><p class="have__t">Lo controlás vos</p><p class="small muted">Lo activás, lo apagás o lo cambiás sin reinstalar nada.</p></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -579,27 +559,27 @@
         <div class="faq">
           <details>
             <summary>¿Qué es Walkylet?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Un asistente de ayuda que instalás en tu web con una línea de código y configurás desde tu panel. Está en desarrollo activo.</p>
+            <p>Un asistente que instalás en tu sitio para que tus usuarios encuentren respuestas sin salir de la página. Lo configurás desde tu panel.</p>
           </details>
           <details>
-            <summary>¿Ya responde la IA?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Todavía no: hoy el chat contesta con un mensaje de espera. Estamos conectando la IA para que responda con la información que cargás en el panel.</p>
+            <summary>¿Con qué información responde?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Con la que cargás en tu panel: el texto sobre tu sitio y su dirección web. Si no sabe algo, lo dice y dirige a tu usuario a tu contacto.</p>
           </details>
           <details>
             <summary>¿Cómo lo instalo?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Creás tu cuenta, copiás tu línea desde el panel y la pegás en tu sitio. Sin build ni dependencias.</p>
+            <p>Creás tu cuenta, copiás una línea desde el panel y la pegás en tu sitio, antes del cierre de la página.</p>
           </details>
           <details>
             <summary>¿Necesito saber programar?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel.</p>
+            <p>Solo para pegar esa línea una vez. Lo demás lo cambiás desde el panel, sin reinstalar nada.</p>
           </details>
           <details>
-            <summary>¿Necesito una clave de IA o una cuenta aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>No. No tenés que traer ninguna clave.</p>
+            <summary>¿Necesito una cuenta de IA aparte?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>No. No necesitás claves ni cuentas aparte: todo se maneja desde tu panel de Walkylet.</p>
           </details>
           <details>
-            <summary>¿Cuánto cuesta?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p>Crear la cuenta es gratis y no pide tarjeta. Los planes pagos son provisionales: mirá <a href="#precios">Precios</a>.</p>
+            <summary>¿Cómo se tratan los datos?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Está explicado en nuestra <a href="/legal/privacidad">política de privacidad</a>. Ahí también explicamos cómo <a href="/legal/datos">pedir la eliminación de tus datos</a>.</p>
           </details>
         </div>
       </div>
@@ -633,7 +613,6 @@
             <h2 id="f-prod">Producto</h2>
             <ul>
               <li><a href="#caracteristicas">Producto</a></li>
-              <li><a href="#estado">Estado</a></li>
               <li><a href="#precios">Precios</a></li>
               <li><a href="#faq">FAQ</a></li>
             </ul>
