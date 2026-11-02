@@ -131,6 +131,11 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 - `vercel.json` tiene un rewrite `{ "/app/:path*" → "/app" }` y dos redirects que ocultan CLAUDE.md y README.md del sitio público. Si se migra a Cloudflare Pages hay que traducir ambos a su formato (`_redirects` o similar) y probarlos, o sacar esos archivos del sitio publicado.
 - La recuperación de contraseña vuelve a `/login`, no a `/app`.
 
+## Backend (Supabase)
+- Proyecto: `ejbtgkvlrkecnslpapyd`.
+- `supabase/` es un RESPALDO: la fuente de verdad es Supabase. Cada vez que cambie una migración o función en Supabase, hay que actualizar `supabase/` en el mismo cambio.
+- Los secretos NUNCA van al repo: se cargan en Supabase → Edge Functions → Secrets.
+
 ## Flujo de trabajo y pendientes
 - Todo cambio va en una rama, con Pull Request y vista previa de Vercel antes de unir a main. Probar en la vista previa antes de unir.
 - Carpeta de trabajo local: `C:\dev\Walkylo` (fuera de OneDrive).
@@ -140,6 +145,7 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 - **Fotos del widget (`+`)**: hoy `ATTACHMENTS_ENABLED = true` en `w.js`, pero las fotos son SOLO del lado del navegador (vista local, sin red ni Supabase; el enganche real está marcado con el TODO `onSendAttachments` para la Fase 8). Antes de habilitarlas para clientes reales hay que definir el lado servidor: bucket privado con límites (cantidad/tamaño/ritmo contra abuso); subida por la función `chat`; columna de adjuntos; `widget_id` y `visitor_id` en `conversations`; visión de la IA sobre las imágenes; retención y borrado; y política de privacidad. Si eso no está listo al lanzar, poné `ATTACHMENTS_ENABLED = false`.
 - **Historial del chat**: hoy es SOLO local en el dispositivo (localStorage, namespaced por id del widget; sin red). No se sincroniza entre dispositivos ni con el servidor. La sincronización con el servidor queda para la Fase 8.
 - **Regenerar y editar mensajes**: los dos pasan por `generateReply` (con `AbortController`) y llaman a la función `chat`. "Generar otra respuesta" reenvía el último mensaje del visitante con `regenerate: true` (el servidor no lo guarda de nuevo ni cuenta otra pregunta). "Editar" se envía como mensaje nuevo, sin `regenerate`: el mensaje viejo queda en el servidor.
+- **Purga de notificaciones**: la tarea programada `purge-old-notifications` borra TODAS las notificaciones de más de 30 días, incluidas las importantes (ver `supabase/manual/cron_purge_old_notifications.sql`). Decidir si excluir las importantes.
 
 ## Privacidad y legal pendiente
 - El widget (`w.js`) guarda un identificador anónimo de visitante en localStorage (`wu_vid_<widget_id>`) y el `conversation_id` del servidor en sessionStorage (`wu_conv_<widget_id>`). Con cada mensaje envía a la función `chat`: `visitor_id`, `conversation_id`, el texto, `page_url` (solo origin + pathname, sin parámetros ni fragmento) e idioma del navegador. Hay que reflejarlo en la política de privacidad (`legal/`).
@@ -170,7 +176,7 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 - `index.html`, "Lo que resuelve" › "Para vos": "Responde por vos" — "Atiende las dudas que se repiten, mientras vos hacés otra cosa."
 - `index.html`, "Lo que resuelve" › "Para vos": "Vos decidís qué sabe" — "Cargás tu información y definís cómo habla."
 - `index.html`, FAQ, pregunta 1: "¿Qué es Walkylet?" — "Un asistente que instalás en tu sitio para que tus usuarios encuentren respuestas sin salir de la página. Lo configurás desde tu panel."
-- `index.html`, FAQ, pregunta 2: "¿Con qué información responde?" — "Con la que cargás en tu panel: el texto sobre tu sitio y su dirección web. Si no sabe algo, lo dice y dirige a tu usuario a tu contacto." (Misma nota que la fila 2: revisar contra `#wgFallback`.)
+- `index.html`, FAQ, pregunta 2: "¿Con qué información responde?" — "Con la que cargás en tu panel: el texto sobre tu sitio y su dirección web. Si no sabe algo, lo dice y dirige a tu usuario a tu contacto." (Misma nota que la fila 2: revisar contra `#wgFallback`.) (Ojo: hoy la función chat NO lee la URL del sitio; solo usa el texto de "Información para responder". Corregir el texto de la landing o implementar la lectura.)
 - `index.html`, FAQ, pregunta 5: "¿Necesito una cuenta de IA aparte?" — "No. No necesitás claves ni cuentas aparte: todo se maneja desde tu panel de Walkylet."
 
 ## Cierre de chats (por definir)
