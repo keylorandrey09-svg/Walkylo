@@ -14,7 +14,7 @@ Widget de chat con IA que se instala en cualquier web con una línea de código.
 ## Reglas de oro
 1. `w.js` es un contrato público: no moverlo ni renombrarlo, mantenerlo autónomo (sin importar archivos del sitio, usa Shadow DOM) y sin cambios incompatibles.
 2. Nunca secretos en el repo. En el frontend solo van claves públicas (`sb_publishable_...`). Jamás `service_role`, `sb_secret_`, ni llaves de OpenAI o Dodo.
-3. No inventar datos ni promesas comerciales. Hoy el chat del widget NO responde con IA real. Los datos de demostración deben decir que son ilustrativos.
+3. No inventar datos ni promesas comerciales. El widget ya llama a la función `chat`, pero hasta que se cargue una clave de OpenAI esa función responde en modo simulado: no prometer respuestas de IA real. Los datos de demostración deben decir que son ilustrativos.
 4. Cada botón o flujo debe funcionar, o no existir.
 5. Marca: azul #0164FD. El verde se usa solo para estados confirmados.
 
@@ -134,24 +134,27 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 ## Flujo de trabajo y pendientes
 - Todo cambio va en una rama, con Pull Request y vista previa de Vercel antes de unir a main. Probar en la vista previa antes de unir.
 - Carpeta de trabajo local: `C:\dev\Walkylo` (fuera de OneDrive).
-- Pendientes conocidos (NO implementar sin que Keylor lo pida): dominio propio, corregir el snippet de la landing (hoy apunta a `walkyup.app/widget.js`, que no corresponde al archivo real `w.js`), conectar la IA real al widget (hoy responde un mensaje fijo), CSS compartido (`brand.css`) y respaldo del backend de Supabase en el repo.
+- Pendientes conocidos (NO implementar sin que Keylor lo pida): dominio propio, corregir el snippet de la landing (hoy apunta a `walkyup.app/widget.js`, que no corresponde al archivo real `w.js`), cargar la clave de OpenAI en la función `chat` (el widget ya la llama; hoy responde en modo simulado), CSS compartido (`brand.css`) y respaldo del backend de Supabase en el repo.
 
 ## Pendientes antes de lanzar a clientes
 - **Fotos del widget (`+`)**: hoy `ATTACHMENTS_ENABLED = true` en `w.js`, pero las fotos son SOLO del lado del navegador (vista local, sin red ni Supabase; el enganche real está marcado con el TODO `onSendAttachments` para la Fase 8). Antes de habilitarlas para clientes reales hay que definir el lado servidor: bucket privado con límites (cantidad/tamaño/ritmo contra abuso); subida por la función `chat`; columna de adjuntos; `widget_id` y `visitor_id` en `conversations`; visión de la IA sobre las imágenes; retención y borrado; y política de privacidad. Si eso no está listo al lanzar, poné `ATTACHMENTS_ENABLED = false`.
 - **Historial del chat**: hoy es SOLO local en el dispositivo (localStorage, namespaced por id del widget; sin red). No se sincroniza entre dispositivos ni con el servidor. La sincronización con el servidor queda para la Fase 8.
-- **Regenerar y editar mensajes**: hoy "Generar otra respuesta" (en los mensajes de la IA) y "Editar" (en los del usuario) pasan por la misma función que genera respuestas, con un flag `regenerate` y un `AbortController`, pero la respuesta sigue siendo el mensaje fijo. En la Fase 8 hay que conectar esos dos flujos con la IA real (la función `chat`), respetando el flag y el aborto.
+- **Regenerar y editar mensajes**: los dos pasan por `generateReply` (con `AbortController`) y llaman a la función `chat`. "Generar otra respuesta" reenvía el último mensaje del visitante con `regenerate: true` (el servidor no lo guarda de nuevo ni cuenta otra pregunta). "Editar" se envía como mensaje nuevo, sin `regenerate`: el mensaje viejo queda en el servidor.
+
+## Privacidad y legal pendiente
+- El widget (`w.js`) guarda un identificador anónimo de visitante en localStorage (`wu_vid_<widget_id>`) y el `conversation_id` del servidor en sessionStorage (`wu_conv_<widget_id>`). Con cada mensaje envía a la función `chat`: `visitor_id`, `conversation_id`, el texto, `page_url` (solo origin + pathname, sin parámetros ni fragmento) e idioma del navegador. Hay que reflejarlo en la política de privacidad (`legal/`).
 
 ## Conexiones pendientes del ensamble (panel)
 (La interfaz ya está en su forma final; falta enchufar el backend. Supabase se gestiona en otro chat.)
 - **Subida de archivos de Conocimiento**: reemplazar `knowledgeStore` (`app/index.html`, comentario "ENSAMBLE") por Supabase Storage con buckets privados `knowledge-docs` (5 MB, PDF/TXT/MD) y `knowledge-images` (2 MB, PNG/JPG/WebP); máximo 5 por tipo impuesto también en el servidor; tabla de metadatos con estado; borrado al eliminar la cuenta (función `delete-account`, por la API); actualizar la política de privacidad y los términos.
-- **IA**: lee esos archivos, el texto de "Información para responder" y la URL del sitio. Hoy el chat responde un mensaje fijo (`w.js` y `WG_PENDING_REPLY` en la vista previa del panel).
+- **IA**: lee esos archivos, el texto de "Información para responder" y la URL del sitio. `w.js` ya llama a la función `chat` (POST a `/functions/v1/chat`, sin streaming; `page_url` = origin + pathname, sin parámetros ni fragmento); hasta que se cargue la clave de OpenAI la función responde en modo simulado. La vista previa del panel sigue con el mensaje fijo `WG_PENDING_REPLY`.
 - **Vista Preguntas**: CONECTADA. `toQuestionItems` usa las conversaciones y mensajes reales: cada mensaje del visitante es una pregunta (sin agrupar todavía, "Chats" = 1). El resultado sale del primer mensaje del asistente que viene después en la misma conversación: "Respondida" si `status = 'complete'` y `is_fallback = false`; "Sin respuesta" si `is_fallback = true`, si no hay mensaje del asistente o si su `status` es 'error' o 'stopped'. Así, "Sin respuesta" depende de que la función `chat` guarde bien `messages.is_fallback` (y `status`). Pendiente: agrupar preguntas parecidas y el borrado en el servidor (el panel todavía no le pasa `onDelete` a `mountQuestions`).
 - **Cierre de chats**: ver "Cierre de chats (por definir)"; renombrar 'resolved' a 'closed'.
 - **Resumen**: los eventos 'link' necesitan `conversation_id` en `events` para atarse a su conversación; "chats en curso" no existe en la base (`inProgress` queda en 0).
 - **Configuración**: "Gestión de plan" muestra un aviso porque no hay cobro (Dodo); cambio de plan pendiente.
 - **Analíticas**: actualización en vivo (Realtime o polling) pendiente; hoy carga una vez.
 - **Login**: "Continuar con Google" (`#lgGoogle`) deshabilitado hasta que exista el flujo OAuth.
-- **Widget (`w.js`)**: fotos del `+` (TODO `onSendAttachments`), historial sincronizado con el servidor y regenerar/editar con la IA real (Fase 8; ver "Pendientes antes de lanzar a clientes"); que `w.js` dibuje los logos `w1`–`w5`; dominio propio para el snippet.
+- **Widget (`w.js`)**: fotos del `+` (TODO `onSendAttachments`), historial sincronizado con el servidor (Fase 8; ver "Pendientes antes de lanzar a clientes"); que `w.js` dibuje los logos `w1`–`w5`; dominio propio para el snippet.
 
 ## Afirmaciones que dependen de la IA (verificar en el ensamble)
 (Textos de la landing que dan por hecho que la IA responde. En el ensamble, comprobar cada uno contra el producto real y corregir el que no se cumpla.)
