@@ -665,8 +665,10 @@
 
     // ---- Generar / regenerar respuesta (una sola función, Edge Function `chat`) ----
     // Envía el último mensaje del visitante. Al regenerar (opts.regenerate) ya se quitó la
-    // respuesta anterior, así que se reenvía ese mismo mensaje tal cual, sin marca aparte.
+    // respuesta anterior: se reenvía ese mismo mensaje con regenerate: true (el servidor no lo
+    // guarda de nuevo). Envíos normales y ediciones no llevan esa propiedad.
     function generateReply(opts) {
+      var regenerate = !!(opts && opts.regenerate);
       var text = "";
       for (var k = hist.length - 1; k >= 0; k--) { if (hist[k].o) { text = hist[k].x || ""; break; } }
       setState("thinking");
@@ -678,8 +680,10 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: c.signal,
+        // page_url sin ?parámetros ni #fragmento: pueden traer datos privados del sitio.
         body: JSON.stringify({ widget_id: dataId, visitor_id: visitorId(), conversation_id: convId || undefined,
-          message: text, page_url: location.href, language: navigator.language || "" })
+          message: text, page_url: location.origin + location.pathname, language: navigator.language || "",
+          regenerate: regenerate || undefined })
       }).then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (d) {
           if (ctrl !== c) return;
