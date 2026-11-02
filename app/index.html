@@ -1134,10 +1134,10 @@
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgFallback">Si no sabe algo</label>
                   <select class="wg-select" id="wgFallback" disabled>
-                    <option value="email">Pedir el correo del visitante</option>
-                    <option value="human">Derivar a un humano</option>
+                    <option value="email">Mostrar mi correo de contacto</option>
                     <option value="apologize">Disculparse y sugerir reintentar</option>
                   </select>
+                  <p class="wg-field__hint" id="wgFallbackHint" hidden>Cargá tu correo en la pestaña Contacto y privacidad para que el asistente pueda mostrarlo.</p>
                 </div>
               </div>
 
@@ -2505,6 +2505,14 @@
       var m = /^#?([0-9a-fA-F]{6})$/.exec(v);
       return m ? ('#' + m[1].toUpperCase()) : 'auto';
     }
+    // "Si no sabe algo": solo 'email' o 'apologize'. Cualquier otro valor (p. ej. el viejo 'human') se ve y se guarda como 'email'.
+    function wgNormFallback(v){ return v === 'apologize' ? 'apologize' : 'email'; }
+    function wgFallbackHint(c){
+      var h = wgId('wgFallbackHint'), sel = wgId('wgFallback'); if (!h || !c) return;
+      var show = wgNormFallback(c.fallback) === 'email' && !String(c.contactEmail || '').trim();
+      h.hidden = !show;
+      if (sel){ if (show) sel.setAttribute('aria-describedby', 'wgFallbackHint'); else sel.removeAttribute('aria-describedby'); }
+    }
     function wgAccentKind(a){ a = wgNormAccent(a); return a === 'auto' ? 'auto' : (a === '#FFFFFF' ? 'white' : (a === '#000000' ? 'black' : 'custom')); }
     // Tinta del ícono sobre el color del logo: blanco o #111, el de mayor contraste (WCAG).
     function wgAccentInk(hex){
@@ -2568,7 +2576,8 @@
       if (wgId('wgWelcome')) wgId('wgWelcome').value = c.welcome || '';
       if (wgId('wgKnow')) wgId('wgKnow').value = c.knowledge || '';
       if (wgId('wgLang')) wgId('wgLang').value = c.language;
-      if (wgId('wgFallback')) wgId('wgFallback').value = c.fallback;
+      if (wgId('wgFallback')) wgId('wgFallback').value = wgNormFallback(c.fallback);
+      wgFallbackHint(c);
       if (wgId('wgSite')) wgId('wgSite').value = c.siteUrl || '';
       if (wgId('wgEmail')) wgId('wgEmail').value = c.contactEmail || '';
       if (wgId('wgPrivacy')) wgId('wgPrivacy').value = c.privacyUrl || '';
@@ -2818,8 +2827,8 @@
     }
 
     (function(){
-      ['wgName','wgWelcome','wgKnow','wgSite','wgEmail','wgPrivacy'].forEach(function(id){
-        var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); });
+      ['wgName','wgWelcome','wgKnow','wgSite','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
+        var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); wgFallbackHint(wgDraft); });
       });
       // ===== Color del logo: Blanco · Negro · Paleta (picker propio) =====
       var logo = wgId('wgLogo');
@@ -3665,7 +3674,7 @@
             if (wrow){
               appState.widget = {
                 name: wrow.name, accent: wgNormAccent(wrow.accent), position: wrow.position, welcome: wrow.welcome,
-                tone: wrow.tone, language: wrow.language, fallback: wrow.fallback, knowledge: wrow.knowledge,
+                tone: wrow.tone, language: wrow.language, fallback: wgNormFallback(wrow.fallback), knowledge: wrow.knowledge,
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
                 siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
                 enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')

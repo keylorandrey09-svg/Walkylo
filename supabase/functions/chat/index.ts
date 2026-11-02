@@ -30,10 +30,28 @@ const tag = (v: unknown, max = 24) => String(v ?? "").replace(/[^\p{L}\p{N} _-]/
 const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
 
+const FALLBACKS: Record<string, { withEmail: (e: string) => string; plain: string; apologize: string }> = {
+  es: {
+    withEmail: (e) => `No tengo esa información. Podés escribir a ${e}.`,
+    plain: "No tengo esa información. Te recomiendo contactar al equipo del sitio.",
+    apologize: "Perdón, no tengo esa información. ¿Podés escribir tu pregunta de otra manera?",
+  },
+  en: {
+    withEmail: (e) => `I don't have that information. You can write to ${e}.`,
+    plain: "I don't have that information. I recommend contacting the site's team.",
+    apologize: "Sorry, I don't have that information. Could you rephrase your question?",
+  },
+  pt: {
+    withEmail: (e) => `Não tenho essa informação. Você pode escrever para ${e}.`,
+    plain: "Não tenho essa informação. Recomendo entrar em contato com a equipe do site.",
+    apologize: "Desculpe, não tenho essa informação. Você pode reformular sua pergunta?",
+  },
+};
+
 function fallbackText(w: any): string {
-  return w.fallback === "email" && w.contact_email
-    ? `No tengo esa información. Podés escribir a ${w.contact_email}.`
-    : "No tengo esa información. Te recomiendo contactar al equipo del sitio.";
+  const t = FALLBACKS[String(w.language)] ?? FALLBACKS.es;
+  if (w.fallback === "apologize") return t.apologize;
+  return w.contact_email ? t.withEmail(w.contact_email) : t.plain;
 }
 
 function instructions(w: any): string {
