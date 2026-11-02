@@ -1,7 +1,7 @@
 /*! WalkyUp widget runtime — w.js
  *  Un solo archivo para todos los clientes. Lee su data-id, trae la config
  *  de ese widget desde Supabase y se dibuja aislado (Shadow DOM).
- *  El asistente responde de verdad cuando se conecte la IA (Edge Function chat).
+ *  Las respuestas del asistente vienen de la Edge Function `chat` (sin streaming).
  */
 (function () {
   "use strict";
@@ -38,8 +38,17 @@
   var SUPA_URL = "https://ejbtgkvlrkecnslpapyd.supabase.co";
   var SUPA_KEY = "sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";
 
-  // Texto de espera actual (la IA real se conecta en la Fase 8). No inventar respuestas.
-  var PENDING_REPLY = "¡Gracias por tu mensaje! El asistente estará disponible muy pronto.";
+  // ---- Respuestas: Edge Function `chat` (POST sin Authorization, sin streaming) ----
+  var CHAT_URL = SUPA_URL + "/functions/v1/chat";
+  var MSG_MAX = 1000;              // tope de caracteres por mensaje
+  var CHAT_TIMEOUT = 30000;        // sin respuesta en este tiempo = fallo de red (ms)
+  // Textos de error (se muestran como mensaje del asistente y NO se guardan).
+  var ERR_TEXT = {
+    rate_limited: "Estás escribiendo muy rápido. Probá de nuevo en un momento.",
+    message_too_long: "Tu mensaje es muy largo. Probá con uno más corto.",
+    network: "No pude conectarme. Revisá tu conexión e intentá de nuevo.",
+    other: "No puedo responder en este momento."   // limit_reached, unavailable, server_error, bad_request
+  };
 
   // ---- 1) Encontrar el script y su data-id ----
   var me = document.currentScript;
@@ -257,7 +266,7 @@
         '<div class="composer-wrap">' +
           '<div class="composer">' +
             '<div class="thumbs" hidden></div>' +
-            '<textarea class="ta" rows="1" placeholder="Escribí tu mensaje…" aria-label="Escribí tu mensaje"></textarea>' +
+            '<textarea class="ta" rows="1" maxlength="' + MSG_MAX + '" placeholder="Escribí tu mensaje…" aria-label="Escribí tu mensaje"></textarea>' +
             '<button class="plus" aria-label="Agregar fotos"' + (ATTACHMENTS_ENABLED ? '' : ' hidden') + '><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>' +
             '<button class="send" aria-label="Enviar" disabled><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span class="sqr" aria-hidden="true"></span></button>' +
             '<input class="fileinp" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />' +
@@ -414,6 +423,8 @@
     var UI_KEY = "wu_ui_" + dataId;         // estado de la interfaz (sessionStorage)
     var CUR_KEY = "wu_cur_" + dataId;       // id del chat actual (sessionStorage)
     var LOG_KEY = "wu_log_" + dataId;       // historial de chats (localStorage)
+    var VID_KEY = "wu_vid_" + dataId;       // visitante anónimo (localStorage)
+    var CONV_KEY = "wu_conv_" + dataId;     // conversation_id del servidor (sessionStorage)
     var lsOk = storageOk();
     function storageOk() { try { var k = "wu_t"; localStorage.setItem(k, "1"); localStorage.removeItem(k); return true; } catch (e) { return false; } }
 
@@ -424,6 +435,18 @@
     if (!currentId) { currentId = genId(); try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {} }
     // Solo texto en el storage (las URLs de fotos viven en memoria, no se serializan).
     function persist() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(hist.map(function (m) { return { x: m.x, o: m.o, g: m.g ? 1 : 0 }; }))); } catch (e) {} }
+
+    // ---- Conversación en el servidor y visitante anónimo ----
+    var convId = null; try { convId = sessionStorage.getItem(CONV_KEY); } catch (e) {}
+    function setConv(id) { convId = id || null; try { if (convId) sessionStorage.setItem(CONV_KEY, convId); else sessionStorage.removeItem(CONV_KEY); } catch (e) {} }
+    var memVid = null;   // respaldo en memoria si localStorage no está disponible
+    function visitorId() {
+      var v = null; try { v = localStorage.getItem(VID_KEY); } catch (e) {}
+      if (v && v.length >= 16) return v;
+      v = memVid || randId(); memVid = v;
+      try { localStorage.setItem(VID_KEY, v); } catch (e) {}
+      return v;
+    }
 
     var msgs = $(".msgs"), body = $(".body"), heroTitle = $(".herotitle");
 
@@ -615,7 +638,7 @@
       var msgEl = msgs.querySelector('.msg[data-idx="' + idx + '"]'); if (!msgEl) return;
       msgEl.classList.add("editing"); msgEl.innerHTML = "";
       var box = document.createElement("div"); box.className = "editbox";
-      var tarea = document.createElement("textarea"); tarea.className = "editta"; tarea.value = m.x || ""; tarea.setAttribute("aria-label", "Editar mensaje");
+      var tarea = document.createElement("textarea"); tarea.className = "editta"; tarea.value = m.x || ""; tarea.maxLength = MSG_MAX; tarea.setAttribute("aria-label", "Editar mensaje");
       var btns = document.createElement("div"); btns.className = "editbtns";
       var cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "editbtn sec"; cancel.textContent = "Cancelar";
       var save = document.createElement("button"); save.type = "button"; save.className = "editbtn pri"; save.textContent = "Enviar";
@@ -630,6 +653,7 @@
       scroll();
     }
     function submitEdit(idx, newText) {
+      if (state !== "idle") return;   // una respuesta a la vez
       var old = hist[idx];
       var keepAtts = (old && old._atts && old._atts.length) ? old._atts.slice() : null;
       hist = hist.slice(0, idx);
@@ -639,21 +663,43 @@
       generateReply({ regenerate: false });
     }
 
-    // ---- Generar / regenerar respuesta (una sola función; Fase 8 conecta la IA real) ----
+    // ---- Generar / regenerar respuesta (una sola función, Edge Function `chat`) ----
+    // Envía el último mensaje del visitante. Al regenerar (opts.regenerate) ya se quitó la
+    // respuesta anterior, así que se reenvía ese mismo mensaje tal cual, sin marca aparte.
     function generateReply(opts) {
-      opts = opts || {};
-      var regenerate = !!opts.regenerate;   // la Fase 8 lo usa para rehacer la última respuesta
+      var text = "";
+      for (var k = hist.length - 1; k >= 0; k--) { if (hist[k].o) { text = hist[k].x || ""; break; } }
       setState("thinking");
-      try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
-      // TODO Fase 8: en vez de este setTimeout, llamar a la Edge Function `chat`
-      //   pasando { regenerate: regenerate, signal: ctrl && ctrl.signal } y transmitir la respuesta real.
-      pendingTimer = setTimeout(function () {
-        setState("responding");
-        hist.push({ x: PENDING_REPLY, o: 0, g: 0 });
-        msgs.appendChild(bubble(PENDING_REPLY, false, null, false, { idx: hist.length - 1 }));
-        persist(); logUpsert(); scroll();
-        setState("idle"); refreshActions(); focusInput();
-      }, 1200);
+      var c; try { c = new AbortController(); } catch (e) { c = { abort: function () {} }; }
+      ctrl = c;   // si stop() o un chat nuevo cambian `ctrl`, esta respuesta se descarta
+      if (!text || text.length > MSG_MAX) { finishReply(null, text ? "message_too_long" : "other"); return; }
+      pendingTimer = setTimeout(function () { c.abort(); }, CHAT_TIMEOUT);
+      fetch(CHAT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: c.signal,
+        body: JSON.stringify({ widget_id: dataId, visitor_id: visitorId(), conversation_id: convId || undefined,
+          message: text, page_url: location.href, language: navigator.language || "" })
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (ctrl !== c) return;
+          if (r.ok && d && typeof d.answer === "string" && d.answer) {
+            if (typeof d.conversation_id === "string" && d.conversation_id) setConv(d.conversation_id);
+            finishReply(d.answer);   // no_answer: true llega con su propio answer y se muestra igual
+          } else finishReply(null, (d && d.error) || (r.status === 429 ? "rate_limited" : r.status === 413 ? "message_too_long" : "other"));
+        });
+      }).catch(function () { if (ctrl === c) finishReply(null, "network"); });   // red caída o tiempo agotado
+    }
+    function finishReply(answer, err) {
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+      ctrl = null;
+      setState("responding");
+      if (answer) {
+        hist.push({ x: answer, o: 0, g: 0 });
+        msgs.appendChild(bubble(answer, false, null, false, { idx: hist.length - 1 }));
+        persist(); logUpsert();
+      } else msgs.appendChild(bubble(ERR_TEXT[err] || ERR_TEXT.other, false, null, false, {}));   // error: no se guarda
+      scroll(); setState("idle"); refreshActions(); focusInput();
     }
     function regenerateLast() {
       if (state !== "idle") return;
@@ -1188,6 +1234,9 @@
       var log = loadLog(), c = null;
       for (var i = 0; i < log.length; i++) { if (log[i].id === id) { c = log[i]; break; } }
       if (!c) { closeHistory(); return; }
+      if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+      try { if (ctrl) ctrl.abort(); } catch (e) {} ctrl = null;
+      if (id !== currentId) setConv(null);   // otro chat: el servidor abre una conversación nueva
       currentId = id; try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {}
       hist = c.msgs.map(function (m) { return { x: m.x, o: m.o, g: m.g ? 1 : 0 }; }); persist();
       clearAttachments(); setState("idle");
@@ -1206,6 +1255,7 @@
       if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
       try { if (ctrl) ctrl.abort(); } catch (e) {} ctrl = null; setState("idle");
       currentId = genId(); try { sessionStorage.setItem(CUR_KEY, currentId); } catch (e) {}
+      setConv(null);   // "Nuevo chat": el próximo mensaje abre otra conversación
       hist = []; persist();
       clearAttachments(); revokeLive();   // chat nuevo: liberar las fotos del chat anterior
       rebuildMessages();
@@ -1301,6 +1351,12 @@
     return cw >= ck ? "#fff" : "#111";
   }
   function genId() { return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  // Identificador anónimo aleatorio del visitante (36 caracteres; respaldo de ≥ 16).
+  function randId() {
+    try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+    var s = ""; try { var a = new Uint8Array(16); crypto.getRandomValues(a); for (var i = 0; i < 16; i++) s += (a[i] + 256).toString(16).slice(1); } catch (e) {}
+    return s || ("v" + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+  }
   function startOfDay(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function dayGroup(ts, nowT) {
     var today = startOfDay(nowT), day = 86400000;

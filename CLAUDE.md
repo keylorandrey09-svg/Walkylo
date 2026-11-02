@@ -141,6 +141,9 @@ Formularios con estado de carga, error útil y confirmación; etiquetas, foco vi
 - **Historial del chat**: hoy es SOLO local en el dispositivo (localStorage, namespaced por id del widget; sin red). No se sincroniza entre dispositivos ni con el servidor. La sincronización con el servidor queda para la Fase 8.
 - **Regenerar y editar mensajes**: hoy "Generar otra respuesta" (en los mensajes de la IA) y "Editar" (en los del usuario) pasan por la misma función que genera respuestas, con un flag `regenerate` y un `AbortController`, pero la respuesta sigue siendo el mensaje fijo. En la Fase 8 hay que conectar esos dos flujos con la IA real (la función `chat`), respetando el flag y el aborto.
 
+## Privacidad y legal pendiente
+- El widget (`w.js`) guarda un identificador anónimo de visitante en localStorage (`wu_vid_<widget_id>`) y el `conversation_id` del servidor en sessionStorage (`wu_conv_<widget_id>`). Con cada mensaje envía a la función `chat`: `visitor_id`, `conversation_id`, el texto, `page_url` (`location.href`) e idioma del navegador. Hay que reflejarlo en la política de privacidad (`legal/`).
+
 ## Conexiones pendientes del ensamble (panel)
 (La interfaz ya está en su forma final; falta enchufar el backend. Supabase se gestiona en otro chat.)
 - **Subida de archivos de Conocimiento**: reemplazar `knowledgeStore` (`app/index.html`, comentario "ENSAMBLE") por Supabase Storage con buckets privados `knowledge-docs` (5 MB, PDF/TXT/MD) y `knowledge-images` (2 MB, PNG/JPG/WebP); máximo 5 por tipo impuesto también en el servidor; tabla de metadatos con estado; borrado al eliminar la cuenta (función `delete-account`, por la API); actualizar la política de privacidad y los términos.
