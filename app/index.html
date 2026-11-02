@@ -2251,10 +2251,27 @@
     function cvEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); } // también la usa Notificaciones
 
     /* qview:start */
-    // Adaptador: filas de la base -> items de la vista
+    // Adaptador: conversaciones de appState (mensajes en orden) -> items de la vista
     // {id, question, result:'answered'|'unanswered', chats, lastAt, details:[{when, asked, answer}]}.
-    // Hoy no existe el cierre de chat ni el resultado en la base: devuelve []. Lo completa la Fase 3.
-    function toQuestionItems(rows){ return []; }
+    // Cada mensaje del visitante es una pregunta (sin agrupar parecidas todavía: chats = 1). El resultado sale del
+    // primer mensaje del asistente que viene después en la misma conversación: "Respondida" solo si terminó bien
+    // (status 'complete') y no es el aviso de "no sé" (is_fallback). Sin mensaje, con error o cortado: "Sin respuesta".
+    function toQuestionItems(rows){
+      var out = [];
+      (rows || []).forEach(function(c){
+        var msgs = c.messages || [];
+        msgs.forEach(function(m, i){
+          if (m.from !== 'visitor') return;
+          var a = null;
+          for (var j = i + 1; j < msgs.length && !a; j++) if (msgs[j].from === 'assistant') a = msgs[j];
+          var said = a ? String(a.text || '').trim() : '';
+          out.push({ id: m.id != null ? m.id : c.id + '-' + i, question: String(m.text || '').trim() || '(mensaje vacío)',
+            result: a && !a.fallback && a.status === 'complete' ? 'answered' : 'unanswered', chats: 1, lastAt: m.at,
+            details: [{ when: m.at, asked: m.text, answer: said || '(sin mensaje del asistente)' }] });
+        });
+      });
+      return out;
+    }
 
     // Componente autocontenido: no toca Supabase ni estado global; maneja sus filtros y se redibuja.
     // opts: {items, inProgress, now, onAddKnowledge(item), onDelete(items) -> Promise}. Devuelve {update(opts)}.
@@ -2425,7 +2442,7 @@
     }
     /* qview:end */
 
-    // Enganche del panel. Los datos siguen llegando de wuLoadConversations (sin cambios);
+    // Enganche del panel. Los datos llegan de wuLoadConversations (mensajes con status e is_fallback);
     // "chats en curso" todavía no existe en la base, por eso inProgress es 0.
     var qvApi = null;
     function renderConversations(){
@@ -3600,7 +3617,7 @@
         return SB.from('messages').select('*').in('conversation_id', ids).order('created_at', { ascending: true }).then(function(mq){
           var msgs = (mq && mq.data) || [];
           var byConv = {};
-          msgs.forEach(function(m){ (byConv[m.conversation_id] = byConv[m.conversation_id] || []).push({ from: m.from_role, text: m.text, at: m.created_at }); });
+          msgs.forEach(function(m){ (byConv[m.conversation_id] = byConv[m.conversation_id] || []).push({ id: m.id, from: m.from_role, text: m.text, at: m.created_at, status: m.status, fallback: m.is_fallback === true }); });
           appState.conversations = convs.map(function(c){
             return { id: c.id, name: c.visitor_name, initial: c.initial, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at, messages: byConv[c.id] || [] };
           });
