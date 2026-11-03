@@ -543,6 +543,38 @@
       row.appendChild(copyB); row.appendChild(regen);
       return row;
     }
+    // Enlaces en las respuestas de la IA: solo http(s), armados con nodos (nunca innerHTML).
+    // Acepta "[texto](https://...)" y direcciones sueltas; la puntuación del final queda afuera.
+    function trimUrl(u) {
+      var c;
+      while ((c = u.slice(-1)) && ".,;:!?)]\"'".indexOf(c) >= 0) {
+        if (c === ")" && u.split("(").length >= u.split(")").length) break;   // ")" con su "(": es parte de la dirección
+        u = u.slice(0, -1);
+      }
+      return u;
+    }
+    function linkEl(url, label) {
+      var u; try { u = new URL(url); } catch (e) { return null; }
+      if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+      var a = document.createElement("a"); a.href = u.href; a.rel = "noopener noreferrer"; a.textContent = label;
+      // Misma página y solo cambia el #: sin pestaña nueva, el sitio baja a esa sección sin recargar.
+      var samePage = u.hash && u.origin === location.origin && u.pathname === location.pathname && u.search === location.search;
+      if (!samePage) a.target = "_blank";
+      return a;
+    }
+    function fillLinks(tx, text) {
+      // La expresión va acá adentro: al recargar, los mensajes se dibujan antes de llegar a esta parte del código.
+      var re = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)|https?:\/\/[^\s<>]+/gi, i = 0, m;
+      while ((m = re.exec(text))) {
+        var url = m[2] || m[0], end = m.index + m[0].length;
+        if (!m[2]) { url = trimUrl(url); end = m.index + url.length; re.lastIndex = end; }
+        var a = linkEl(url, m[1] || url);
+        if (!a) continue;
+        if (m.index > i) tx.appendChild(document.createTextNode(text.slice(i, m.index)));
+        tx.appendChild(a); i = end;
+      }
+      if (i < text.length) tx.appendChild(document.createTextNode(text.slice(i)));
+    }
     function bubble(text, out, atts, hadImg, opts) {
       opts = opts || {};
       var el = document.createElement("div");
@@ -551,7 +583,8 @@
       if (atts && atts.length) el.appendChild(attRow(atts));
       else if (hadImg) { var note = document.createElement("div"); note.className = "noimg"; note.textContent = "Imagen no guardada"; el.appendChild(note); }
       if (text) {
-        var tx = document.createElement("div"); tx.className = "tx"; tx.textContent = text;
+        var tx = document.createElement("div"); tx.className = "tx";
+        if (out || opts.welcome) tx.textContent = text; else fillLinks(tx, text);
         if (out) {
           var bub = document.createElement("div"); bub.className = "bubble"; bub.appendChild(tx); el.appendChild(bub);
           if (typeof opts.idx === "number") wireUserMenu(bub, opts.idx);
@@ -1429,6 +1462,9 @@
     '.msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}' +
     '.msg{max-width:85%;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}' +
     '.msg .tx{white-space:pre-wrap;}' +
+    // Enlaces de la IA: blanco/negro del tema (sin color propio), sin cambiar letra ni interlineado.
+    '.msg .tx a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;overflow-wrap:anywhere;padding:2px 0;touch-action:manipulation;}' +
+    '.msg .tx a:hover{text-decoration-thickness:2px;} .msg .tx a:focus-visible{outline:2px solid var(--ink2);outline-offset:2px;border-radius:2px;}' +
     '.in{align-self:flex-start;color:var(--ink);max-width:100%;}' +
     '.out{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}' +
     '.out .bubble{background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:default;}' +
