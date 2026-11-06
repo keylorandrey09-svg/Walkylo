@@ -706,6 +706,49 @@
     .ob__back[hidden]{display:none;}
     .ob__next{flex:1;}
     @media (max-width:520px){ .ob{align-items:flex-end;padding:0;} .ob__card{border-radius:10px 10px 0 0;max-height:calc(100dvh - 20px);} }
+
+    /* vf:start — Verificaciones */
+    .vf{display:flex;flex-direction:column;gap:16px;margin-top:24px;}
+    .vf .wg-field:last-child{padding-bottom:0;}
+    .vf-row{display:flex;gap:8px;} .vf-row .wg-input{flex:1;min-width:0;}
+    .vf-row .wa-btn[hidden],.vf [hidden]{display:none;}
+    #vfHint:empty{display:none;} #vfHint.is-err{color:var(--danger);}
+    .vf-moved{margin:0;} .vf a{color:var(--accent);}
+    .vf-head{display:flex;align-items:center;gap:8px;margin:0;font-weight:500;} .vf-head svg{width:20px;height:20px;flex-shrink:0;}
+    .vf-head.is-ok svg{color:var(--ok);} .vf-head.is-fail svg{color:var(--danger);}
+    .vf-meta{margin:2px 0 0;font-size:.875rem;color:var(--text-2);overflow-wrap:anywhere;}
+    .vf-steps{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:12px;} .vf-steps:empty{display:none;}
+    .vf-s{display:flex;gap:12px;align-items:flex-start;}
+    .vf-s__i{width:20px;height:20px;flex-shrink:0;display:grid;place-items:center;} .vf-s__i svg{width:20px;height:20px;}
+    .vf-s[data-st=pending] .vf-s__i::before,.vf-s[data-st=running] .vf-s__i::before{content:"";width:14px;height:14px;box-sizing:border-box;border:1.5px solid var(--border);border-radius:50%;}
+    .vf-s[data-st=running] .vf-s__i::before{border-top-color:var(--text);animation:wa-spin .9s linear infinite;}
+    .vf-s[data-st=pending] .vf-s__l{color:var(--text-2);}
+    .vf-s[data-st=fail] .vf-s__i{color:var(--danger);} .vf-s[data-st=fail] .vf-s__l{font-weight:500;}
+    .vf-s__m{display:block;font-size:.8125rem;color:var(--text-2);overflow-wrap:anywhere;} .vf-s__m:empty{display:none;}
+    .vf-det{margin-top:8px;} .vf-det summary{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-size:.875rem;}
+    .vf-det summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);} .vf-det[open] summary::after{transform:translateY(2px) rotate(-135deg);}
+    .vf-help{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);} .vf-help .wg-field__label{margin:0 0 8px;}
+    .vf-tabs{display:flex;margin:0 0 4px;} .vf-tabs button{flex:1;white-space:normal;padding:4px 8px;}
+    .vf-code{display:flex;gap:8px;align-items:flex-start;margin-top:8px;}
+    .vf-code code{flex:1;min-width:0;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font:400 .8125rem/1.5 var(--mono);word-break:break-all;white-space:pre-wrap;}
+    .vf-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;}
+    .vf-wait,.vf-use,.vf-msg{margin:0;font-size:.875rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .vf-use{margin-top:12px;font-size:.8125rem;} .vf-msg{margin-top:12px;color:var(--text);}
+    .vf-pv{display:flex;gap:12px;align-items:flex-start;}
+    .vf-pv__ic{width:40px;height:40px;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--border);border-radius:6px;font-weight:500;overflow:hidden;}
+    .vf-pv__ic img{width:24px;height:24px;object-fit:contain;}
+    .vf-pv__b{min-width:0;flex:1;} .vf-pv__b p{margin:2px 0 0;font-size:.875rem;color:var(--text-2);overflow-wrap:anywhere;}
+    .vf-pv__b .vf-pv__t{margin:0;font-size:.9375rem;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .vf-pv__b .vf-pv__d{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .vf-pv__row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin:16px 0 0;padding-top:4px;border-top:1px solid var(--border);font-size:.8125rem;color:var(--text-2);}
+    .vf-pv__row span{display:inline-flex;align-items:center;gap:6px;} .vf-pv__row svg{width:16px;height:16px;}
+    .vf-pv__row a{margin-left:auto;display:inline-flex;align-items:center;min-height:44px;}
+    .vf-lock{display:flex;align-items:center;gap:8px;margin:0;font-size:.875rem;color:var(--text-2);} .vf-lock svg{width:16px;height:16px;flex-shrink:0;}
+    .vf-un{display:flex;align-items:center;justify-content:space-between;gap:12px;} .vf-un .wg-field__label{margin:0;}
+    .vf-tag{padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;color:var(--text-2);}
+    .wa-nav a.has-todo .wa-dot{display:block;background:var(--text);}
+    @media (prefers-reduced-motion:reduce){ .vf-s[data-st=running] .vf-s__i::before{animation:none;} #vfSteps .vf-s[data-st=running] .vf-s__l::after{content:"…";} }
+    /* vf:end */
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -747,6 +790,11 @@
         <a href="/app/widget" data-view="widget" data-label="Widget">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
           Widget
+        </a>
+        <a href="/app/verificaciones" data-view="verificaciones" data-label="Verificaciones">
+          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.4-7 10-4-1.6-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          Verificaciones
+          <span class="wa-dot"></span><span class="sr-only" id="navVfSr" hidden>(sin verificar)</span>
         </a>
         <a href="/app/analiticas" data-view="analiticas" data-label="Analíticas">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="9" rx="1"/><rect x="17" y="5" width="3" height="12" rx="1"/></svg>
@@ -1080,8 +1128,8 @@
                   <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
                 </div>
                 <div class="wg-field">
-                  <label class="wg-field__label" for="wgSite">URL de tu sitio o app</label>
-                  <input class="wg-input" id="wgSite" type="url" placeholder="https://tuapp.com" disabled />
+                  <span class="wg-field__label">URL de tu sitio o app</span>
+                  <p class="wg-field__hint vf-moved"><span id="wgSiteNow"></span> <a href="/app/verificaciones" id="wgSiteGo">Se configura en Verificaciones</a></p>
                 </div>
                 <!-- kn:start -->
                 <div class="wg-field kn" id="knDocs">
@@ -1232,6 +1280,50 @@
             </aside>
           </div>
         </section>
+
+        <!-- VIEW: Verificaciones (vf:start) -->
+        <section class="wa-view" data-view="verificaciones">
+          <h1 class="wa-page-title">Verificaciones</h1>
+          <p class="wa-page-sub">Confirmá que tu sitio es tuyo para que Walkylet pueda leerlo.</p>
+          <div class="vf">
+            <div class="cfg-card">
+              <h2 class="cfg-card__title">Tu sitio</h2>
+              <div class="wg-field">
+                <label class="wg-field__label" for="vfUrl">URL de tu sitio o app</label>
+                <div class="vf-row"><input class="wg-input" id="vfUrl" type="url" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://tusitio.com" aria-describedby="vfHint" /><button class="wa-btn" id="vfSave" type="button" hidden>Guardar</button></div>
+                <p class="wg-field__hint" id="vfHint" aria-live="polite"></p>
+              </div>
+              <div id="vfState" aria-live="polite"><div id="vfHead"></div><ul class="vf-steps" id="vfSteps"></ul><details class="vf-det" id="vfDet" hidden><summary>Ver los pasos</summary></details></div>
+              <div class="vf-help" id="vfHelp" hidden>
+                <h3 class="wg-field__label">Cómo verificar</h3>
+                <div class="cfg-toggle vf-tabs" role="group" aria-label="Forma de verificar"><button type="button" data-vftab="install">Instalar el widget</button><button type="button" data-vftab="meta">Agregar una etiqueta</button></div>
+                <div data-vfpanel="install"><p class="wg-field__hint">Pegá esta línea en tu sitio, antes de &lt;/body&gt;, y publicá los cambios.</p><div class="vf-code"><code id="vfSnip"></code><button class="wa-btn" type="button" data-vfcopy="vfSnip">Copiar</button></div></div>
+                <div data-vfpanel="meta"><p class="wg-field__hint">Pegá esta etiqueta dentro del &lt;head&gt; de tu página principal y publicá los cambios.</p><div class="vf-code"><code id="vfMeta"></code><button class="wa-btn" type="button" data-vfcopy="vfMeta">Copiar</button></div><p class="wg-field__hint">Es tu código personal: no lo compartas.</p></div>
+              </div>
+              <div class="vf-act"><button class="wa-btn wa-btn-primary" id="vfGo" type="button">Verificar</button><p class="vf-wait" id="vfWait" hidden></p></div>
+              <p class="vf-use" id="vfUse" hidden></p>
+            </div>
+            <div class="cfg-card" id="vfPrev" hidden></div>
+            <div class="cfg-card">
+              <h2 class="cfg-card__title">Lo que se desbloquea</h2>
+              <div class="wg-field">
+                <span class="wg-field__label">Lectura del sitio</span>
+                <p class="vf-lock" id="rdLock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Verificá tu sitio para activarla</p>
+                <div id="rdOn" hidden>
+                  <p class="wg-field__hint">Leemos las páginas públicas de tu sitio y escribimos el resumen en Información para responder.</p>
+                  <div aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="vf-msg" id="rdMsg" hidden><span id="rdMsgT"></span> <a href="/app/widget" id="rdSee" hidden>Ver en Widget &gt; Conocimiento</a></p></div>
+                  <div id="rdAsk" hidden><p class="wg-field__hint">Tu Información para responder tiene texto escrito por vos. ¿Qué hacemos con él?</p><div class="vf-act"><button class="wa-btn" type="button" data-rdmode="replace">Reemplazar</button><button class="wa-btn" type="button" data-rdmode="update">Actualizar sin perder mis cambios</button></div></div>
+                  <div class="vf-act"><button class="wa-btn" id="rdGo" type="button">Leer mi sitio y generar el resumen</button><p class="vf-wait" id="rdWait" hidden></p></div>
+                  <p class="vf-use" id="rdUse" hidden></p>
+                </div>
+              </div>
+              <div class="wg-field">
+                <div class="vf-un"><span class="wg-field__label">Escaneo de tu app</span><span class="vf-tag">Próximamente</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- vf:end -->
 
         <!-- VIEW: Placeholder (Conversaciones/Widget/Analíticas/Configuración) -->
         <section class="wa-view" data-view="placeholder">
@@ -1475,6 +1567,7 @@
       if (view === "config") renderConfig();
       if (view === "conversaciones") renderConversations();
       if (view === "widget"){ renderWidget(); wgTabSet("general"); }
+      if (view !== "verificaciones") vfLeave(); else if (window.__wuUser) vfEnter();
       window.scrollTo(0,0);
     }
     function setActive(a){ navLinks.forEach(function(x){ x.classList.remove("is-active"); }); if(a) a.classList.add("is-active"); }
@@ -2530,7 +2623,6 @@
       if (wgId('wgKnow')) wgDraft.knowledge = wgId('wgKnow').value;
       if (wgId('wgLang')) wgDraft.language = wgId('wgLang').value;
       if (wgId('wgFallback')) wgDraft.fallback = wgId('wgFallback').value;
-      if (wgId('wgSite')) wgDraft.siteUrl = wgId('wgSite').value;
       if (wgId('wgEmail')) wgDraft.contactEmail = wgId('wgEmail').value;
       if (wgId('wgPrivacy')) wgDraft.privacyUrl = wgId('wgPrivacy').value;
     }
@@ -2578,7 +2670,7 @@
       if (wgId('wgLang')) wgId('wgLang').value = c.language;
       if (wgId('wgFallback')) wgId('wgFallback').value = wgNormFallback(c.fallback);
       wgFallbackHint(c);
-      if (wgId('wgSite')) wgId('wgSite').value = c.siteUrl || '';
+      if (wgId('wgSiteNow')) wgId('wgSiteNow').textContent = appState.widget.siteUrl || 'Sin cargar.';
       if (wgId('wgEmail')) wgId('wgEmail').value = c.contactEmail || '';
       if (wgId('wgPrivacy')) wgId('wgPrivacy').value = c.privacyUrl || '';
       // Color del logo: marcar el círculo elegido (o ninguno = Automático).
@@ -2595,7 +2687,7 @@
       Array.prototype.slice.call(document.querySelectorAll('#wgTheme button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-th') === (c.theme || 'dark')); });
 
       var dis = !wgEditing;
-      ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgSite','wgEmail','wgPrivacy','wgAnalyze'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
+      ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgEmail','wgPrivacy'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
       Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt, #wgCpHue, #wgCpHex, #wgCpOk, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
@@ -2638,7 +2730,7 @@
     // "Hecho" y "Falta" (solo campos que empiezan vacíos, según lo guardado), instalación y color del logo.
     function wgRenderExtras(){
       var w = appState.widget || {}, c = wgCfg();
-      var items = [['knowledge','Información para responder','conocimiento'],['siteUrl','URL del sitio','conocimiento'],
+      var items = [['knowledge','Información para responder','conocimiento'],['siteUrl','URL del sitio','verificaciones'],
                    ['contactEmail','Correo de contacto','contacto'],['privacyUrl','URL de privacidad','contacto']];
       var done = '', todo = '';
       items.forEach(function(it){
@@ -2667,7 +2759,8 @@
         e.preventDefault(); wgTabSet(WG_TABS[k], true);
       });
       var todo = wgId('wgTodo');
-      if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'); if (b) wgTabSet(b.getAttribute('data-goto'), true); });
+      if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'), g = b && b.getAttribute('data-goto'); if (g === 'verificaciones') vfGo(); else if (g) wgTabSet(g, true); });
+      wgId('wgSiteGo').addEventListener('click', function(e){ if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); vfGo(); });
     })();
 
     function renderChatState(){
@@ -2782,7 +2875,9 @@
     /* kn:end */
     function wgSave(){
       wgReadInputs();
+      var keep = appState.widget;   // la dirección y la verificación se manejan en Verificaciones: el borrador no las pisa
       appState.widget = wgClone(wgDraft);
+      ['siteUrl','verifiedHost','verifiedAt','verifyToken'].forEach(function(k){ appState.widget[k] = keep[k]; });
       wgEditing = false; wgDraft = null;
       renderWidget();
       renderConversations(); // refleja apariencia en la bandeja
@@ -2802,7 +2897,7 @@
           user_id: uid, name: w.name, accent: w.accent, position: w.position,
           welcome: w.welcome, tone: w.tone, language: w.language, fallback: w.fallback,
           knowledge: w.knowledge, avatar: avatarValue, avatar_hidden: !!w.avatarHidden,
-          site_url: w.siteUrl || '', contact_email: w.contactEmail || '', privacy_url: w.privacyUrl || '',
+          contact_email: w.contactEmail || '', privacy_url: w.privacyUrl || '',
           theme: (w.theme === 'light' ? 'light' : 'dark'),
           updated_at: new Date().toISOString()
         };
@@ -2827,7 +2922,7 @@
     }
 
     (function(){
-      ['wgName','wgWelcome','wgKnow','wgSite','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
+      ['wgName','wgWelcome','wgKnow','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
         var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); wgFallbackHint(wgDraft); });
       });
       // ===== Color del logo: Blanco · Negro · Paleta (picker propio) =====
@@ -2920,22 +3015,6 @@
       if (tone) tone.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.tone = b.getAttribute('data-t'); renderWidget(); });
       var themeSeg = wgId('wgTheme');
       if (themeSeg) themeSeg.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.theme = b.getAttribute('data-th'); renderWidget(); });
-      // Analizar sitio (UI lista; el resumen real llega con la IA)
-      var an = wgId('wgAnalyze');
-      if (an) an.addEventListener('click', function(){
-        if (!wgEditing) return;
-        wgReadInputs();
-        var url = (wgDraft.siteUrl || '').trim();
-        var st = wgId('wgAnalyzeStatus'); if (!st) return;
-        if (!/^https?:\/\//i.test(url)){ st.hidden = false; st.innerHTML = '<span style="color:#dc2626">Poné una URL válida (https://…)</span>'; return; }
-        st.hidden = false; st.innerHTML = '<span class="spin"></span> Leyendo tu sitio…';
-        an.disabled = true;
-        setTimeout(function(){
-          st.innerHTML = '<span class="ok">✓ Sitio detectado.</span> El resumen se genera al conectar la IA (Fase 8).';
-          an.disabled = false;
-        }, 1400);
-      });
-
       // Abrir/cerrar el chat de prueba (overlay en móvil)
       var holder = wgId('cwHolder');
       var openChat = wgId('wgOpenChat');
@@ -3393,6 +3472,297 @@
       });
     })();
 
+    /* vf:start — Verificaciones: la dirección del sitio, su verificación (función verify-site) y la lectura del sitio
+       (función import-site). Todo texto del servidor o del sitio va con textContent. Un solo polling a la vez (vf.gen /
+       rd.gen); se corta al terminar y al salir de la vista. El código de la etiqueta (verify_token) solo se muestra en su
+       caja para copiar: nunca en la URL, la consola ni en data-*. */
+    var VF_LIMITS = { verifyHour: 5, verifyDay: 20, urlChanges: 5, reads: 10 };   // PROVISIONALES: cambian con los planes
+    var VF_STEPS = [['publica','Comprobando que la dirección es pública'],['abre','Abriendo tu sitio'],['legible','Revisando que se pueda leer'],['codigo','Buscando el código de Walkylet'],['listo','Confirmando que el sitio es tuyo']];
+    var VF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    var VF_IC = { ok: VF_SVG + '<path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', warn: VF_SVG + '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
+      fail: VF_SVG + '<path d="M6 6l12 12M18 6L6 18"/></svg>', lock: VF_SVG + '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' };
+    var VF_SR = { pending: 'Pendiente', running: 'En curso', ok: 'Listo', warn: 'Con aviso', fail: 'Falló' };
+    var VF_DATE = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
+    var vf = { st: null, busy: false, saving: false, touched: false, hint: null, gen: 0, timer: null, waitT: null, waitEnd: 0, daily: false, tab: 'install', use: null, pvKey: '' };
+    var rd = { gen: 0, timer: null, waitT: null, waitEnd: 0, daily: false, phase: 'idle', found: 0, done: 0, msg: '', mode: undefined, retrySum: false };
+    function vfW(){ return appState.widget || {}; }
+    function vfHost(u){ try { return new URL(u).hostname.toLowerCase().replace(/\.$/, '').replace(/^www\./, ''); } catch(e){ return ''; } }
+    function vfVerified(){ var w = vfW(); return !!(w.verifiedHost && w.verifiedAt && vfHost(w.siteUrl) === w.verifiedHost); }
+    // La última verificación cuenta solo si es del dominio guardado.
+    function vfCur(){ var c = vf.st && vf.st.current; return c && c.host === vfHost(vfW().siteUrl) ? c : null; }
+    function vfGo(){ var a = nav.querySelector('a[data-view="verificaciones"]'); if (a) a.click(); }
+    function vfNorm(v){
+      v = String(v || '').trim(); if (!v) return { url: '' };
+      if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(v)) v = 'https://' + v;
+      if (!/^https:\/\//i.test(v)) return { err: 'La dirección tiene que empezar con https://' };
+      try { if (new URL(v).hostname.indexOf('.') < 1) throw 0; } catch(e){ return { err: 'Revisá la dirección. Por ejemplo: https://tusitio.com' }; }
+      return { url: v };
+    }
+    // Llama a una función de Supabase con la sesión. Siempre resuelve { ok, status, data } (el cuerpo del error también).
+    function vfInvoke(fn, body){
+      return SB.functions.invoke(fn, { body: body }).then(function(res){
+        if (!res.error) return { ok: true, status: 200, data: res.data || {} };
+        var ctx = res.error.context, st = ctx && ctx.status || 0;
+        if (!ctx || typeof ctx.json !== 'function') return { ok: false, status: st, data: {} };
+        return ctx.json().then(function(d){ return { ok: false, status: st, data: d || {} }; }, function(){ return { ok: false, status: st, data: {} }; });
+      }, function(){ return { ok: false, status: 0, data: {} }; });
+    }
+    // Cuenta regresiva de un 429 (o = vf | rd). Se corta al salir de la vista y se retoma al volver.
+    function vfCount(o, secs, render){
+      if (secs) o.waitEnd = Date.now() + secs * 1000;
+      clearInterval(o.waitT); o.waitT = null;
+      if (o.waitEnd > Date.now()) o.waitT = setInterval(function(){ if (o.waitEnd <= Date.now()){ clearInterval(o.waitT); o.waitT = null; } render(); }, 1000);
+      render();
+    }
+    function vfLeft(o){ return Math.max(0, Math.ceil((o.waitEnd - Date.now()) / 1000)); }
+    // Lista de pasos: actualiza cada fila en su lugar (sin redibujar), así el lector de pantalla solo lee lo que cambia.
+    function vfSteps(ul, steps){
+      while (ul.children.length > steps.length) ul.removeChild(ul.lastChild);
+      steps.forEach(function(s, i){
+        var li = ul.children[i];
+        if (!li){ li = rsEl('li', 'vf-s'); li.appendChild(rsEl('span', 'vf-s__i')); var b = rsEl('div'); b.appendChild(rsEl('span', 'sr-only'));
+          b.appendChild(rsEl('span', 'vf-s__l')); b.appendChild(rsEl('span', 'vf-s__m')); li.appendChild(b); ul.appendChild(li); }
+        var st = VF_SR[s.status] ? s.status : 'pending', t = li.querySelectorAll('span');
+        if (li.getAttribute('data-st') !== st){ li.setAttribute('data-st', st); t[0].innerHTML = VF_IC[st] || ''; t[1].textContent = VF_SR[st] + ': '; }
+        if (t[2].textContent !== String(s.label || '')) t[2].textContent = String(s.label || '');
+        if (t[3].textContent !== String(s.message || '')) t[3].textContent = String(s.message || '');
+      });
+    }
+    function vfStop(){ vf.gen++; clearTimeout(vf.timer); vf.timer = null; }
+    // Lee el avance (status) cada 500 ms mientras corre la verificación; tope de 3 min.
+    function vfPoll(){
+      vfStop(); var g = vf.gen, until = Date.now() + 180000;
+      (function tick(){
+        vf.timer = setTimeout(function(){
+          vfInvoke('verify-site', { action: 'status' }).then(function(r){
+            if (g !== vf.gen) return;
+            var d = r.data || {}, c = d.current;
+            // Mientras "start" no contesta, la verificación anterior no pisa la lista nueva.
+            if (r.ok && !(vf.busy && (!c || c.id === vf.prevId))) vfApply(d);
+            var run = vf.st && vf.st.current && vf.st.current.status === 'running';
+            if ((vf.busy || run) && Date.now() < until) return tick();
+            vf.timer = null;
+            if (run && !vf.busy) vf.st.current.status = 'failed';
+            vfRender();
+          });
+        }, 500);
+      })();
+    }
+    function vfApply(d){ var w = vfW(); vf.st = d; w.verifiedHost = d.verified ? d.verified_host : null; w.verifiedAt = d.verified ? d.verified_at : null; vfRender(); }
+    function vfRefresh(){
+      vfInvoke('verify-site', { action: 'status' }).then(function(r){
+        if (vf.busy || !r.ok) return vfRender();
+        vfApply(r.data);
+        var c = vfCur(); if (c && c.status === 'running' && wuViewFromPath() === 'verificaciones') vfPoll();
+      });
+    }
+    function vfLoadUse(){
+      var now = Date.now(), since = new Date(now - 864e5).toISOString();
+      Promise.all(['site_verifications', 'site_url_changes', 'site_import_jobs'].map(function(t){ return SB.from(t).select('created_at').gte('created_at', since); })).then(function(rs){
+        function n(r, ms){ return (r.data || []).filter(function(x){ return now - new Date(x.created_at).getTime() < ms; }).length; }
+        vf.use = rs.some(function(r){ return !r || r.error; }) ? null : { vh: n(rs[0], 36e5), vd: n(rs[0], 864e5), ch: n(rs[1], 864e5), rd: n(rs[2], 864e5) };
+        vfRender();
+      }, function(){ vf.use = null; vfRender(); });
+    }
+    // Guarda solo site_url (no el resto del widget). next(true) si quedó guardada (o no cambió).
+    function vfSave(next){
+      var inp = wgId('vfUrl'), n = vfNorm(inp.value), w = vfW(), uid = currentUserId();
+      next = next || function(){};
+      if (n.err){ vf.hint = { t: n.err, err: true }; vfRender(); inp.focus(); return next(false); }
+      if (n.url === (w.siteUrl || '')){ inp.value = n.url; vf.touched = false; vfRender(); return next(true); }
+      if (!uid){ toast('Perdimos tu sesión. Recargá.'); return next(false); }
+      function fail(msg){ vf.saving = false; vf.hint = { t: msg, err: true }; vfRender(); next(false); }
+      vf.saving = true; vfRender();
+      SB.from('widgets').update({ site_url: n.url, updated_at: new Date().toISOString() }).eq('user_id', uid).select('site_url,verified_host,verified_at').maybeSingle().then(function(res){
+        if (res && res.error) return fail(/site_url_change_limit/.test(String(res.error.message || '')) ? 'Cambiaste la dirección demasiadas veces hoy. Probá mañana.' : 'No se pudo guardar la dirección. Probá de nuevo.');
+        var d = (res && res.data) || {};
+        w.siteUrl = d.site_url != null ? d.site_url : n.url; w.verifiedHost = d.verified_host || null; w.verifiedAt = d.verified_at || null;
+        vf.saving = false; vf.touched = false; vf.hint = null; inp.value = w.siteUrl;
+        toast('Dirección guardada'); vfRender(); vfLoadUse(); next(true);
+      }, function(){ fail('No se pudo guardar la dirección. Probá de nuevo.'); });
+    }
+    function vfVerify(){
+      if (vf.busy || vf.saving) return;
+      vfSave(function(ok){
+        if (!ok || !vfW().siteUrl) return;
+        var prev = vf.st && vf.st.current;
+        vf.prevId = prev ? prev.id : null; vf.busy = true;
+        vf.st = { verified: false, current: { id: null, status: 'running', host: vfHost(vfW().siteUrl), url: vfW().siteUrl, preview: null,
+          steps: VF_STEPS.map(function(s){ return { id: s[0], label: s[1], status: 'pending', message: '' }; }) } };
+        vfRender(); vfPoll();
+        vfInvoke('verify-site', { action: 'start' }).then(function(r){
+          var d = r.data || {}, w = vfW();
+          vf.busy = false; vfStop();
+          if (r.ok && d.already) return vfRefresh();
+          if (r.ok && d.steps){
+            vf.st.current = d;
+            if (d.status === 'verified'){ w.verifiedHost = d.host; w.verifiedAt = d.finished_at || new Date().toISOString(); }
+            if (d.status === 'running' && wuViewFromPath() === 'verificaciones') vfPoll();
+          } else {
+            vf.st.current = prev;
+            if (r.status === 429 && d.error === 'limite_diario') vf.daily = true;
+            else if (r.status === 429) vfCount(vf, d.retry_after_s || 30, vfRender);
+            else vf.hint = { t: { sin_url: 'Escribí la dirección de tu sitio.', url_invalida: 'Revisá la dirección de tu sitio.', sin_widget: 'No encontramos tu widget. Recargá la página.' }[d.error] || 'No pudimos empezar la verificación. Probá de nuevo en un momento.', err: true };
+          }
+          vfRender(); vfLoadUse();
+        });
+      });
+    }
+    function vfBadge(){
+      var a = nav.querySelector('a[data-view="verificaciones"]'), on = !!vfW().siteUrl && !vfVerified();
+      if (a) a.classList.toggle('has-todo', on); wgId('navVfSr').hidden = !on;
+    }
+    function vfRender(){
+      var w = vfW(), inp = wgId('vfUrl'), c = vfCur(), go = wgId('vfGo'), head = wgId('vfHead'), ul = wgId('vfSteps'), det = wgId('vfDet');
+      if (!vf.touched && document.activeElement !== inp) inp.value = w.siteUrl || '';
+      var n = vfNorm(inp.value), typed = n.err ? inp.value.trim() : n.url, dirty = typed !== (w.siteUrl || ''), ok = vfVerified();
+      var run = vf.busy || !!(c && c.status === 'running'), mode = !w.siteUrl ? 'empty' : run ? 'running' : ok ? 'verified' : c && c.status === 'failed' ? 'failed' : 'idle';
+      var newHost = ok && n.url && vfHost(n.url) !== w.verifiedHost;
+      // Encabezado del estado (se rehace solo si cambia lo que dice).
+      var hk = mode + '|' + (c ? c.status + c.method : '') + '|' + w.verifiedHost + w.verifiedAt;
+      if (head.getAttribute('data-k') !== hk){
+        head.setAttribute('data-k', hk); head.textContent = '';
+        if (mode === 'verified' || mode === 'failed'){
+          var h = rsEl('p', 'vf-head ' + (mode === 'verified' ? 'is-ok' : 'is-fail')); h.innerHTML = VF_IC[mode === 'verified' ? 'ok' : 'fail'];
+          h.appendChild(document.createTextNode(mode === 'verified' ? 'Sitio verificado' : 'No pudimos verificar tu sitio'));
+          var meta = mode === 'verified' ? [w.verifiedHost, 'el ' + VF_DATE.format(new Date(w.verifiedAt)),
+            c && c.status === 'verified' ? { install_code: 'con el código de instalación', meta_tag: 'con la etiqueta de verificación' }[c.method] : ''] : [c.host];
+          head.appendChild(h); head.appendChild(rsEl('p', 'vf-meta', meta.filter(Boolean).join(' · ')));
+        } else if (mode === 'idle') head.appendChild(rsEl('p', 'vf-meta', 'Tu sitio no está verificado.'));
+      }
+      // Pasos: en vivo al verificar; con el fallo, hasta donde llegó; verificado, plegados en "Ver los pasos".
+      var steps = (mode === 'running' || mode === 'failed' || mode === 'verified') && c && c.steps ? c.steps.map(function(s){
+        return s.status === 'running' && c.status !== 'running' ? { label: s.label, status: 'fail', message: s.message || 'Se interrumpió. Probá de nuevo.' } : s; }) : [];
+      var box = mode === 'verified' ? det : wgId('vfState');
+      if (ul.parentNode !== box) box.appendChild(ul);
+      det.hidden = !(mode === 'verified' && steps.length);
+      vfSteps(ul, steps);
+      // "Cómo verificar": solo si no se encontró el código.
+      wgId('vfHelp').hidden = !(mode === 'failed' && c.error === 'codigo_no_encontrado');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-vftab]'), function(b){ var on = b.getAttribute('data-vftab') === vf.tab; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-vfpanel]'), function(p){ p.hidden = p.getAttribute('data-vfpanel') !== vf.tab; });
+      wgId('vfSnip').textContent = WG_SNIPPET;
+      wgId('vfMeta').textContent = w.verifyToken ? '<meta name="walkylet-verify" content="' + w.verifyToken + '">' : 'No pudimos cargar tu código. Recargá la página.';
+      // Ayuda o aviso debajo del campo.
+      var hint = vf.hint || (newHost ? { t: 'Si cambiás el dominio, hay que verificar de nuevo.' } : !w.siteUrl && !typed ? { t: 'Escribí la dirección completa de tu sitio, por ejemplo https://tusitio.com.' } : null);
+      wgId('vfHint').textContent = hint ? hint.t : ''; wgId('vfHint').classList.toggle('is-err', !!(hint && hint.err));
+      wgId('vfSave').hidden = !dirty || run; wgId('vfSave').disabled = vf.saving;
+      // Botón principal: Verificar / Verificando… / Verificar de nuevo; cuenta regresiva o límite diario en su lugar.
+      var wait = vfLeft(vf);
+      go.hidden = !!wait || (mode === 'verified' && !newHost);
+      go.disabled = run || vf.saving || vf.daily || (!w.siteUrl && !typed);
+      go.textContent = run ? 'Verificando…' : mode === 'failed' ? 'Verificar de nuevo' : 'Verificar';
+      wgId('vfWait').hidden = !wait && !vf.daily;
+      wgId('vfWait').textContent = vf.daily ? 'Llegaste al límite de hoy. Probá mañana.' : 'Podés reintentar en ' + wait + ' s';
+      var u = vf.use, L = VF_LIMITS;
+      wgId('vfUse').hidden = !u;
+      if (u) wgId('vfUse').textContent = 'Te quedan ' + Math.max(0, L.verifyHour - u.vh) + ' de ' + L.verifyHour + ' verificaciones en esta hora y ' + Math.max(0, L.verifyDay - u.vd) + ' de ' + L.verifyDay +
+        ' en 24 h · ' + Math.max(0, L.urlChanges - u.ch) + ' de ' + L.urlChanges + ' cambios de dirección en 24 h.';
+      vfPreview(c && c.preview); rdRender(); vfBadge();
+    }
+    // Vista previa del sitio: solo texto (textContent), sin iframe; el ícono solo si es https y del mismo dominio.
+    function vfPreview(p){
+      var card = wgId('vfPrev'), key = p ? JSON.stringify(p) : '';
+      card.hidden = !p; if (!p || key === vf.pvKey) return;
+      vf.pvKey = key; card.textContent = '';
+      var host = String(p.host || ''), name = String(p.site_name || p.title || host), cur = vfCur() || {};
+      var top = rsEl('div', 'vf-pv'), ic = rsEl('span', 'vf-pv__ic', (name.trim().charAt(0) || '?').toUpperCase()), b = rsEl('div', 'vf-pv__b');
+      ic.setAttribute('aria-hidden', 'true');
+      if (typeof p.icon === 'string' && /^https:\/\//i.test(p.icon) && vfHost(p.icon) === vfHost('https://' + host)){
+        var img = document.createElement('img'), ini = ic.textContent; img.alt = ''; img.referrerPolicy = 'no-referrer';
+        img.onerror = function(){ ic.textContent = ini; }; img.src = p.icon; ic.textContent = ''; ic.appendChild(img);
+      }
+      b.appendChild(rsEl('p', 'vf-pv__t', p.title || p.site_name || host));
+      if (p.description) b.appendChild(rsEl('p', 'vf-pv__d', p.description));
+      b.appendChild(rsEl('p', '', host)); top.appendChild(ic); top.appendChild(b); card.appendChild(top);
+      var row = rsEl('p', 'vf-pv__row');
+      if (p.https){ var s = rsEl('span'); s.innerHTML = VF_IC.lock; s.appendChild(document.createTextNode('HTTPS')); row.appendChild(s); }
+      if (typeof p.response_ms === 'number') row.appendChild(rsEl('span', '', 'Responde en ' + (p.response_ms / 1000).toFixed(1).replace('.', ',') + ' s'));
+      if (typeof p.size_kb === 'number') row.appendChild(rsEl('span', '', fmtN(p.size_kb) + ' KB'));
+      if (/^https?:\/\//i.test(cur.url || '')){ var a = rsEl('a', '', 'Abrir sitio'); a.href = cur.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; row.appendChild(a); }
+      card.appendChild(row);
+    }
+    // Lectura del sitio: import-site start → step (en bucle) → summarize.
+    function rdStop(){ rd.gen++; clearTimeout(rd.timer); rd.timer = null; if (rd.phase === 'reading' || rd.phase === 'writing') rd.phase = 'idle'; }
+    function rdCall(body){ var g = rd.gen; return vfInvoke('import-site', body).then(function(r){ if (g !== rd.gen) throw 0; return r; }); }
+    function rdNone(){}
+    function rdStart(){
+      if (rd.phase === 'reading' || rd.phase === 'writing') return;
+      rdStop(); rd.phase = 'reading'; rd.found = rd.done = 0; rd.msg = ''; rd.retrySum = false; rdRender();
+      rdCall({ action: 'start' }).then(rdJob, rdNone);
+    }
+    function rdJob(r){
+      var d = r.data || {};
+      if (!r.ok) return rdFail(r);
+      rd.found = d.pages_found || 0; rd.done = d.pages_done || 0;
+      if (d.status === 'done') return rdSum();
+      if (d.status !== 'running' || !d.job_id) return rdFail(r);
+      rdRender(); var g = rd.gen;
+      rd.timer = setTimeout(function(){ if (g === rd.gen) rdCall({ action: 'step', job_id: d.job_id }).then(rdJob, rdNone); }, 400);
+    }
+    function rdSum(mode){
+      rd.phase = 'writing'; rd.msg = ''; rdRender();
+      rdCall(mode ? { action: 'summarize', mode: mode } : { action: 'summarize' }).then(function(r){
+        var d = r.data || {};
+        if (r.ok){
+          rd.phase = 'done'; rd.msg = d.status === 'sin_cambios' ? 'Tu sitio no cambió desde la última lectura: el resumen sigue igual.' : 'Listo: leímos ' + rsCount(rd.done || d.pages_used || 0, 'página', 'páginas') + ' y escribimos el resumen.';
+          var uid = currentUserId();   // el resumen quedó en widgets.knowledge: se trae para Widget > Conocimiento
+          if (uid) SB.from('widgets').select('knowledge').eq('user_id', uid).maybeSingle().then(function(k){ if (k && k.data) appState.widget.knowledge = k.data.knowledge || ''; });
+          vfLoadUse(); return rdRender();
+        }
+        if (r.status === 409 && d.error === 'necesita_modo'){ rd.phase = 'ask'; return rdRender(); }
+        if (r.status === 502){ rd.phase = 'fail'; rd.retrySum = true; rd.msg = 'No pudimos escribir el resumen ahora. Probá de nuevo en un momento.'; return rdRender(); }
+        rdFail(r);
+      }, rdNone);
+    }
+    function rdFail(r){
+      var d = r.data || {};
+      rd.phase = 'idle'; rd.retrySum = false;
+      if (r.status === 429 && d.error === 'limite_diario') rd.daily = true;
+      else if (r.status === 429) return vfCount(rd, d.retry_after_s || 60, rdRender);
+      else if (r.status === 403) return vfRefresh();
+      else { rd.phase = 'fail'; rd.msg = 'No pudimos leer tu sitio ahora. Probá de nuevo en un momento.'; vfLoadUse(); }
+      rdRender();
+    }
+    function rdRender(){
+      var on = vfVerified(), ph = rd.phase, wait = vfLeft(rd), go = wgId('rdGo');
+      wgId('rdLock').hidden = on; wgId('rdOn').hidden = !on;
+      var sum = ph === 'writing' ? 'running' : ph === 'done' ? 'ok' : rd.retrySum ? 'fail' : 'pending';
+      vfSteps(wgId('rdSteps'), ph === 'idle' || (ph === 'fail' && !rd.retrySum) ? [] : [
+        { status: ph === 'reading' ? 'running' : 'ok', label: ph === 'reading' ? 'Leyendo tu sitio…' + (rd.found ? ' ' + fmtN(rd.done) + ' de ' + fmtN(rd.found) + ' páginas' : '') : 'Leímos ' + rsCount(rd.done, 'página', 'páginas') },
+        { status: sum, label: { running: 'Escribiendo el resumen…', ok: 'Resumen escrito', fail: 'No pudimos escribir el resumen', pending: 'Escribir el resumen' }[sum] }]);
+      wgId('rdMsg').hidden = !rd.msg; wgId('rdMsgT').textContent = rd.msg; wgId('rdSee').hidden = ph !== 'done';
+      wgId('rdAsk').hidden = ph !== 'ask';
+      go.hidden = !!wait || ph === 'ask';
+      go.disabled = ph === 'reading' || ph === 'writing' || rd.daily;
+      go.textContent = rd.retrySum ? 'Escribir el resumen de nuevo' : 'Leer mi sitio y generar el resumen';
+      wgId('rdWait').hidden = !wait && !rd.daily;
+      wgId('rdWait').textContent = rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : 'Podés leer de nuevo en ' + wait + ' s';
+      wgId('rdUse').hidden = !vf.use; if (vf.use) wgId('rdUse').textContent = 'Lecturas hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads;
+    }
+    function vfEnter(){ vfRender(); vfRefresh(); vfLoadUse(); if (vf.busy) vfPoll(); vfCount(vf, 0, vfRender); vfCount(rd, 0, rdRender); }
+    function vfLeave(){ vfStop(); rdStop(); clearInterval(vf.waitT); clearInterval(rd.waitT); vf.waitT = rd.waitT = null; }
+    (function(){
+      var inp = wgId('vfUrl');
+      inp.addEventListener('input', function(){ vf.touched = true; vf.hint = null; vfRender(); });
+      inp.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); vfSave(); } });
+      wgId('vfSave').addEventListener('click', function(){ vfSave(); });
+      wgId('vfGo').addEventListener('click', vfVerify);
+      wgId('vfHelp').addEventListener('click', function(e){
+        var t = e.target.closest('[data-vftab]'), cp = e.target.closest('[data-vfcopy]');
+        if (t){ vf.tab = t.getAttribute('data-vftab'); vfRender(); }
+        if (cp){ try { navigator.clipboard.writeText(wgId(cp.getAttribute('data-vfcopy')).textContent); } catch(_){}
+          cp.textContent = 'Copiado'; setTimeout(function(){ cp.textContent = 'Copiar'; }, 1600); }
+      });
+      wgId('rdGo').addEventListener('click', function(){ if (rd.retrySum) rdSum(rd.mode); else rdStart(); });
+      wgId('rdAsk').addEventListener('click', function(e){ var b = e.target.closest('[data-rdmode]'); if (b){ rd.mode = b.getAttribute('data-rdmode'); rdSum(rd.mode); } });
+      wgId('rdSee').addEventListener('click', function(e){
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+        e.preventDefault(); var a = nav.querySelector('a[data-view="widget"]'); if (a){ a.click(); wgTabSet('conocimiento'); }
+      });
+    })();
+    /* vf:end */
+
     /* ---------- Router por ruta (pathname) ----------
        El router decide la vista SOLO leyendo location.pathname. Nunca usamos
        el hash ni el query para elegir vista: Supabase los usa para confirmación
@@ -3404,7 +3774,8 @@
       widget: '/app/widget',
       analiticas: '/app/analiticas',
       notificaciones: '/app/notificaciones',
-      config: '/app/configuracion'
+      config: '/app/configuracion',
+      verificaciones: '/app/verificaciones'
     };
     var WU_PATH_TO_VIEW = {
       '/app': 'resumen',
@@ -3412,7 +3783,8 @@
       '/app/widget': 'widget',
       '/app/analiticas': 'analiticas',
       '/app/notificaciones': 'notificaciones',
-      '/app/configuracion': 'config'
+      '/app/configuracion': 'config',
+      '/app/verificaciones': 'verificaciones'
     };
     // Sufijo actual del título (" — Panel"): solo cambia la parte inicial.
     var WU_TITLE_SUFFIX = (function(){
@@ -3480,6 +3852,8 @@
       else if (current === 'widget') renderWidget();
       else if (current === 'conversaciones') renderConversations();
       else if (current === 'analiticas') renderAnalytics();
+      else if (current === 'verificaciones') vfEnter();
+      vfBadge();
     }
 
     // El valor 'resolved' de la base significa chat cerrado; se renombra a 'closed' en la Fase 3 (migración de Supabase, no ahora).
@@ -3676,7 +4050,7 @@
                 name: wrow.name, accent: wgNormAccent(wrow.accent), position: wrow.position, welcome: wrow.welcome,
                 tone: wrow.tone, language: wrow.language, fallback: wgNormFallback(wrow.fallback), knowledge: wrow.knowledge,
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
-                siteUrl: wrow.site_url || '', contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
+                siteUrl: wrow.site_url || '', verifyToken: wrow.verify_token || '', verifiedHost: wrow.verified_host || null, verifiedAt: wrow.verified_at || null, contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
                 enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')
               };
               if (wrow.id) wgSetSnippet(wrow.id);
