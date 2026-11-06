@@ -744,8 +744,6 @@
     .vf-pv__row span{display:inline-flex;align-items:center;gap:6px;} .vf-pv__row svg{width:16px;height:16px;}
     .vf-pv__row a{margin-left:auto;display:inline-flex;align-items:center;min-height:44px;}
     .vf-lock{display:flex;align-items:center;gap:8px;margin:0;font-size:.875rem;color:var(--text-2);} .vf-lock svg{width:16px;height:16px;flex-shrink:0;}
-    .vf-un{display:flex;align-items:center;justify-content:space-between;gap:12px;} .vf-un .wg-field__label{margin:0;}
-    .vf-tag{padding:2px 8px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;color:var(--text-2);}
     .wa-nav a.has-todo .wa-dot{display:block;background:var(--text);}
     @media (prefers-reduced-motion:reduce){ .vf-s[data-st=running] .vf-s__i::before{animation:none;} #vfSteps .vf-s[data-st=running] .vf-s__l::after{content:"…";} }
     /* vf:end */
@@ -1126,6 +1124,7 @@
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgKnow">Información para responder</label>
                   <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
+                  <p class="wg-field__hint" id="wgKnowNote" role="status" hidden>Se generó un resumen nuevo. Tu texto sin guardar sigue acá.</p>
                 </div>
                 <div class="wg-field">
                   <span class="wg-field__label">URL de tu sitio o app</span>
@@ -1316,9 +1315,6 @@
                   <div class="vf-act"><button class="wa-btn" id="rdGo" type="button">Leer mi sitio y generar el resumen</button><p class="vf-wait" id="rdWait" hidden></p></div>
                   <p class="vf-use" id="rdUse" hidden></p>
                 </div>
-              </div>
-              <div class="wg-field">
-                <div class="vf-un"><span class="wg-field__label">Escaneo de tu app</span><span class="vf-tag">Próximamente</span></div>
               </div>
             </div>
           </div>
@@ -2783,8 +2779,8 @@
       }, function(){ if (btn) btn.disabled = false; toast('No se pudo cambiar el estado'); });
     }
 
-    function wgEnterEdit(){ knEditStart(); wgDraft = wgClone(appState.widget); wgEditing = true; renderWidget(); if (wgId('wgName')) wgId('wgName').focus(); }
-    function wgCancel(){ knEditCancel(); wgEditing = false; wgDraft = null; renderWidget(); }
+    function wgEnterEdit(){ wgId('wgKnowNote').hidden = true; knEditStart(); wgDraft = wgClone(appState.widget); wgEditing = true; renderWidget(); if (wgId('wgName')) wgId('wgName').focus(); }
+    function wgCancel(){ wgId('wgKnowNote').hidden = true; knEditCancel(); wgEditing = false; wgDraft = null; renderWidget(); }
 
     /* kn:start — Conocimiento: Documentos y Capturas. La interfaz habla SOLO con knowledgeStore. */
     // ENSAMBLE: reemplazar por Supabase Storage (buckets privados knowledge-docs y knowledge-images) y la tabla de metadatos; los límites se imponen también en el servidor
@@ -2878,7 +2874,7 @@
       var keep = appState.widget;   // la dirección y la verificación se manejan en Verificaciones: el borrador no las pisa
       appState.widget = wgClone(wgDraft);
       ['siteUrl','verifiedHost','verifiedAt','verifyToken'].forEach(function(k){ appState.widget[k] = keep[k]; });
-      wgEditing = false; wgDraft = null;
+      wgEditing = false; wgDraft = null; wgId('wgKnowNote').hidden = true;
       renderWidget();
       renderConversations(); // refleja apariencia en la bandeja
       wgPersist();
@@ -2889,36 +2885,56 @@
       while (n--) u8[n] = bin.charCodeAt(n);
       return new Blob([u8], { type: mime });
     }
+    // Columnas que guarda el Widget y su valor "cargado" (lo último leído o guardado en la base). Se envía SOLO lo que
+    // cambió contra ese valor: así un guardado no pisa lo que cambió por otro lado (p. ej. el resumen de la lectura del sitio).
+    var WG_COLS = { name: 'name', accent: 'accent', position: 'position', welcome: 'welcome', tone: 'tone', language: 'language', fallback: 'fallback',
+      knowledge: 'knowledge', avatar: 'avatar', avatar_hidden: 'avatarHidden', contact_email: 'contactEmail', privacy_url: 'privacyUrl', theme: 'theme' };
+    var wgLoaded = {};
+    function wgVal(c, v){ return c === 'avatar_hidden' ? !!v : v == null ? '' : v; }
+    function wgSetLoaded(row){ Object.keys(WG_COLS).forEach(function(c){ if (c in row) wgLoaded[c] = wgVal(c, row[c]); }); }
     function wgPersist(){
       var uid = currentUserId(); if (!uid){ toast('Perdimos tu sesión. Recargá.'); return; }
-      var w = appState.widget;
-      function doUpsert(avatarValue){
-        var row = {
-          user_id: uid, name: w.name, accent: w.accent, position: w.position,
-          welcome: w.welcome, tone: w.tone, language: w.language, fallback: w.fallback,
-          knowledge: w.knowledge, avatar: avatarValue, avatar_hidden: !!w.avatarHidden,
-          contact_email: w.contactEmail || '', privacy_url: w.privacyUrl || '',
-          theme: (w.theme === 'light' ? 'light' : 'dark'),
-          updated_at: new Date().toISOString()
-        };
-        SB.from('widgets').upsert(row, { onConflict: 'user_id' }).then(function(res){
-          toast(res && res.error ? 'No se pudo guardar' : 'Cambios guardados');
+      var w = appState.widget, diff = {};
+      Object.keys(WG_COLS).forEach(function(c){
+        var v = wgVal(c, c === 'theme' ? (w.theme === 'light' ? 'light' : 'dark') : w[WG_COLS[c]]);
+        if (v !== wgLoaded[c]) diff[c] = v;
+      });
+      if (!Object.keys(diff).length){ toast('No hay cambios para guardar'); return; }
+      function send(){
+        diff.updated_at = new Date().toISOString();
+        SB.from('widgets').update(diff).eq('user_id', uid).then(function(res){
+          if (res && res.error) return toast('No se pudo guardar');
+          delete diff.updated_at; wgSetLoaded(diff); toast('Cambios guardados');
         }, function(){ toast('No se pudo guardar'); });
       }
-      if (typeof w.avatar === 'string' && w.avatar.indexOf('data:') === 0){
-        var blob = wgDataUrlToBlob(w.avatar);
+      if (typeof diff.avatar === 'string' && diff.avatar.indexOf('data:') === 0){
+        var blob = wgDataUrlToBlob(diff.avatar);
         var ext = (blob.type.split('/')[1] || 'png').replace('jpeg','jpg');
         var path = uid + '/avatar-' + Date.now() + '.' + ext;
         SB.storage.from('avatars').upload(path, blob, { upsert: true, contentType: blob.type }).then(function(r){
-          if (r.error){ doUpsert(w.avatar); return; }
+          if (r.error) return send();
           var pub = SB.storage.from('avatars').getPublicUrl(path);
-          var url = (pub && pub.data && pub.data.publicUrl) ? pub.data.publicUrl : w.avatar;
-          appState.widget.avatar = url;
-          doUpsert(url);
-        }, function(){ doUpsert(w.avatar); });
-      } else {
-        doUpsert(w.avatar);
+          if (pub && pub.data && pub.data.publicUrl) appState.widget.avatar = diff.avatar = pub.data.publicUrl;
+          send();
+        }, send);
+      } else send();
+    }
+    // Después de la lectura del sitio: trae el resumen nuevo y lo marca como "cargado". Si el dueño tiene cambios sin
+    // guardar en "Información para responder", su borrador queda (con un aviso): si guarda, reemplaza al resumen.
+    function wgKnowReload(){
+      var uid = currentUserId(); if (!uid) return;
+      function apply(k){
+        if (!k || k.error || !k.data) return false;
+        var nk = wgVal('knowledge', k.data.knowledge), old = wgLoaded.knowledge, ta = wgId('wgKnow');
+        appState.widget.knowledge = nk; appState.widget.knowledgeAiAt = k.data.knowledge_ai_at; wgLoaded.knowledge = nk;
+        if (!wgEditing || !wgDraft) ta.value = nk;
+        else if (ta.value === old){ wgDraft.knowledge = ta.value = nk; }
+        else { wgDraft.knowledge = ta.value; wgId('wgKnowNote').hidden = false; }
+        return true;
       }
+      SB.from('widgets').select('knowledge,knowledge_ai_at').eq('user_id', uid).maybeSingle().then(function(k){
+        if (!apply(k)) SB.from('widgets').select('knowledge').eq('user_id', uid).maybeSingle().then(apply);
+      });
     }
 
     (function(){
@@ -3706,8 +3722,7 @@
         var d = r.data || {};
         if (r.ok){
           rd.phase = 'done'; rd.msg = d.status === 'sin_cambios' ? 'Tu sitio no cambió desde la última lectura: el resumen sigue igual.' : 'Listo: leímos ' + rsCount(rd.done || d.pages_used || 0, 'página', 'páginas') + ' y escribimos el resumen.';
-          var uid = currentUserId();   // el resumen quedó en widgets.knowledge: se trae para Widget > Conocimiento
-          if (uid) SB.from('widgets').select('knowledge').eq('user_id', uid).maybeSingle().then(function(k){ if (k && k.data) appState.widget.knowledge = k.data.knowledge || ''; });
+          wgKnowReload();   // el resumen quedó en widgets.knowledge: se trae para Widget > Conocimiento
           vfLoadUse(); return rdRender();
         }
         if (r.status === 409 && d.error === 'necesita_modo'){ rd.phase = 'ask'; return rdRender(); }
@@ -4054,6 +4069,7 @@
                 enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')
               };
               if (wrow.id) wgSetSnippet(wrow.id);
+              wgSetLoaded(wrow);
             }
             // Notificaciones
             return SB.from('notifications').select('*').order('created_at', { ascending: false }).then(function(nq){
