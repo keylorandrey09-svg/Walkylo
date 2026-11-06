@@ -205,7 +205,22 @@
       outline:3px solid color-mix(in srgb,var(--accent) 25%,transparent);outline-offset:0;}
     :is(.wg-input,.wg-textarea,.wa-textarea)::placeholder{color:var(--text-2);}
     :is(.wg-input,.wg-textarea,.wg-select):disabled{background:var(--surface);color:var(--text-2);cursor:not-allowed;}
-    .wg-textarea{min-height:104px;resize:vertical;line-height:1.5;}
+    .wg-textarea{min-height:104px;resize:none;overflow:hidden;line-height:1.5;}
+    /* kx:start — Notas e Información: lectura recortada ("…", sin degradado) y campo que crece al editar */
+    .wg-field .wg-textarea{min-height:calc(5lh + 18px);}
+    .kx-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;}
+    .kx-head .wg-field__label{margin:0;}
+    .kx-n{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .kx-n.is-max{color:var(--text);font-weight:500;}
+    .kx-box{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);}   /* el relleno va afuera: así no asoma la línea cortada */
+    .kx-view{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-2);line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
+    .kx-view.is-clamp{-webkit-line-clamp:5;line-clamp:5;}
+    #wgNotesV.is-clamp{-webkit-line-clamp:3;line-clamp:3;}
+    .kx-more[hidden]{display:none;}
+    .kx-more{display:block;min-height:32px;padding:0;border:0;background:none;font:inherit;font-size:.8125rem;color:var(--accent);cursor:pointer;touch-action:manipulation;}
+    .kx-more:hover{text-decoration:underline;}
+    @media (max-width:768px){ .kx-more{min-height:44px;} }
+    /* kx:end */
     .wa-textarea{min-height:120px;resize:vertical;}
 
     /* qview:start */
@@ -323,30 +338,34 @@
     .wg-link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);text-align:left;cursor:pointer;}
     .wg-link:hover{text-decoration:underline;}
     /* kn:start — Conocimiento: Documentos y Capturas (zona de subida + lista) */
-    .kn__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
-    .kn__t{font-size:1rem;font-weight:500;color:var(--text);}
+    .kn-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;align-items:start;}
+    .kn{min-width:0;}
+    .kn__txt{flex:1;min-width:0;}
+    .kn__head{display:flex;align-items:baseline;gap:8px;}
+    .kn__t{font-size:.9375rem;font-weight:500;color:var(--text);}
     .kn__n,.kn__size{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
-    .kn__hint{margin:4px 0 0;font-size:.8125rem;color:var(--text-2);}
-    .kn__zone{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;min-height:96px;margin-top:12px;padding:16px;
-      border:1px solid var(--border);border-radius:10px;background:var(--bg);font-size:.875rem;color:var(--text-2);text-align:center;cursor:pointer;}
+    .kn__hint{margin:2px 0 0;font-size:.8125rem;color:var(--text-2);}
+    .kn__zone{display:flex;align-items:center;gap:12px;min-height:96px;padding:12px 16px;
+      border:1px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;}
+    .kn__pick{flex-shrink:0;min-height:32px;padding:0 12px;}
     .kn__zone.is-over{border-color:var(--text);}
     .kn.is-off .kn__zone{cursor:default;}
     .kn__msg{margin:8px 0 0;font-size:.8125rem;color:var(--danger);white-space:pre-line;}
     .kn__msg:empty{margin:0;}
     .kn__list{margin:0;padding:0;list-style:none;}
-    .kn__list:not(:empty){margin-top:12px;border:1px solid var(--border);border-radius:10px;}
-    .kn__row{display:flex;align-items:center;gap:12px;min-height:56px;padding:4px 4px 4px 12px;}
+    .kn__list:not(:empty){margin-top:8px;border:1px solid var(--border);border-radius:10px;}
+    .kn__row{display:flex;align-items:center;gap:12px;min-height:48px;padding:2px 2px 2px 12px;}
     .kn__row + .kn__row{border-top:1px solid var(--border);}
-    .kn--img .kn__row{min-height:64px;padding-left:8px;}
+    .kn--img .kn__row{padding-left:6px;}
     .kn.is-off .kn__row{padding-right:12px;}
     .kn__ico{width:20px;height:20px;flex-shrink:0;color:var(--text-2);}
-    .kn__thumb{width:48px;height:48px;flex-shrink:0;border-radius:6px;object-fit:cover;}
+    .kn__thumb{width:40px;height:40px;flex-shrink:0;border-radius:6px;object-fit:cover;}
     .kn__name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.875rem;color:var(--text);}
     .kn__x{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;padding:0;border:0;border-radius:6px;background:none;color:var(--text-2);cursor:pointer;}
     .kn__x:hover{background:var(--surface);color:var(--text);}
     .kn__x svg{width:20px;height:20px;}
     .kn :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-    @media (max-width:768px){ .kn__drag{display:none;} }
+    @media (max-width:768px){ .kn__pick{min-height:44px;} }
     /* kn:end */
     /* ===== Color del logo: Blanco · Negro · Paleta ===== */
     .wg-logo{display:flex;gap:12px;align-items:center;}
@@ -716,7 +735,7 @@
     .vf-row{display:flex;gap:8px;} .vf-row .wg-input{flex:1;min-width:0;}
     .vf-row .wa-btn[hidden],.vf [hidden]{display:none;}
     #vfHint:empty{display:none;} #vfHint.is-err{color:var(--danger);}
-    .vf-moved{margin:0;} .vf a{color:var(--accent);}
+    .vf a{color:var(--accent);}
     .vf-head{display:flex;align-items:center;gap:8px;margin:0;font-weight:500;} .vf-head svg{width:20px;height:20px;flex-shrink:0;}
     .vf-head.is-ok svg{color:var(--ok);} .vf-head.is-fail svg{color:var(--danger);}
     .vf-meta{margin:2px 0 0;font-size:.875rem;color:var(--text-2);overflow-wrap:anywhere;}
@@ -1126,37 +1145,45 @@
               <!-- Conocimiento -->
               <div class="wg-panel" id="wgPanel-conocimiento" role="tabpanel" aria-labelledby="wgTab-conocimiento" tabindex="0" hidden>
                 <p class="wg-panel__hint">Lo que tu asistente usa para responder.</p>
+                <!-- kx:start — Notas e Información: en lectura, texto recortado con "Ver más"; al editar, el campo crece -->
+                <div class="wg-field">
+                  <div class="kx-head"><label class="wg-field__label" for="wgNotes">Notas</label><span class="kx-n" id="wgNotesN" hidden>0/2000</span></div>
+                  <textarea class="wg-textarea" id="wgNotes" maxlength="2000" disabled hidden aria-describedby="wgNotesH wgNotesN" placeholder="Ej.: Hoy cerramos a las 8, no a las 9. Mañana 16 de dic. estamos fuera de servicio."></textarea>
+                  <div class="kx-box"><div class="kx-view" id="wgNotesV" data-empty="Sin notas."></div></div>
+                  <button class="kx-more" id="wgNotesVM" type="button" aria-expanded="false" aria-controls="wgNotesV" hidden>Ver más</button>
+                  <p class="wg-field__hint" id="wgNotesH">La IA las lee primero y tienen prioridad sobre la información de abajo.</p>
+                </div>
                 <div class="wg-field">
                   <label class="wg-field__label" for="wgKnow">Información para responder</label>
-                  <textarea class="wg-textarea" id="wgKnow" disabled placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
+                  <textarea class="wg-textarea" id="wgKnow" disabled hidden placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
+                  <div class="kx-box"><div class="kx-view" id="wgKnowV" data-empty="Sin información."></div></div>
+                  <button class="kx-more" id="wgKnowVM" type="button" aria-expanded="false" aria-controls="wgKnowV" hidden>Ver más</button>
+                  <p class="wg-field__hint" id="wgKnowAi" hidden></p>
                   <p class="wg-field__hint" id="wgKnowNote" role="status" hidden>Se generó un resumen nuevo. Tu texto sin guardar sigue acá.</p>
                 </div>
-                <div class="wg-field">
-                  <span class="wg-field__label">URL de tu sitio o app</span>
-                  <p class="wg-field__hint vf-moved"><span id="wgSiteNow"></span> <a href="/app/verificaciones" id="wgSiteGo">Se configura en Verificaciones</a></p>
-                </div>
-                <!-- kn:start -->
-                <div class="wg-field kn" id="knDocs">
-                  <div class="kn__head"><span class="kn__t" id="knDocsT">Documentos</span><span class="kn__n">0 de 5</span></div>
-                  <p class="kn__hint" id="knDocsH">Hasta 5 archivos de 5 MB. PDF, TXT o MD.</p>
-                  <div class="kn__zone">
-                    <span class="kn__drag">Arrastrá archivos acá o</span>
-                    <button class="wa-btn kn__pick" type="button" aria-describedby="knDocsT knDocsH" disabled>Elegir archivos</button>
-                    <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knDocsT" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" />
+                <!-- kx:end -->
+                <!-- kn:start — dos tarjetas en una fila (se apilan si no entran); cada tarjeta es la zona de arrastre -->
+                <div class="wg-field kn-row">
+                  <div class="kn" id="knDocs">
+                    <div class="kn__zone">
+                      <div class="kn__txt"><div class="kn__head"><span class="kn__t" id="knDocsT">Documentos</span><span class="kn__n">0 de 5</span></div>
+                        <p class="kn__hint" id="knDocsH">Hasta 5 archivos de 5 MB. PDF, TXT o MD.</p></div>
+                      <button class="wa-btn kn__pick" type="button" aria-describedby="knDocsT knDocsH" disabled>Elegir</button>
+                      <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knDocsT" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" />
+                    </div>
+                    <p class="kn__msg" aria-live="polite"></p>
+                    <ul class="kn__list" aria-labelledby="knDocsT"></ul>
                   </div>
-                  <p class="kn__msg" aria-live="polite"></p>
-                  <ul class="kn__list" aria-labelledby="knDocsT"></ul>
-                </div>
-                <div class="wg-field kn kn--img" id="knImgs">
-                  <div class="kn__head"><span class="kn__t" id="knImgsT">Capturas</span><span class="kn__n">0 de 5</span></div>
-                  <p class="kn__hint" id="knImgsH">Hasta 5 imágenes de 2 MB. PNG, JPG o WebP.</p>
-                  <div class="kn__zone">
-                    <span class="kn__drag">Arrastrá archivos acá o</span>
-                    <button class="wa-btn kn__pick" type="button" aria-describedby="knImgsT knImgsH" disabled>Elegir archivos</button>
-                    <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knImgsT" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+                  <div class="kn kn--img" id="knImgs">
+                    <div class="kn__zone">
+                      <div class="kn__txt"><div class="kn__head"><span class="kn__t" id="knImgsT">Capturas</span><span class="kn__n">0 de 5</span></div>
+                        <p class="kn__hint" id="knImgsH">Hasta 5 imágenes de 2 MB. PNG, JPG o WebP.</p></div>
+                      <button class="wa-btn kn__pick" type="button" aria-describedby="knImgsT knImgsH" disabled>Elegir</button>
+                      <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knImgsT" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+                    </div>
+                    <p class="kn__msg" aria-live="polite"></p>
+                    <ul class="kn__list" aria-labelledby="knImgsT"></ul>
                   </div>
-                  <p class="kn__msg" aria-live="polite"></p>
-                  <ul class="kn__list" aria-labelledby="knImgsT"></ul>
                 </div>
                 <!-- kn:end -->
               </div>
@@ -2561,7 +2588,7 @@
     appState.widget = {
       name: 'Asistente', accent: 'auto', position: 'right',
       welcome: '¡Hola! ¿En qué te puedo ayudar?',
-      tone: 'cercano', language: 'es', fallback: 'email', knowledge: '',
+      tone: 'cercano', language: 'es', fallback: 'email', knowledge: '', knowledgeAiAt: null, ownerNotes: '',
       avatar: 'w1', avatarHidden: false,
       siteUrl: '', contactEmail: '', privacyUrl: '',
       enabled: true, installed: false, theme: 'dark'
@@ -2622,6 +2649,7 @@
       if (wgId('wgName')) wgDraft.name = wgId('wgName').value;
       if (wgId('wgWelcome')) wgDraft.welcome = wgId('wgWelcome').value;
       if (wgId('wgKnow')) wgDraft.knowledge = wgId('wgKnow').value;
+      if (wgId('wgNotes')) wgDraft.ownerNotes = wgId('wgNotes').value;
       if (wgId('wgLang')) wgDraft.language = wgId('wgLang').value;
       if (wgId('wgFallback')) wgDraft.fallback = wgId('wgFallback').value;
       if (wgId('wgEmail')) wgDraft.contactEmail = wgId('wgEmail').value;
@@ -2668,10 +2696,10 @@
       if (wgId('wgName')) wgId('wgName').value = c.name || '';
       if (wgId('wgWelcome')) wgId('wgWelcome').value = c.welcome || '';
       if (wgId('wgKnow')) wgId('wgKnow').value = c.knowledge || '';
+      if (wgId('wgNotes')) wgId('wgNotes').value = c.ownerNotes || '';
       if (wgId('wgLang')) wgId('wgLang').value = c.language;
       if (wgId('wgFallback')) wgId('wgFallback').value = wgNormFallback(c.fallback);
       wgFallbackHint(c);
-      if (wgId('wgSiteNow')) wgId('wgSiteNow').textContent = appState.widget.siteUrl || 'Sin cargar.';
       if (wgId('wgEmail')) wgId('wgEmail').value = c.contactEmail || '';
       if (wgId('wgPrivacy')) wgId('wgPrivacy').value = c.privacyUrl || '';
       // Color del logo: marcar el círculo elegido (o ninguno = Automático).
@@ -2688,7 +2716,7 @@
       Array.prototype.slice.call(document.querySelectorAll('#wgTheme button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-th') === (c.theme || 'dark')); });
 
       var dis = !wgEditing;
-      ['wgName','wgWelcome','wgKnow','wgLang','wgFallback','wgEmail','wgPrivacy'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
+      ['wgName','wgWelcome','wgKnow','wgNotes','wgLang','wgFallback','wgEmail','wgPrivacy'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
       Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt, #wgCpHue, #wgCpHex, #wgCpOk, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
@@ -2698,7 +2726,7 @@
       var avImg = wgId('wgAvImg'), hasImg = !c.avatarHidden && typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar];
       if (avImg){ avImg.hidden = !hasImg; avImg.innerHTML = hasImg ? '<img src="' + c.avatar + '" alt="">' : ''; }
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button, #wgAvatars button')).forEach(function(b){ b.disabled = dis; });
-      knRender('docs'); knRender('images');
+      knRender('docs'); knRender('images'); kxSync();
 
       var act = wgId('wgActions');
       if (act){
@@ -2727,7 +2755,37 @@
         if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
       });
       wgId('wgGrid').classList.toggle('is-full', name !== 'apariencia' && name !== 'comportamiento');
+      if (name === 'conocimiento') kxSync();   // el recorte y el alto se miden con la pestaña visible
     }
+    /* kx:start — Notas e Información. Lectura: texto plano recortado; "Ver más" solo si no cabe.
+       Edición: el campo se ve completo y crece con el contenido (sin scroll interno ni resize). */
+    var KX = ['wgNotes', 'wgKnow'], kxOpen = {}, kxDate = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
+    function kxFit(ta){ if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+    function kxSync(){
+      if (!KX) return;   // llamado antes de que corra esta parte del script
+      KX.forEach(function(id){
+        var ta = wgId(id), v = wgId(id + 'V'), more = wgId(id + 'VM'), t = ta.value.trim();
+        ta.hidden = !wgEditing; v.parentNode.hidden = wgEditing;
+        if (wgEditing){ more.hidden = true; kxFit(ta); return; }
+        v.textContent = t || v.getAttribute('data-empty');
+        if (!v.offsetParent) return;   // pestaña oculta: se mide al mostrarla
+        v.classList.add('is-clamp');
+        var cut = v.scrollHeight > v.clientHeight + 1, open = cut && !!kxOpen[id];
+        v.classList.toggle('is-clamp', !open); kxOpen[id] = open;
+        more.hidden = !cut; more.textContent = open ? 'Ver menos' : 'Ver más'; more.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      var n = wgId('wgNotesN'), len = wgId('wgNotes').value.length;
+      n.hidden = !wgEditing; n.textContent = len + '/2000'; n.classList.toggle('is-max', len >= 2000);
+      var ai = wgId('wgKnowAi'), at = appState.widget.knowledgeAiAt ? new Date(appState.widget.knowledgeAiAt) : null, ok = !!at && !isNaN(at);
+      ai.hidden = !ok; ai.textContent = ok ? 'Generado por IA el ' + kxDate.format(at) + '.' : '';
+    }
+    KX.forEach(function(id){
+      wgId(id).addEventListener('input', kxSync);
+      wgId(id + 'VM').addEventListener('click', function(){ kxOpen[id] = !kxOpen[id]; kxSync(); });
+    });
+    var kxRaf = 0;
+    window.addEventListener('resize', function(){ cancelAnimationFrame(kxRaf); kxRaf = requestAnimationFrame(kxSync); });
+    /* kx:end */
     // "Hecho" y "Falta" (solo campos que empiezan vacíos, según lo guardado), instalación y color del logo.
     function wgRenderExtras(){
       var w = appState.widget || {}, c = wgCfg();
@@ -2761,7 +2819,6 @@
       });
       var todo = wgId('wgTodo');
       if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'), g = b && b.getAttribute('data-goto'); if (g === 'verificaciones') vfGo(); else if (g) wgTabSet(g, true); });
-      wgId('wgSiteGo').addEventListener('click', function(e){ if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); vfGo(); });
     })();
 
     function renderChatState(){
@@ -2878,7 +2935,7 @@
       wgReadInputs();
       var keep = appState.widget;   // la dirección y la verificación se manejan en Verificaciones: el borrador no las pisa
       appState.widget = wgClone(wgDraft);
-      ['siteUrl','verifiedHost','verifiedAt','verifyToken'].forEach(function(k){ appState.widget[k] = keep[k]; });
+      ['siteUrl','verifiedHost','verifiedAt','verifyToken','knowledgeAiAt'].forEach(function(k){ appState.widget[k] = keep[k]; });
       wgEditing = false; wgDraft = null; wgId('wgKnowNote').hidden = true;
       renderWidget();
       renderConversations(); // refleja apariencia en la bandeja
@@ -2893,7 +2950,7 @@
     // Columnas que guarda el Widget y su valor "cargado" (lo último leído o guardado en la base). Se envía SOLO lo que
     // cambió contra ese valor: así un guardado no pisa lo que cambió por otro lado (p. ej. el resumen de la lectura del sitio).
     var WG_COLS = { name: 'name', accent: 'accent', position: 'position', welcome: 'welcome', tone: 'tone', language: 'language', fallback: 'fallback',
-      knowledge: 'knowledge', avatar: 'avatar', avatar_hidden: 'avatarHidden', contact_email: 'contactEmail', privacy_url: 'privacyUrl', theme: 'theme' };
+      knowledge: 'knowledge', owner_notes: 'ownerNotes', avatar: 'avatar', avatar_hidden: 'avatarHidden', contact_email: 'contactEmail', privacy_url: 'privacyUrl', theme: 'theme' };
     var wgLoaded = {};
     function wgVal(c, v){ return c === 'avatar_hidden' ? !!v : v == null ? '' : v; }
     function wgSetLoaded(row){ Object.keys(WG_COLS).forEach(function(c){ if (c in row) wgLoaded[c] = wgVal(c, row[c]); }); }
@@ -2902,7 +2959,7 @@
       var w = appState.widget, diff = {};
       Object.keys(WG_COLS).forEach(function(c){
         var v = wgVal(c, c === 'theme' ? (w.theme === 'light' ? 'light' : 'dark') : w[WG_COLS[c]]);
-        if (v !== wgLoaded[c]) diff[c] = v;
+        if (v !== wgVal(c, wgLoaded[c])) diff[c] = v;   // una columna que no vino en la carga cuenta como vacía
       });
       if (!Object.keys(diff).length){ toast('No hay cambios para guardar'); return; }
       function send(){
@@ -2935,6 +2992,7 @@
         if (!wgEditing || !wgDraft) ta.value = nk;
         else if (ta.value === old){ wgDraft.knowledge = ta.value = nk; }
         else { wgDraft.knowledge = ta.value; wgId('wgKnowNote').hidden = false; }
+        kxSync();
         return true;
       }
       SB.from('widgets').select('knowledge,knowledge_ai_at').eq('user_id', uid).maybeSingle().then(function(k){
@@ -2943,7 +3001,7 @@
     }
 
     (function(){
-      ['wgName','wgWelcome','wgKnow','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
+      ['wgName','wgWelcome','wgKnow','wgNotes','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
         var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); wgFallbackHint(wgDraft); });
       });
       // ===== Color del logo: Blanco · Negro · Paleta (picker propio) =====
@@ -4069,6 +4127,7 @@
               appState.widget = {
                 name: wrow.name, accent: wgNormAccent(wrow.accent), position: wrow.position, welcome: wrow.welcome,
                 tone: wrow.tone, language: wrow.language, fallback: wgNormFallback(wrow.fallback), knowledge: wrow.knowledge,
+                knowledgeAiAt: wrow.knowledge_ai_at || null, ownerNotes: wrow.owner_notes || '',
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
                 siteUrl: wrow.site_url || '', verifyToken: wrow.verify_token || '', verifiedHost: wrow.verified_host || null, verifiedAt: wrow.verified_at || null, contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
                 enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')
