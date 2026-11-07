@@ -63,6 +63,27 @@ const store: Store2 = {
   async updatePage(id, patch) {
     must(await sb.from("site_pages").update(patch).eq("id", id));
   },
+  // Secciones de una página: se actualizan en el lugar (nunca queda la página sin secciones) y se borran las que sobran.
+  async replaceSections(a) {
+    const old = (must(await sb.from("sections").select("position,content_hash").eq("page_id", a.page_id)
+      .order("position")) ?? []) as { position: number; content_hash: string }[];
+    const now = new Date().toISOString();
+    const same = old.length === a.sections.length && old.every((o, i) => o.position === i && o.content_hash === a.sections[i].content_hash);
+    if (same) {
+      must(await sb.from("sections").update({ last_seen_at: now, fetched_at: now }).eq("page_id", a.page_id));
+      return;
+    }
+    const rows = a.sections.map((s, i) => ({
+      widget_id: a.widget_id, user_id: a.user_id, page_id: a.page_id, source_kind: "site", document_url: a.url,
+      document_title: a.title || null, heading_path: s.heading_path, kind: s.kind, is_hidden: s.is_hidden, lang: a.lang,
+      position: i, text: s.text, content_hash: s.content_hash, anchor: s.anchor, id_path: s.id_path,
+      fetched_at: now, last_seen_at: now,
+    }));
+    for (let i = 0; i < rows.length; i += 100) {
+      must(await sb.from("sections").upsert(rows.slice(i, i + 100), { onConflict: "widget_id,document_url,position" }));
+    }
+    must(await sb.from("sections").delete().eq("page_id", a.page_id).gte("position", rows.length));
+  },
   async widgetFull(userId) {
     return must(await sb.from("widgets").select("id,knowledge,knowledge_ai_at").eq("user_id", userId).maybeSingle()) as WidgetFull | null;
   },
@@ -111,7 +132,7 @@ Deno.serve(async (req) => {
     const action = String(b.action ?? "");
     const jobId = typeof b.job_id === "string" ? b.job_id : "";
 
-    const { data: w } = await sb.from("widgets").select("id,site_url,verified_host,verified_at").eq("user_id", uid).maybeSingle();
+    const { data: w } = await sb.from("widgets").select("id,site_url,verified_host,verified_at,language").eq("user_id", uid).maybeSingle();
     if (!w) return json({ error: "sin_widget" }, 404);
 
     if (action === "start") {
