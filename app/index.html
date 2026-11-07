@@ -41,8 +41,6 @@
        El padding/margen de 4px evita que el scroll corte el anillo de foco. */
     .wa-nav{--nav-gap:32px;display:flex;flex-direction:column;flex:1;min-height:0;}
     .wa-nav-list{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 -4px -4px;padding:0 4px 4px;scroll-padding:4px 0;}
-    .wa-nav-label{margin:16px 0 4px;padding:0 12px;font-size:.8125rem;line-height:1.4;color:var(--text-2);}
-    .wa-nav-label:first-child{margin-top:0;}
     .wa-nav a{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border:1px solid transparent;border-radius:6px;
       font-size:.9375rem;color:var(--text-2);text-decoration:none;cursor:pointer;}
     .wa-nav a:hover{color:var(--text);}
@@ -50,17 +48,41 @@
     .wa-nav a svg.wa-i{width:20px;height:20px;flex-shrink:0;}
     .wa-nav a .wa-dot{display:none;margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--text);}
     .wa-nav a.has-unread .wa-dot{display:block;}
-    .wa-nav-foot{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-top:calc(var(--nav-gap) / 2 - 1px);padding-top:calc(var(--nav-gap) / 2);border-top:1px solid var(--border);}
+    .wa-nav-foot{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-top:var(--nav-gap);}
 
-    /* Barra superior y cajón (móvil). La campanita queda fuera: el aviso vive en el punto del menú. */
-    .wa-topbar,.wa-bell,.wa-drop{display:none;}
+    /* Barra superior: en escritorio, Ayuda · Apariencia · Notificaciones · Cuenta a la derecha del contenido.
+       En móvil (más abajo) es la barra fija de 56px con logo, campana, cuenta y ≡; Ayuda y Apariencia pasan al menú de cuenta. */
+    .wa-topbar{position:relative;z-index:35;display:flex;align-items:center;justify-content:flex-end;max-width:1040px;margin:0 auto;padding:16px 32px 0;}
+    .wa-topbar > .wa-brand,.wa-burger{display:none;}
+    .tb-actions{display:flex;align-items:center;gap:4px;}
+    .tb-btn{position:relative;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:6px;background:none;color:var(--text-2);cursor:pointer;}
+    .tb-btn:hover,.tb-btn[aria-expanded="true"]{color:var(--text);}
+    .tb-btn svg{width:20px;height:20px;}
+    .tb-sun,:root[data-theme="dark"] .tb-moon{display:none;}
+    :root[data-theme="dark"] .tb-sun{display:block;}
+    .tb-dot{display:none;position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--text);}
+    #bell.has-unread .tb-dot{display:block;}
+    .tb-av__i{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--border);border-radius:50%;font-size:.8125rem;font-weight:500;line-height:1;color:var(--text);}
+    .tb-acct{position:relative;}
+    .tb-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:60;width:256px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;}
+    .tb-menu[hidden],.tb-scrim[hidden]{display:none;}
+    .tb-menu__mail{margin:0 0 4px;padding:8px 8px 12px;border-bottom:1px solid var(--border);font-size:.8125rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .tb-item{display:flex;align-items:center;gap:12px;width:100%;min-height:40px;padding:0 8px;border:0;border-radius:6px;background:none;font:inherit;font-size:.9375rem;color:var(--text);text-align:left;text-decoration:none;cursor:pointer;}
+    .tb-item:hover{background:var(--surface);}
+    .tb-item svg{width:20px;height:20px;flex-shrink:0;color:var(--text-2);}
+    .tb-item .tb-item__ck{display:none;margin-left:auto;color:var(--text);}
+    .tb-item[aria-pressed="true"] .tb-item__ck{display:block;}
+    .tb-item--danger,.tb-item--danger svg{color:var(--danger);}
+    .tb-mob,.tb-scrim{display:none;}
     .wa-scrim{display:none;position:fixed;inset:0;z-index:40;}
-    .wa-scrim,.wa-modal__scrim,.ob__scrim,.wg-avscrim{background:color-mix(in srgb,var(--text) 40%,transparent);}
-    :root[data-theme="dark"] :is(.wa-scrim,.wa-modal__scrim,.ob__scrim,.wg-avscrim){background:rgba(0,0,0,.6);}
+    .wa-scrim,.wa-modal__scrim,.ob__scrim,.wg-avscrim,.tb-scrim{background:color-mix(in srgb,var(--text) 40%,transparent);}
+    :root[data-theme="dark"] :is(.wa-scrim,.wa-modal__scrim,.ob__scrim,.wg-avscrim,.tb-scrim){background:rgba(0,0,0,.6);}
 
     /* Contenido */
     .wa-main{flex:1;min-width:0;}
-    .wa-content{max-width:1040px;margin:0 auto;padding:32px 32px 64px;}
+    .wa-content{max-width:1040px;margin:0 auto;padding:16px 32px 64px;}
+    /* Contacto y privacidad: campos con ancho de lectura */
+    #wgPanel-contacto .wg-input{max-width:600px;}
     .wa-view{display:none;}
     .wa-view.is-active{display:block;}
     .wa-page-title{margin:0;font-size:1.5rem;line-height:1.2;font-weight:500;letter-spacing:-0.01em;}
@@ -180,7 +202,6 @@
     .cfg-dot-val{display:inline-flex;align-items:center;gap:8px;color:var(--text);font-weight:500;}
     .cfg-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0;}
     .cfg-renew{margin:4px 0 16px;font-size:.8125rem;color:var(--text-2);}
-    .cfg-plan__cta{width:100%;}
 
     /* Botones: secundario por defecto; principal negro; destructivo solo con texto rojo */
     .wa-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;
@@ -421,14 +442,6 @@
         border-width:1px 0 0;border-radius:10px 10px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));}
     }
 
-    /* Notificaciones: tarjetas del menú desplegable de la campanita (oculto hoy) */
-    .wa-noti{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-top:16px;}
-    .wa-noti.is-unread{border-color:var(--text-2);}
-    .wa-noti__top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
-    .wa-noti__tag{padding:1px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;color:var(--text-2);}
-    .wa-noti__time{font-size:.8125rem;color:var(--text-2);}
-    .wa-noti__title{margin:0 0 4px;font-size:1rem;font-weight:500;}
-    .wa-noti__body{margin:0;color:var(--text-2);}
     /* nview:start */
     /* Vista Notificaciones: filas sin tarjetas; punto azul solo para nuevas; "Importante" sin color */
     /* Patrón de vista estándar (valores de la vista Conversaciones vieja, commit 0198538: .cv-toolbar y .cv-wrap):
@@ -514,7 +527,17 @@
     /* Móvil: barra superior fija + cajón desde la izquierda, sin animación */
     @media (max-width:768px){
       .wa-topbar{display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:30;
-        height:var(--top);padding:0 6px 0 16px;background:var(--bg);border-bottom:1px solid var(--border);}
+        max-width:none;margin:0;height:var(--top);padding:0 4px 0 16px;background:var(--bg);border-bottom:1px solid var(--border);}
+      .wa-topbar > .wa-brand{display:inline-flex;}
+      .tb-actions{gap:0;}
+      .tb-desk{display:none;}
+      .tb-btn{width:44px;height:44px;}
+      .tb-mob{display:flex;}
+      .tb-item{min-height:44px;}
+      /* Menú de cuenta como hoja desde abajo, con velo y scroll del fondo bloqueado */
+      .tb-scrim{display:block;position:fixed;inset:0;z-index:70;}
+      .tb-menu{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:71;width:auto;max-height:80dvh;overflow-y:auto;
+        border-width:1px 0 0;border-radius:10px 10px 0 0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));}
       /* align-self:center anula el flex-start del menú lateral, que pegaba el logo arriba (6px sobre el ≡).
          translateY(1px): el glifo visible queda 0,5px sobre el centro de su caja (aire del descendente en el viewBox)
          y las rayas del ≡ 0,5px debajo del suyo; así los dos coinciden en el centro de la barra. */
@@ -800,7 +823,6 @@
 
       <nav class="wa-nav" id="nav">
         <div class="wa-nav-list">
-        <p class="wa-nav-label">Principal</p>
         <a href="/app" data-view="resumen" data-label="Resumen" class="is-active">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           Resumen
@@ -822,26 +844,12 @@
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="9" rx="1"/><rect x="17" y="5" width="3" height="12" rx="1"/></svg>
           Analíticas
         </a>
-        <p class="wa-nav-label">Cuenta</p>
-        <a href="/app/notificaciones" data-view="notificaciones" data-label="Notificaciones" id="navNoti">
-          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          Notificaciones
-          <span class="wa-dot"></span>
-        </a>
-        <a href="/app/configuracion" data-view="config" data-label="Configuración">
-          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M20.80 10.13 L20.80 13.87 L18.66 14.16 L17.20 16.68 L18.02 18.69 L14.78 20.56 L13.46 18.85 L10.54 18.85 L9.22 20.56 L5.98 18.69 L6.80 16.68 L5.34 14.16 L3.20 13.87 L3.20 10.13 L5.34 9.84 L6.80 7.32 L5.98 5.31 L9.22 3.44 L10.54 5.15 L13.46 5.15 L14.78 3.44 L18.02 5.31 L17.20 7.32 L18.66 9.84 Z"/><circle cx="12" cy="12" r="2.9"/></svg>
-          Configuración
-        </a>
         </div>
 
         <div class="wa-nav-foot">
-        <a href="#" role="button" data-action="support">
-          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-          Soporte
-        </a>
-        <a href="/login" data-action="logout">
-          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
-          Cerrar sesión
+        <a href="/app/configuracion" data-view="config" data-label="Configuración">
+          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M20.80 10.13 L20.80 13.87 L18.66 14.16 L17.20 16.68 L18.02 18.69 L14.78 20.56 L13.46 18.85 L10.54 18.85 L9.22 20.56 L5.98 18.69 L6.80 16.68 L5.34 14.16 L3.20 13.87 L3.20 10.13 L5.34 9.84 L6.80 7.32 L5.98 5.31 L9.22 3.44 L10.54 5.15 L13.46 5.15 L14.78 3.44 L18.02 5.31 L17.20 7.32 L18.66 9.84 Z"/><circle cx="12" cy="12" r="2.9"/></svg>
+          Configuración
         </a>
         </div>
       </nav>
@@ -853,13 +861,25 @@
     <div class="wa-main">
       <div class="wa-topbar">
         <span class="wa-brand"><svg style="height:.914em;width:auto;vertical-align:middle;user-select:none;-webkit-user-select:none" viewBox="0 -725 4342 914" role="img" aria-label="Walkylet" xmlns="http://www.w3.org/2000/svg" fill="currentColor" draggable="false" focusable="false"><title>Walkylet</title><g transform="translate(0 -725.000) scale(2.17009)"><g transform="translate(0.000000,341.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M515 3401 c-212 -6 -222 -7 -278 -33 -156 -73 -252 -253 -227 -425 14 -96 38 -146 186 -388 31 -49 212 -351 403 -670 191 -319 400 -668 465 -775 65 -107 147 -242 181 -300 132 -224 298 -497 326 -535 186 -255 611 -353 903 -209 344 170 490 560 345 926 -22 55 -48 100 -467 803 -131 220 -156 262 -316 540 -55 94 -118 202 -141 240 -23 39 -83 140 -132 225 -300 517 -309 528 -459 578 -69 24 -403 33 -789 23z"/> <path d="M2999 3399 c-364 -53 -637 -397 -616 -777 10 -178 36 -247 194 -512 44 -74 127 -214 183 -310 57 -96 170 -285 250 -420 81 -135 200 -335 265 -445 396 -671 405 -685 514 -772 299 -238 725 -216 1001 51 76 73 81 82 267 391 83 138 282 468 443 735 161 267 359 595 440 730 81 135 207 344 280 465 73 121 146 249 163 285 89 195 25 424 -147 525 -96 56 -95 56 -581 57 -504 0 -506 0 -622 -77 -66 -44 -89 -74 -191 -247 -47 -79 -114 -192 -150 -253 -85 -144 -181 -308 -310 -532 -58 -101 -108 -183 -111 -183 -3 0 -28 40 -55 88 -69 122 -343 589 -448 762 -48 80 -109 170 -135 201 -162 189 -389 274 -634 238z"/> </g></g><path d="M1585.0 -108Q1602.0 -108 1622.5 -111.5Q1643.0 -115 1653.0 -121V-201L1581.0 -195Q1553.0 -193 1535.0 -183.0Q1517.0 -173 1517.0 -153Q1517.0 -133 1532.5 -120.5Q1548.0 -108 1585.0 -108ZM1577.0 -501Q1686.0 -501 1751.5 -456.5Q1817.0 -412 1817.0 -318V-94Q1817.0 -68 1802.5 -51.5Q1788.0 -35 1768.0 -23Q1736.0 -4 1690.0 6.0Q1644.0 16 1585.0 16Q1480.0 16 1416.5 -24.5Q1353.0 -65 1353.0 -147Q1353.0 -216 1394.5 -253.0Q1436.0 -290 1521.0 -299L1652.0 -313V-320Q1652.0 -349 1626.5 -361.5Q1601.0 -374 1553.0 -374Q1516.0 -374 1479.5 -366.0Q1443.0 -358 1414.0 -346Q1401.0 -355 1392.0 -373.5Q1383.0 -392 1383.0 -412Q1383.0 -460 1434.0 -480Q1463.0 -491 1502.5 -496.0Q1542.0 -501 1577.0 -501Z M1906.0 -264H2076.0V-1Q2065.0 2 2044.5 5.0Q2024.0 8 2000.0 8Q1951.0 8 1928.5 -9.0Q1906.0 -26 1906.0 -72ZM2076.0 -175H1906.0V-652Q1917.0 -655 1937.5 -658.0Q1958.0 -661 1982.0 -661Q2032.0 -661 2054.0 -644.5Q2076.0 -628 2076.0 -581Z M2408.0 -186 2284.0 -263 2509.0 -493Q2561.0 -493 2592.5 -470.0Q2624.0 -447 2624.0 -412Q2624.0 -382 2603.0 -359.0Q2582.0 -336 2538.0 -298ZM2292.0 -239 2429.0 -298 2640.0 -88Q2636.0 -42 2613.0 -16.5Q2590.0 9 2547.0 9Q2516.0 9 2490.5 -6.5Q2465.0 -22 2436.0 -59ZM2167.0 -264H2337.0V-1Q2326.0 2 2305.5 5.0Q2285.0 8 2261.0 8Q2212.0 8 2189.5 -9.0Q2167.0 -26 2167.0 -72ZM2337.0 -175H2167.0V-652Q2178.0 -655 2198.5 -658.0Q2219.0 -661 2243.0 -661Q2293.0 -661 2315.0 -644.5Q2337.0 -628 2337.0 -581Z M2776.0 -124Q2761.0 -158 2744.0 -202.5Q2727.0 -247 2708.5 -309.5Q2690.0 -372 2668.0 -461Q2682.0 -475 2705.5 -485.5Q2729.0 -496 2757.0 -496Q2792.0 -496 2815.0 -481.5Q2838.0 -467 2849.0 -427Q2869.0 -357 2889.0 -288.5Q2909.0 -220 2928.0 -152H2932.0Q2948.0 -198 2963.5 -253.0Q2979.0 -308 2992.5 -365.5Q3006.0 -423 3015.0 -477Q3032.0 -486 3050.0 -491.0Q3068.0 -496 3088.0 -496Q3123.0 -496 3149.0 -481.0Q3175.0 -466 3175.0 -429Q3175.0 -397 3167.0 -355.0Q3159.0 -313 3145.0 -266.0Q3131.0 -219 3113.0 -171.5Q3095.0 -124 3075.0 -80.5Q3055.0 -37 3035.0 -2Q2979.0 95 2931.0 142.0Q2883.0 189 2834.0 189Q2794.0 189 2767.0 164.0Q2740.0 139 2735.0 99Q2756.0 81 2777.5 60.0Q2799.0 39 2819.0 15.5Q2839.0 -8 2855.0 -31Q2838.0 -36 2818.5 -54.5Q2799.0 -73 2776.0 -124Z M3236.0 -264H3406.0V-1Q3395.0 2 3374.5 5.0Q3354.0 8 3330.0 8Q3281.0 8 3258.5 -9.0Q3236.0 -26 3236.0 -72ZM3406.0 -175H3236.0V-652Q3247.0 -655 3267.5 -658.0Q3288.0 -661 3312.0 -661Q3362.0 -661 3384.0 -644.5Q3406.0 -628 3406.0 -581Z M3577.0 -167 3571.0 -279 3802.0 -317Q3800.0 -337 3782.0 -357.0Q3764.0 -377 3726.0 -377Q3686.0 -377 3659.5 -351.0Q3633.0 -325 3631.0 -277L3637.0 -193Q3647.0 -147 3682.5 -129.0Q3718.0 -111 3762.0 -111Q3804.0 -111 3842.0 -122.0Q3880.0 -133 3903.0 -146Q3919.0 -136 3930.0 -118.0Q3941.0 -100 3941.0 -80Q3941.0 -47 3916.5 -25.5Q3892.0 -4 3849.0 6.0Q3806.0 16 3750.0 16Q3672.0 16 3609.5 -13.5Q3547.0 -43 3510.5 -102.0Q3474.0 -161 3474.0 -250Q3474.0 -316 3495.5 -364.0Q3517.0 -412 3553.0 -442.0Q3589.0 -472 3633.5 -486.5Q3678.0 -501 3725.0 -501Q3796.0 -501 3849.0 -473.5Q3902.0 -446 3932.0 -398.5Q3962.0 -351 3962.0 -289Q3962.0 -255 3943.0 -237.0Q3924.0 -219 3890.0 -214Z M4026.0 -264H4194.0V-167Q4194.0 -142 4210.5 -130.5Q4227.0 -119 4257.0 -119Q4272.0 -119 4288.0 -121.5Q4304.0 -124 4316.0 -128Q4325.0 -118 4331.5 -104.0Q4338.0 -90 4338.0 -71Q4338.0 -34 4309.5 -9.5Q4281.0 15 4209.0 15Q4121.0 15 4073.5 -25.0Q4026.0 -65 4026.0 -155ZM4136.0 -345V-475H4325.0Q4331.0 -465 4336.5 -448.0Q4342.0 -431 4342.0 -411Q4342.0 -376 4326.5 -360.5Q4311.0 -345 4285.0 -345ZM4194.0 -240H4026.0V-599Q4037.0 -602 4057.5 -605.5Q4078.0 -609 4101.0 -609Q4150.0 -609 4172.0 -592.0Q4194.0 -575 4194.0 -529Z"/></svg></span>
-        <button class="wa-burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <button class="wa-bell" id="bell" type="button" aria-label="Notificaciones">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          <span class="wa-bell__dot"></span>
-        </button>
+        <div class="tb-actions">
+          <button class="tb-btn tb-desk" id="tbHelp" type="button" aria-label="Ayuda" aria-haspopup="dialog" title="Ayuda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+          <button class="tb-btn tb-desk" id="tbTheme" type="button" aria-label="Tema oscuro" aria-pressed="false" title="Tema oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tb-moon" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tb-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+          <button class="tb-btn" id="bell" type="button" aria-label="Notificaciones" title="Notificaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="tb-dot" aria-hidden="true"></span></button>
+          <div class="tb-acct" id="tbAcct">
+            <button class="tb-btn" id="tbAv" type="button" aria-label="Cuenta" title="Cuenta" aria-expanded="false" aria-controls="tbMenu"><span class="tb-av__i" id="tbAvI" aria-hidden="true"></span></button>
+            <div class="tb-scrim" id="tbScrim" hidden></div>
+            <div class="tb-menu" id="tbMenu" role="group" aria-label="Cuenta" hidden>
+              <p class="tb-menu__mail" id="tbMail"></p>
+              <button class="tb-item tb-mob" type="button" data-tb="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Ayuda</button>
+              <button class="tb-item tb-mob" type="button" data-tb="theme" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tb-moon" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tb-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Tema oscuro<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tb-item__ck" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></button>
+              <a class="tb-item" href="/app/configuracion" data-tb="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M20.80 10.13 L20.80 13.87 L18.66 14.16 L17.20 16.68 L18.02 18.69 L14.78 20.56 L13.46 18.85 L10.54 18.85 L9.22 20.56 L5.98 18.69 L6.80 16.68 L5.34 14.16 L3.20 13.87 L3.20 10.13 L5.34 9.84 L6.80 7.32 L5.98 5.31 L9.22 3.44 L10.54 5.15 L13.46 5.15 L14.78 3.44 L18.02 5.31 L17.20 7.32 L18.66 9.84 Z"/><circle cx="12" cy="12" r="2.9"/></svg>Configuración</a>
+              <button class="tb-item tb-item--danger" type="button" data-tb="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Cerrar sesión</button>
+            </div>
+          </div>
+          <button class="wa-burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
       </div>
 
       <div class="wa-content">
@@ -943,7 +963,7 @@
         <!-- VIEW: Configuración -->
         <section class="wa-view" data-view="config">
           <h1 class="wa-page-title">Configuración</h1>
-          <p class="wa-page-sub">Tu cuenta, apariencia y plan.</p>
+          <p class="wa-page-sub">Tu cuenta y tu plan.</p>
 
           <div class="cfg-grid">
             <div class="cfg-main">
@@ -958,25 +978,6 @@
                   <span class="cfg-row__label">Contraseña</span>
                   <span class="cfg-row__value" style="color:var(--wa-ink-3);font-weight:400">Oculta por seguridad</span>
                   <button class="wa-btn wa-btn-ghost" id="cfgChangePass" type="button">Cambiar</button>
-                </div>
-              </div>
-
-              <!-- Apariencia -->
-              <div class="cfg-card">
-                <h2 class="cfg-card__title">Apariencia</h2>
-                <div class="cfg-row">
-                  <span class="cfg-row__label">Tema</span>
-                  <span class="cfg-row__hint">Se guarda en este dispositivo.</span>
-                  <div class="cfg-toggle" id="cfgTheme">
-                    <button type="button" data-theme-val="light" class="is-active">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-                      Predeterminado
-                    </button>
-                    <button type="button" data-theme-val="dark">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-                      Oscuro
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -1014,7 +1015,6 @@
 
                 <div class="cfg-kv"><span>Preguntas detectadas</span><strong id="cfgDetections">—</strong></div>
                 <div class="cfg-renew" id="cfgRenew">—</div>
-                <button class="wa-btn wa-btn-primary cfg-plan__cta" id="cfgChangePlan" type="button">Cambiar de plan</button>
               </div>
 
               <!-- Resumen -->
@@ -1355,29 +1355,6 @@
         <!-- vf:end -->
 
         <!-- VIEW: Placeholder (Conversaciones/Widget/Analíticas/Configuración) -->
-        <section class="wa-view" data-view="placeholder">
-          <h1 class="wa-page-title" id="phTitle">—</h1>
-          <p class="wa-page-sub">Esta sección todavía está en construcción.</p>
-          <div class="wa-panel">
-            <div class="wa-empty">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-              <p>Próximamente.</p>
-              <p class="wa-empty__sub">La vamos a construir en los próximos pasos.</p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <!-- Dropdown de notificaciones (campanita, móvil) -->
-  <div class="wa-drop" id="drop">
-    <div class="wa-drop__head"><span class="wa-drop__title">Notificaciones</span><span class="wa-drop__all" id="dropAll">Ver todas</span></div>
-    <div class="wa-drop__body">
-      <div class="wa-noti is-unread">
-        <div class="wa-noti__top"><span class="wa-noti__tag">NOVEDAD</span><span class="wa-noti__time" data-time=""></span></div>
-        <p class="wa-noti__title">Bienvenido a Walkylet</p>
-        <p class="wa-noti__body">Este es tu centro de notificaciones. Acá te vamos a avisar de novedades y nuevas funciones.</p>
       </div>
     </div>
   </div>
@@ -1439,7 +1416,6 @@
     </div>
   </div>
 
-  <!-- Confirmar eliminar cuenta -->
   <!-- Onboarding de instalación -->
   <div class="ob" id="ob" hidden>
     <div class="ob__scrim" data-obclose></div>
@@ -1513,7 +1489,7 @@
         <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--wa-ink-2);margin-top:4px;cursor:pointer">
           <input type="checkbox" id="pwShow" /> Mostrar contraseña
         </label>
-        <p id="pwErr" class="wg-field__hint" style="color:#dc2626;display:none"></p>
+        <p id="pwErr" class="wg-field__hint" style="color:var(--danger);display:none"></p>
         <div class="wa-modal__actions">
           <button class="wa-btn wa-btn-ghost" type="button" data-pwclose>Cancelar</button>
           <button class="wa-btn wa-btn-primary" type="button" id="pwGo">Guardar</button>
@@ -1522,15 +1498,31 @@
     </div>
   </div>
 
-  <div class="wa-modal" id="delAccount" role="dialog" aria-modal="true" aria-label="Eliminar cuenta">
+  <div class="wa-modal" id="logoutModal" role="dialog" aria-modal="true" aria-labelledby="logoutT">
+    <div class="wa-modal__scrim" data-loclose></div>
+    <div class="wa-modal__card" style="max-width:400px">
+      <div class="wa-modal__form">
+        <h2 class="wa-modal__title" id="logoutT">¿Cerrar sesión?</h2>
+        <p class="wa-modal__desc">Vas a salir del panel en este dispositivo.</p>
+        <div class="wa-modal__actions">
+          <button class="wa-btn wa-btn-ghost" type="button" data-loclose>Cancelar</button>
+          <button class="wa-btn wa-btn-danger solid" type="button" id="logoutGo">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wa-modal" id="delAccount" role="dialog" aria-modal="true" aria-labelledby="delAccountT">
     <div class="wa-modal__scrim" data-delclose></div>
     <div class="wa-modal__card" style="max-width:440px">
       <div class="wa-modal__form">
-        <h2 class="wa-modal__title">Eliminar cuenta</h2>
-        <p class="wa-modal__desc">Vas a eliminar tu cuenta y todos tus datos de forma permanente. Esta acción no se puede deshacer.</p>
+        <h2 class="wa-modal__title" id="delAccountT">Eliminar cuenta</h2>
+        <p class="wa-modal__desc">Se borran tu cuenta, tu widget, sus conversaciones, la información de tu sitio y su verificación. Esta acción no se puede deshacer.</p>
+        <label class="wg-field__label" for="delConfirm">Escribí ELIMINAR para confirmar</label>
+        <input class="wg-input" id="delConfirm" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" />
         <div class="wa-modal__actions">
           <button class="wa-btn wa-btn-ghost" type="button" data-delclose>Cancelar</button>
-          <button class="wa-btn wa-btn-danger solid" type="button" id="delAccountGo">Eliminar cuenta</button>
+          <button class="wa-btn wa-btn-danger solid" type="button" id="delAccountGo" disabled>Eliminar cuenta</button>
         </div>
       </div>
     </div>
@@ -1546,7 +1538,7 @@
     function wuLogout(){ SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); }); }
     /* ============================================================
        PUNTOS DE ENGANCHE PARA SUPABASE (se cablean en el chat guía):
-       1) Notificaciones: leer del backend y marcar como leídas.        -> markSeen() / markRead()
+       1) Notificaciones: leer del backend y marcar como leídas.        -> markSeen()
        2) Soporte límite (4 envíos / 30 min): el CONTEO lo hace Supabase -> canSubmitSupport()
        3) Soporte envío: subir fotos a Storage + insertar el mensaje.    -> submitSupport()
        La UI de abajo ya está lista; solo hay que reemplazar los TODO.
@@ -1586,10 +1578,8 @@
     var nav = document.getElementById("nav");
     var navLinks = nav.querySelectorAll("a");
     var views = document.querySelectorAll(".wa-view");
-    var phTitle = document.getElementById("phTitle");
-    function showView(view, label){
+    function showView(view){
       views.forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === view); });
-      if (view === "placeholder" && phTitle) phTitle.textContent = label || "";
       if (view === "resumen") renderResumen();
       if (view === "notificaciones") enterNotis();
       if (view === "analiticas") renderAnalytics();
@@ -1600,42 +1590,34 @@
       window.scrollTo(0,0);
     }
     function setActive(a){ navLinks.forEach(function(x){ x.classList.remove("is-active"); }); if(a) a.classList.add("is-active"); }
+    // Ir a una vista desde el menú o desde la barra superior (Notificaciones ya no tiene ítem en el menú).
+    function wuGoView(view){
+      var a = nav.querySelector('a[data-view="' + view + '"]');
+      setActive(a);
+      showView(view);
+      try { history.pushState(null, '', WU_VIEW_TO_PATH[view] || '/app'); } catch(err){}
+      wuSetTitle(view, a);
+      setSidebar(false);
+    }
     navLinks.forEach(function(a){
       a.addEventListener("click", function(e){
-        if (a.getAttribute("data-action") === "support"){ e.preventDefault(); openSupport(); setSidebar(false); return; }
-        if (a.getAttribute("data-action") === "logout"){ e.preventDefault(); wuLogout(); return; }
-        var view = a.getAttribute("data-view");
-        if (!view) return; /* Cerrar sesión: link real */
         // Abrir en pestaña nueva (Ctrl/Cmd/Shift o botón del medio): no interceptar.
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();
-        setActive(a);
-        showView(view, a.getAttribute("data-label"));
-        var path = WU_VIEW_TO_PATH[view] || '/app';
-        try { history.pushState(null, '', path); } catch(err){}
-        wuSetTitle(view, a);
-        setSidebar(false);
+        wuGoView(a.getAttribute("data-view"));
       });
     });
 
     /* ---------- Notificaciones (campanita + puntito) ---------- */
     var bell = document.getElementById("bell");
-    var drop = document.getElementById("drop");
-    var navNoti = document.getElementById("navNoti");
     var wuNotis = [];
     var hasUnread = false;
     function renderUnread(){
-      if (bell) bell.classList.toggle("has-unread", hasUnread);
-      if (navNoti) navNoti.classList.toggle("has-unread", hasUnread);
+      if (!bell) return;
+      bell.classList.toggle("has-unread", hasUnread);
+      bell.setAttribute("aria-label", hasUnread ? "Notificaciones (sin leer)" : "Notificaciones");
     }
-    function notiHTML(n){
-      var unread = !n.read_at;
-      return '<div class="wa-noti' + (unread ? ' is-unread' : '') + '">' +
-        '<div class="wa-noti__top"><span class="wa-noti__tag">' + cvEsc(n.tag || 'NOVEDAD') + '</span>' +
-        '<span class="wa-noti__time" data-time="' + (n.created_at || '') + '"></span></div>' +
-        '<p class="wa-noti__title">' + cvEsc(n.title || '') + '</p>' +
-        '<p class="wa-noti__body">' + cvEsc(n.body || '') + '</p></div>';
-    }
+    if (bell) bell.addEventListener("click", function(){ wuGoView("notificaciones"); });
     /* nview:start */
     // Componente autocontenido: no toca Supabase ni estado global; maneja su filtro y se redibuja.
     // opts: {items:[{id, tag, title, body, createdAt, readAt, important}], now, onSeen(ids)}. Devuelve {update(opts), destroy()}.
@@ -1777,23 +1759,8 @@
         };
         if (nvApi) nvApi.update(opts); else nvApi = mountNotifications(el, opts);
       }
-      var dropBody = document.querySelector('#drop .wa-drop__body');
-      if (dropBody){
-        dropBody.innerHTML = wuNotis.length ? wuNotis.map(notiHTML).join('') : '<p class="wa-noti__body" style="padding:8px 4px;opacity:.7">Todavía no hay notificaciones.</p>';
-      }
-      Array.prototype.slice.call(document.querySelectorAll('.wa-noti__time')).forEach(function(el){
-        var t = el.getAttribute('data-time'); el.textContent = t ? timeAgo(t) : '';
-      });
     }
     function enterNotis(){ if (nvApi) nvApi.destroy(); nvApi = null; renderNotis(); }
-    // markRead (todas) queda solo para "Ver todas" de la campanita oculta.
-    function markRead(){
-      if (!hasUnread) return;
-      var nowIso = new Date().toISOString();
-      wuNotis.forEach(function(n){ if (!n.read_at) n.read_at = nowIso; });
-      hasUnread = false; renderNotis();
-      SB.from('notifications').update({ read_at: nowIso }).is('read_at', null).then(function(){}, function(){});
-    }
     // Guarda como leídas las vistas: una consulta por tanda. Si falla, sin alertas: esos ids van de nuevo en la próxima tanda.
     function markSeen(ids){
       ids = nvRetry.concat(ids); nvRetry = [];
@@ -1834,19 +1801,6 @@
       var y = Math.floor(d / 365);
       return "hace " + y + (y === 1 ? " año" : " años");
     }
-    // Las fechas relativas de notificaciones las pinta renderNotis() con datos reales.
-
-    function toggleDrop(open){ drop.classList.toggle("is-open", open); }
-    if (bell) bell.addEventListener("click", function(e){ e.stopPropagation(); toggleDrop(!drop.classList.contains("is-open")); });
-    document.addEventListener("click", function(e){ if (drop.classList.contains("is-open") && !drop.contains(e.target) && e.target !== bell) toggleDrop(false); });
-    var dropAll = document.getElementById("dropAll");
-    if (dropAll) dropAll.addEventListener("click", function(){
-      toggleDrop(false); markRead();
-      // en móvil, la campanita lleva a la pantalla completa de Notificaciones
-      var target = nav.querySelector('a[data-view="notificaciones"]');
-      showView("notificaciones", "Notificaciones");
-    });
-
     /* ---------- Soporte (modal) ---------- */
     var support = document.getElementById("support");
     var supText = document.getElementById("supText");
@@ -1869,7 +1823,7 @@
       files = []; renderThumbs();
     }
     support.querySelectorAll("[data-close]").forEach(function(el){ el.addEventListener("click", closeSupport); });
-    document.addEventListener("keydown", function(e){ if (e.key === "Escape"){ closeSupport(); toggleDrop(false); } });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeSupport(); });
 
     if (supText) supText.addEventListener("input", function(){
       supCount.textContent = String(supText.value.length);
@@ -2273,26 +2227,81 @@
       cfgSet('cfgLast', a.lastAccess ? cap(timeAgo(a.lastAccess)) : '—');
     }
 
-    /* Tema (se guarda en este dispositivo) */
+    /* Tema (se guarda en este dispositivo): botón Apariencia de la barra superior y su copia en el menú de cuenta (móvil) */
+    var tbThemeBtns = Array.prototype.slice.call(document.querySelectorAll('#tbTheme, [data-tb="theme"]'));
     function applyTheme(t){
       var root = document.documentElement;
       if(t === 'dark') root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
-      Array.prototype.slice.call(document.querySelectorAll('#cfgTheme button')).forEach(function(b){
-        b.classList.toggle('is-active', b.getAttribute('data-theme-val') === t);
-      });
+      tbThemeBtns.forEach(function(b){ b.setAttribute('aria-pressed', t === 'dark' ? 'true' : 'false'); });
+    }
+    function toggleTheme(){
+      var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('wu-theme', t); } catch(e){}
+      applyTheme(t);
     }
     (function(){
       var saved = 'light';
       try { saved = localStorage.getItem('wu-theme') || 'light'; } catch(e){}
       applyTheme(saved);
-      Array.prototype.slice.call(document.querySelectorAll('#cfgTheme button')).forEach(function(b){
-        b.addEventListener('click', function(){
-          var t = b.getAttribute('data-theme-val');
-          try { localStorage.setItem('wu-theme', t); } catch(e){}
-          applyTheme(t);
-        });
-      });
+      tbThemeBtns.forEach(function(b){ b.addEventListener('click', toggleTheme); });
     })();
+
+    /* Barra superior: Ayuda y menú de cuenta (popover en escritorio, hoja desde abajo en móvil) */
+    var tbAv = document.getElementById('tbAv'), tbMenu = document.getElementById('tbMenu'), tbScrim = document.getElementById('tbScrim');
+    var tbAcct = document.getElementById('tbAcct'), tbMq = window.matchMedia('(max-width:768px)');
+    function tbIsOpen(){ return !tbMenu.hidden; }
+    function tbSet(open, refocus){
+      if (open === tbIsOpen()) return;
+      tbMenu.hidden = !open; tbScrim.hidden = !open;
+      tbAv.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.style.overflow = open && tbMq.matches ? 'hidden' : '';
+      if (open && tbMq.matches){ var f = tbMenu.querySelector('button, a'); if (f) f.focus({ preventScroll: true }); }
+      if (!open && refocus) tbAv.focus();
+    }
+    function wuFillAccount(user){
+      var mail = (user && user.email) || '';
+      document.getElementById('tbAvI').textContent = mail ? mail.charAt(0).toUpperCase() : '';
+      document.getElementById('tbMail').textContent = mail;
+    }
+    document.getElementById('tbHelp').addEventListener('click', function(){ openSupport(); });
+    tbAv.addEventListener('click', function(){ tbSet(!tbIsOpen()); });
+    tbScrim.addEventListener('click', function(){ tbSet(false); });
+    tbMenu.addEventListener('click', function(e){
+      var it = e.target.closest('[data-tb]'); if (!it) return;
+      var k = it.getAttribute('data-tb');
+      if (k === 'theme') return; // cambia el tema y el menú queda abierto para ver el resultado
+      if (k === 'config'){
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault(); tbSet(false); wuGoView('config'); return;
+      }
+      tbSet(false);
+      if (k === 'help') openSupport();
+      if (k === 'logout') wuAskLogout(tbAv);
+    });
+    document.addEventListener('click', function(e){ if (tbIsOpen() && !tbAcct.contains(e.target)) tbSet(false); });
+    // Salir del menú con Tab lo cierra (también si el foco cae en el body)
+    tbAcct.addEventListener('keydown', function(e){
+      if (e.key === 'Tab' && tbIsOpen()) setTimeout(function(){ if (!tbAcct.contains(document.activeElement)) tbSet(false); }, 0);
+    });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && tbIsOpen()) tbSet(false, true); });
+    function tbOnMq(){ if (tbIsOpen()) tbSet(false); }
+    if (tbMq.addEventListener) tbMq.addEventListener('change', tbOnMq); else tbMq.addListener(tbOnMq);
+
+    /* Aviso "¿Cerrar sesión?": lo usan el menú de cuenta y Configuración. Cancelar no hace nada. */
+    var loModal = document.getElementById('logoutModal'), loBack = null;
+    function wuAskLogout(from){
+      loBack = from || document.activeElement;
+      loModal.classList.add('is-open'); document.body.style.overflow = 'hidden';
+      loModal.querySelector('.wa-btn[data-loclose]').focus();
+    }
+    function loClose(){
+      if (!loModal.classList.contains('is-open')) return;
+      loModal.classList.remove('is-open'); document.body.style.overflow = '';
+      if (loBack && loBack.focus) loBack.focus();
+    }
+    Array.prototype.slice.call(loModal.querySelectorAll('[data-loclose]')).forEach(function(el){ el.addEventListener('click', loClose); });
+    document.getElementById('logoutGo').addEventListener('click', function(){ this.disabled = true; wuLogout(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') loClose(); });
 
     /* Toast */
     var _toastT = null;
@@ -2305,7 +2314,6 @@
     /* Acciones de Configuración */
     (function(){
       var bPass = document.getElementById('cfgChangePass');
-      var bPlan = document.getElementById('cfgChangePlan');
       var bOut  = document.getElementById('cfgLogout');
       var bDel  = document.getElementById('cfgDelete');
 
@@ -2342,25 +2350,31 @@
         });
       }
 
-      // Gestión de plan: aún no hay cobro
-      if(bPlan) bPlan.addEventListener('click', function(){ toast('Gestión de plan: próximamente'); });
+      // Cerrar sesión: siempre con el aviso "¿Cerrar sesión?"
+      if(bOut)  bOut.addEventListener('click', function(){ wuAskLogout(bOut); });
 
-      // Cerrar sesión real
-      if(bOut)  bOut.addEventListener('click', function(){ wuLogout(); });
-
+      // Eliminar cuenta: el botón se activa solo con ELIMINAR exacto (en mayúsculas; se ignoran espacios al inicio y al final)
       var del = document.getElementById('delAccount');
-      function openDel(){ if(del){ del.classList.add('is-open'); document.body.style.overflow='hidden'; } }
-      function closeDel(){ if(del){ del.classList.remove('is-open'); document.body.style.overflow=''; } }
+      var delIn = document.getElementById('delConfirm');
+      var go = document.getElementById('delAccountGo');
+      function delOk(){ return delIn.value.trim() === 'ELIMINAR'; }
+      function openDel(){
+        delIn.value = ''; go.disabled = true;
+        del.classList.add('is-open'); document.body.style.overflow='hidden';
+        if (window.matchMedia('(pointer:fine)').matches) delIn.focus(); else del.querySelector('.wa-btn[data-delclose]').focus();
+      }
+      function closeDel(){ if(!del.classList.contains('is-open')) return; del.classList.remove('is-open'); document.body.style.overflow=''; if(bDel) bDel.focus(); }
       if(bDel) bDel.addEventListener('click', openDel);
       if(del){
         Array.prototype.slice.call(del.querySelectorAll('[data-delclose]')).forEach(function(el){ el.addEventListener('click', closeDel); });
-        var go = document.getElementById('delAccountGo');
+        delIn.addEventListener('input', function(){ go.disabled = !delOk(); });
         if(go) go.addEventListener('click', function(){
+          if (!delOk()) return;
           go.disabled = true;
           SB.functions.invoke('delete-account').then(function(res){
-            if (res && res.error){ toast('No se pudo eliminar la cuenta'); go.disabled = false; return; }
+            if (res && res.error){ toast('No se pudo eliminar la cuenta. Probá de nuevo.'); go.disabled = !delOk(); return; }
             SB.auth.signOut().then(function(){ window.location.replace('/login'); }, function(){ window.location.replace('/login'); });
-          }, function(){ toast('No se pudo eliminar la cuenta'); go.disabled = false; });
+          }, function(){ toast('No se pudo eliminar la cuenta. Probá de nuevo.'); go.disabled = !delOk(); });
         });
         document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && del.classList.contains('is-open')) closeDel(); });
       }
@@ -3880,7 +3894,7 @@
       return WU_PATH_TO_VIEW[wuNormalizePath(location.pathname)];
     }
     function wuSetTitle(view, link){
-      var label = (link && link.getAttribute('data-label')) || '';
+      var label = (link && link.getAttribute('data-label')) || (view === 'notificaciones' ? 'Notificaciones' : '');
       if (label) document.title = label + WU_TITLE_SUFFIX;
     }
     // Pinta la vista según la ruta actual. Ruta desconocida bajo /app -> Resumen.
@@ -3891,8 +3905,8 @@
         try { history.replaceState(null, '', WU_VIEW_TO_PATH.resumen); } catch(e){}
       }
       var link = nav.querySelector('a[data-view="' + view + '"]');
-      if (link){ setActive(link); showView(view, link.getAttribute('data-label')); }
-      else { showView(view); }
+      setActive(link);
+      showView(view);
       wuSetTitle(view, link);
     }
     // Carga inicial: compatibilidad con los enlaces viejos /app#vista.
@@ -4099,6 +4113,7 @@
         var user = sess && sess.data && sess.data.session ? sess.data.session.user : null;
         if (!user){ window.location.replace('/login'); return; }
         window.__wuUser = user;
+        wuFillAccount(user);
 
         // Cuenta
         return SB.from('profiles').select('plan,status,created_at').eq('id', user.id).maybeSingle().then(function(prof){
