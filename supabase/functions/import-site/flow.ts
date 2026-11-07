@@ -4,6 +4,7 @@ import {
   assertPublicUrl, extractPage, MAX_PAGE_BYTES, normalizeUrl, normHost, parseRobots, parseSitemap,
   type Rule, robotsAllowed, safeFetch, sha256,
 } from "./lib.ts";
+import { extractSections, type Section } from "./sections.ts";
 
 export const MAX_PAGES = 25;
 export const MAX_PAGES_PER_STEP = 5;
@@ -25,6 +26,10 @@ export type PageRow = {
   widget_id: string; user_id: string; job_id: string; url: string; status: string; flags: Record<string, unknown>;
 };
 export type PageRef = { id: string; url: string; content_hash: string | null; flags: Record<string, unknown> | null };
+export type SectionRow = Section & { content_hash: string };
+export type SectionsArgs = {
+  widget_id: string; user_id: string; page_id: string; url: string; title: string; lang: string; sections: SectionRow[];
+};
 
 export interface Store {
   recentJobs(widgetId: string, sinceISO: string): Promise<Job[]>; // más nuevos primero
@@ -38,6 +43,8 @@ export interface Store {
   jobPageUrls(jobId: string): Promise<string[]>;
   pageCounts(jobId: string): Promise<{ total: number; pending: number }>;
   updatePage(id: string, patch: Record<string, unknown>): Promise<void>;
+  // Opcional (aditivo): guarda las secciones de una página. Si falta o falla, la lectura sigue igual.
+  replaceSections?(a: SectionsArgs): Promise<void>;
 }
 
 export type Out = { status: number; body: Record<string, unknown> };
@@ -157,8 +164,9 @@ export async function startJob(
 }
 
 export async function stepJob(
-  store: Store, uid: string, w: { id: string }, jobId: string,
+  store: Store, uid: string, w: { id: string; language?: string | null }, jobId: string,
 ): Promise<Out> {
+  const lang = ["es", "en", "pt"].includes(String(w.language ?? "")) ? String(w.language) : "es";
   const job = await store.getJob(uid, jobId);
   if (!job || job.widget_id !== w.id) return out(404, { error: "trabajo_no_encontrado" });
   if (job.status !== "running") return out(200, summary(job));
@@ -197,6 +205,16 @@ export async function stepJob(
       const ex = extractPage(r.text);
       const hash = await sha256(ex.text + "\u0000" + ex.hidden_text);
       if (!p.content_hash) inc.new++; else if (p.content_hash !== hash) inc.changed++; else inc.same++;
+      // secciones con estructura (aditivo: un error aquí nunca rompe la lectura de la página)
+      let secRows: SectionRow[] | null = null, secErr = "";
+      if (store.replaceSections) {
+        try {
+          const sec = extractSections(r.text);
+          secRows = [];
+          for (const s of sec.sections) secRows.push({ ...s, content_hash: await sha256(s.heading_path + "\u0000" + s.text) });
+          if (sec.warnings.length) console.log("sections_warn", JSON.stringify({ url: p.url, w: sec.warnings }));
+        } catch (e) { secErr = String((e as Error).message ?? e).slice(0, 80); secRows = null; }
+      }
       await store.updatePage(p.id, {
         status: "done", http_status: r.status, title: ex.title, text: ex.text, hidden_text: ex.hidden_text,
         text_chars: ex.text.length, content_hash: hash, error: null, fetched_at: iso,
@@ -204,8 +222,14 @@ export async function stepJob(
           depth, posible_js: ex.posible_js, recortada: r.truncated, ocultos_quitados: ex.hidden_removed,
           headings: ex.headings, hidden_chars: ex.hidden_text.length,
           links: pickLinks(ex.linkItems, p.url, baseHost),
+          ...(store.replaceSections ? { sections: secRows ? secRows.length : 0, ...(secErr ? { sections_error: secErr } : {}) } : {}),
         },
       });
+      if (store.replaceSections && secRows) {
+        try {
+          await store.replaceSections({ widget_id: job.widget_id, user_id: uid, page_id: p.id, url: p.url, title: ex.title, lang, sections: secRows });
+        } catch (e) { console.error("sections_save_error", String((e as Error).message ?? e).slice(0, 120)); }
+      }
       // descubrir páginas nuevas desde los enlaces (el menú cuenta)
       if (depth < MAX_DEPTH && knownKeys.size < MAX_PAGES) {
         const add: PageRow[] = [];
