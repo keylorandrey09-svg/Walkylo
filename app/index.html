@@ -222,18 +222,17 @@
     :is(.wg-input,.wg-textarea,.wa-textarea)::placeholder{color:var(--text-2);}
     :is(.wg-input,.wg-textarea,.wg-select):disabled{background:var(--surface);color:var(--text-2);cursor:not-allowed;}
     .wg-textarea{min-height:104px;resize:none;overflow:hidden;line-height:1.5;}
-    /* kx:start — Notas e Información: lectura recortada ("…", sin degradado) y campo que crece al editar */
+    /* kx:start — Notas (vista Memoria): lectura recortada ("…", sin degradado) y campo que crece al editar */
     .wg-field .wg-textarea{min-height:calc(5lh + 18px);}
-    #wgNotes{min-height:calc(3lh + 18px);}   /* Notas son avisos cortos: mínimo 3 líneas */
+    #mmNotes{min-height:calc(3lh + 18px);}   /* Notas son avisos cortos: mínimo 3 líneas */
     .kx-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;}
     .kx-head .wg-field__label{margin:0;}
     .kx-n{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
     .kx-n.is-max{color:var(--text);font-weight:500;}
     .kx-box{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);}   /* el relleno va afuera: así no asoma la línea cortada */
     .kx-view{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-2);line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
-    .kx-view.is-clamp{-webkit-line-clamp:5;line-clamp:5;}
-    #wgNotesV.is-clamp{-webkit-line-clamp:3;line-clamp:3;}
-    .kx-more[hidden]{display:none;}
+    .kx-view.is-clamp{-webkit-line-clamp:3;line-clamp:3;}
+    .kx-more[hidden],.mm [hidden]{display:none;}
     .kx-more{display:block;min-height:32px;padding:0;border:0;background:none;font:inherit;font-size:.8125rem;color:var(--accent);cursor:pointer;touch-action:manipulation;}
     .kx-more:hover{text-decoration:underline;}
     @media (max-width:768px){ .kx-more{min-height:44px;} }
@@ -354,36 +353,6 @@
     .wg-todo svg{width:20px;height:20px;flex-shrink:0;color:var(--ok);}
     .wg-link{min-height:44px;padding:0;border:0;background:none;font:inherit;color:var(--accent);text-align:left;cursor:pointer;}
     .wg-link:hover{text-decoration:underline;}
-    /* kn:start — Conocimiento: Documentos y Capturas (zona de subida + lista) */
-    .kn-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;align-items:start;}
-    .kn{min-width:0;}
-    .kn__txt{flex:1;min-width:0;}
-    .kn__head{display:flex;align-items:baseline;gap:8px;}
-    .kn__t{font-size:.9375rem;font-weight:500;color:var(--text);}
-    .kn__n,.kn__size{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
-    .kn__hint{margin:2px 0 0;font-size:.8125rem;color:var(--text-2);}
-    .kn__zone{display:flex;align-items:center;gap:12px;min-height:96px;padding:12px 16px;
-      border:1px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;}
-    .kn__pick{flex-shrink:0;min-height:32px;padding:0 12px;}
-    .kn__zone.is-over{border-color:var(--text);}
-    .kn.is-off .kn__zone{cursor:default;}
-    .kn__msg{margin:8px 0 0;font-size:.8125rem;color:var(--danger);white-space:pre-line;}
-    .kn__msg:empty{margin:0;}
-    .kn__list{margin:0;padding:0;list-style:none;}
-    .kn__list:not(:empty){margin-top:8px;border:1px solid var(--border);border-radius:10px;}
-    .kn__row{display:flex;align-items:center;gap:12px;min-height:48px;padding:2px 2px 2px 12px;}
-    .kn__row + .kn__row{border-top:1px solid var(--border);}
-    .kn--img .kn__row{padding-left:6px;}
-    .kn.is-off .kn__row{padding-right:12px;}
-    .kn__ico{width:20px;height:20px;flex-shrink:0;color:var(--text-2);}
-    .kn__thumb{width:40px;height:40px;flex-shrink:0;border-radius:6px;object-fit:cover;}
-    .kn__name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.875rem;color:var(--text);}
-    .kn__x{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;padding:0;border:0;border-radius:6px;background:none;color:var(--text-2);cursor:pointer;}
-    .kn__x:hover{background:var(--surface);color:var(--text);}
-    .kn__x svg{width:20px;height:20px;}
-    .kn :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-    @media (max-width:768px){ .kn__pick{min-height:44px;} }
-    /* kn:end */
     /* ===== Color del logo: Blanco · Negro · Paleta ===== */
     .wg-logo{display:flex;gap:12px;align-items:center;}
     .wg-logo__opt{position:relative;width:48px;height:48px;border:0;background:none;padding:0;cursor:pointer;border-radius:50%;display:grid;place-items:center;flex-shrink:0;}
@@ -780,7 +749,135 @@
     .vf-lock{display:flex;align-items:center;gap:8px;margin:0;font-size:.875rem;color:var(--text-2);} .vf-lock svg{width:16px;height:16px;flex-shrink:0;}
     .wa-nav a.has-todo .wa-dot{display:block;background:var(--text);}
     @media (prefers-reduced-motion:reduce){ .vf-s[data-st=running] .vf-s__i::before{animation:none;} #vfSteps .vf-s[data-st=running] .vf-s__l::after{content:"…";} }
+    .vf-mm{margin:16px 0 0;font-size:.875rem;color:var(--text-2);} .vf-mm a{display:inline-flex;align-items:center;min-height:44px;}
     /* vf:end */
+
+    /* mm:start — Memoria (pestañas Memoria · Notas · Fuentes · Secciones) */
+    .mm{margin-top:24px;}
+    /* Cabecera: acciones en la fila del título, centradas con él (mismo patrón que .cfg-head); el margen negativo
+       hace que la fila mida lo mismo que el título solo, así el título no salta al cambiar de pestaña. */
+    .mm-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;}
+    .mm-hact{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-6px 0 -6px auto;}
+    .mm-hact .wa-btn[hidden]{display:none;}
+    /* Tarjeta de estado (Regenerar y Actualizar): pasos con ícono, texto y un botón. Sin barra ni números de avance. */
+    .mm-st{margin-bottom:24px;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .cfg-card .mm-st{margin:16px 0 0;}
+    .mm-st .vf-steps{margin:0;}
+    .mm-st__t{margin:0;font-size:.875rem;color:var(--text-2);}
+    .mm-st .vf-steps:not(:empty) + .mm-st__t{margin-top:12px;color:var(--text);}
+    .mm-st .vf-steps ~ .mm-st__t.is-err{color:var(--danger);}   /* misma especificidad que la regla de arriba y va después: gana */
+    .mm-st__act{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;}
+    .mm-st .vf-s[data-st=pending] .vf-s__i::before{border-color:var(--text-2);}
+    .vf-s[data-st=err] .vf-s__i{color:var(--danger);}
+    .mm a,.mm-link{color:var(--accent);}
+    .mm-link{min-height:44px;padding:0;border:0;background:none;font:inherit;cursor:pointer;text-align:left;}
+    .mm-link:hover,.mm a:hover{text-decoration:underline;}
+    .mm-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;}
+    .mm-note{margin:8px 0 0;font-size:.8125rem;color:var(--text-2);}
+    .mm-msg{margin:12px 0 0;font-size:.875rem;color:var(--text);} .mm-msg:empty{display:none;}
+    .mm-msg.is-err{color:var(--danger);}
+    .mm-empty{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:20px;border:1px solid var(--border);border-radius:10px;}
+    .mm-empty p{margin:0;color:var(--text-2);max-width:56ch;}
+    /* Franja del borrador: borde, sin relleno de color */
+    .mm-band{margin-bottom:12px;padding:16px;border:1px solid var(--border);border-radius:10px;}
+    .mm-band__t{margin:0;font-weight:500;}
+    .mm-band .mm-act{margin-top:12px;}
+    .mm-diff{margin:12px 0 0;padding:12px 16px;list-style:none;border-radius:6px;background:var(--surface);font-size:.875rem;line-height:1.6;max-height:60vh;overflow:auto;}
+    .mm-diff li{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text-2);}
+    .mm-diff .is-add{color:var(--text);font-weight:500;}
+    .mm-diff .is-gap{padding:2px 0;}
+    /* Bloques de la Memoria: cada uno es una tarjeta (como .cfg-card), 12px entre tarjetas; "Ver más" adentro */
+    .mm-blks{display:flex;flex-direction:column;gap:12px;}
+    .mm-blk{padding:20px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .mm-blk__t{margin:0 0 4px;font-size:.9375rem;line-height:1.5;font-weight:500;overflow-wrap:anywhere;scroll-margin-top:24px;}
+    .mm-blk__l{margin:0;padding:0;list-style:none;}
+    .mm-blk__l li{position:relative;padding-left:16px;line-height:1.6;overflow-wrap:anywhere;}
+    .mm-blk__l li::before{content:"–";position:absolute;left:0;color:var(--text-2);}
+    .mm-ta{min-height:calc(10lh + 18px) !important;}
+    .mm-over{margin:6px 0 0;font-size:.8125rem;color:var(--text);}
+    /* Columnas: texto de hasta 860px; desde 1100px, "Qué cubre" e índice a la derecha (sticky). En menos, arriba y sin índice. */
+    .mm-pane{max-width:860px;}
+    .mm-pane > * + *{margin-top:16px;}
+    .mm-cols{display:flex;flex-direction:column;gap:24px;}
+    .mm-main{min-width:0;max-width:860px;}
+    .mm-side{display:flex;flex-direction:column;gap:12px;}
+    .mm-side .cfg-card{padding:16px;}
+    .mm-idx{display:none;}
+    .mm-idx ol{margin:8px 0 0;padding:0;list-style:none;}
+    .mm-idx button{display:block;width:100%;min-height:32px;padding:4px 0;border:0;background:none;font:inherit;font-size:.875rem;color:var(--text-2);text-align:left;cursor:pointer;overflow-wrap:anywhere;}
+    .mm-idx button:hover{color:var(--text);}
+    @media (min-width:1100px){
+      .mm-cols{display:grid;grid-template-columns:minmax(0,860px) 232px;align-items:start;}
+      .mm-main{grid-column:1;grid-row:1;}
+      .mm-side{grid-column:2;grid-row:1;position:sticky;top:24px;}
+      .mm-idx{display:block;}
+    }
+    /* Fichas (filtros y ejemplos): borde, sin relleno de color; la elegida con borde --text */
+    .mm-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+    .mm-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font:inherit;font-size:.875rem;color:var(--text);cursor:pointer;}
+    .mm-chip span{color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .mm-chip:hover{border-color:var(--text-2);}
+    .mm-chip[aria-pressed="true"]{border-color:var(--text);font-weight:500;}
+    .mm-chip:disabled{opacity:.5;cursor:default;}
+    .mm-chip:focus-visible,.mm-idx button:focus-visible,.mm-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
+    .mm-how{margin:12px 0 0;padding-left:20px;line-height:1.8;}
+    .mm-search{margin-top:12px;}
+    /* Línea de estado de la Memoria: una fila (estado a la izquierda, Regenerar a la derecha) */
+    .mm-st--line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:56px;margin-bottom:12px;padding:7px 8px 7px 16px;}
+    .mm-st--line > [role=status]{flex:1 1 240px;min-width:0;}
+    .mm-st--line .mm-st__act{margin:0;}
+    .mm-st--line .vf-s[data-st=err] .vf-s__l{color:var(--danger);}
+    .mm-st__h.mm-note{margin:-4px 0 12px;}
+    /* Fuentes: filas de páginas y de actividad */
+    .mm-list{margin:8px 0 0;padding:0;list-style:none;}
+    .mm-list > li + li{border-top:1px solid var(--border);}
+    .mm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 0;border:0;background:none;font:inherit;color:var(--text);text-align:left;}
+    button.mm-row{cursor:pointer;}
+    button.mm-row:hover .mm-row__t{text-decoration:underline;}
+    .mm-row__i{display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;color:var(--text);}
+    .mm-row__i svg{width:20px;height:20px;}
+    .mm-row__i.is-err{color:var(--danger);}
+    .mm-row__b{flex:1;min-width:0;}
+    .mm-row__t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .mm-row__m{display:block;font-size:.8125rem;color:var(--text-2);}
+    /* Fuentes */
+    .mm-src{display:flex;flex-direction:column;gap:4px;margin-top:12px;}
+    .mm-src__url{margin:0;font-weight:500;overflow-wrap:anywhere;}
+    .mm-src__st{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;font-size:.875rem;color:var(--text-2);}
+    .mm-src__st svg{width:16px;height:16px;flex-shrink:0;}
+    .mm-src__st.is-ok{color:var(--text);} .mm-src__st.is-ok svg{color:var(--ok);}
+    .mm-src__meta{margin:0;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    /* Secciones: grupos con caja y filas que se abren */
+    .mm-sg{margin-top:24px;}
+    .mm-sg:first-child{margin-top:0;}
+    .mm-sg__t{margin:0 0 8px;font-size:.875rem;font-weight:500;color:var(--text);}
+    .mm-sg__t span{margin-left:6px;font-weight:400;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    /* Cada sección es una tarjeta (8px entre tarjetas); se abre dentro de su tarjeta. El hover solo cambia el borde. */
+    .mm-box{display:flex;flex-direction:column;gap:8px;}
+    .mm-card{border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .mm-card:hover{border-color:var(--text-2);}
+    .mm-sr{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:12px 16px;border:0;border-radius:9px;background:none;font:inherit;color:var(--text);text-align:left;cursor:pointer;}
+    .mm-sr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+    .mm-sr__t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .mm-sr__m{flex-shrink:0;font-size:.8125rem;color:var(--text-2);}
+    .mm-sr__chev{flex-shrink:0;width:16px;height:16px;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    .mm-sr[aria-expanded="true"] .mm-sr__chev{transform:rotate(180deg);}
+    .mm-sr__x{padding:0 16px 14px;font-size:.875rem;line-height:1.6;color:var(--text-2);white-space:pre-line;overflow-wrap:anywhere;}
+    .mm-sr__x p{margin:0;max-width:68ch;}
+    .mm-sr__x a{display:inline-block;margin-top:4px;font-size:.8125rem;}
+    .mm-sbox{display:grid;place-items:center;min-height:280px;padding:24px 16px;border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-2);}
+    .mm-sbox p{margin:0;}
+    .mm-more{margin-top:16px;}
+    @media (max-width:768px){
+      .mm-sr{min-height:56px;}
+      .mm-sr__t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+      .mm-act .wa-btn{flex:1 1 auto;}
+      .mm-link{min-height:44px;}
+      .mm-chip,.mm-idx button{min-height:44px;}
+      .mm-head{row-gap:12px;}
+      .mm-hact{margin:-8px 0 -8px auto;}
+    }
+    /* mm:end */
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -820,6 +917,11 @@
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.4-7 10-4-1.6-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
           Verificaciones
           <span class="wa-dot"></span><span class="sr-only" id="navVfSr" hidden>(sin verificar)</span>
+        </a>
+        <a href="/app/memoria" data-view="memoria" data-label="Memoria">
+          <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h4"/></svg>
+          Memoria
+          <span class="wa-dot"></span><span class="sr-only" id="navMmSr" hidden>(hay una versión nueva)</span>
         </a>
         <a href="/app/widget" data-view="widget" data-label="Widget">
           <svg class="wa-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
@@ -1034,7 +1136,6 @@
             <div class="wg-tabs" id="wgTabs" role="tablist" aria-label="Secciones del widget">
               <button class="wg-tab" id="wgTab-general" type="button" role="tab" aria-selected="true" aria-controls="wgPanel-general" data-tab="general">General</button>
               <button class="wg-tab" id="wgTab-apariencia" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-apariencia" data-tab="apariencia" tabindex="-1">Apariencia</button>
-              <button class="wg-tab" id="wgTab-conocimiento" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-conocimiento" data-tab="conocimiento" tabindex="-1">Conocimiento</button>
               <button class="wg-tab" id="wgTab-comportamiento" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-comportamiento" data-tab="comportamiento" tabindex="-1">Comportamiento</button>
               <button class="wg-tab" id="wgTab-contacto" type="button" role="tab" aria-selected="false" aria-controls="wgPanel-contacto" data-tab="contacto" tabindex="-1">Contacto y privacidad</button>
             </div>
@@ -1123,52 +1224,6 @@
                     <button type="button" data-th="dark" disabled>Oscuro</button>
                   </div>
                 </div>
-              </div>
-
-              <!-- Conocimiento -->
-              <div class="wg-panel" id="wgPanel-conocimiento" role="tabpanel" aria-labelledby="wgTab-conocimiento" tabindex="0" hidden>
-                <p class="wg-panel__hint">Lo que tu asistente usa para responder.</p>
-                <!-- kx:start — Notas e Información: en lectura, texto recortado con "Ver más"; al editar, el campo crece -->
-                <div class="wg-field">
-                  <div class="kx-head"><label class="wg-field__label" for="wgNotes">Notas</label><span class="kx-n" id="wgNotesN" hidden>0/2000</span></div>
-                  <textarea class="wg-textarea" id="wgNotes" maxlength="2000" disabled hidden aria-describedby="wgNotesH wgNotesN" placeholder="Avisos temporales: cambios de horario, cierres o promociones vigentes."></textarea>
-                  <div class="kx-box"><div class="kx-view" id="wgNotesV" data-empty="Sin notas."></div></div>
-                  <button class="kx-more" id="wgNotesVM" type="button" aria-expanded="false" aria-controls="wgNotesV" hidden>Ver más</button>
-                  <p class="wg-field__hint" id="wgNotesH">La IA las lee primero y tienen prioridad sobre la información de abajo.</p>
-                </div>
-                <div class="wg-field">
-                  <label class="wg-field__label" for="wgKnow">Información para responder</label>
-                  <textarea class="wg-textarea" id="wgKnow" disabled hidden placeholder="Pegá tu FAQ, descripción del producto, links útiles…"></textarea>
-                  <div class="kx-box"><div class="kx-view" id="wgKnowV" data-empty="Sin información."></div></div>
-                  <button class="kx-more" id="wgKnowVM" type="button" aria-expanded="false" aria-controls="wgKnowV" hidden>Ver más</button>
-                  <p class="wg-field__hint" id="wgKnowAi" hidden></p>
-                  <p class="wg-field__hint" id="wgKnowNote" role="status" hidden>Se generó un resumen nuevo. Tu texto sin guardar sigue acá.</p>
-                </div>
-                <!-- kx:end -->
-                <!-- kn:start — dos tarjetas en una fila (se apilan si no entran); cada tarjeta es la zona de arrastre -->
-                <div class="wg-field kn-row">
-                  <div class="kn" id="knDocs">
-                    <div class="kn__zone">
-                      <div class="kn__txt"><div class="kn__head"><span class="kn__t" id="knDocsT">Documentos</span><span class="kn__n">0 de 5</span></div>
-                        <p class="kn__hint" id="knDocsH">Hasta 5 archivos de 5 MB. PDF, TXT o MD.</p></div>
-                      <button class="wa-btn kn__pick" type="button" aria-describedby="knDocsT knDocsH" disabled>Elegir</button>
-                      <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knDocsT" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" />
-                    </div>
-                    <p class="kn__msg" aria-live="polite"></p>
-                    <ul class="kn__list" aria-labelledby="knDocsT"></ul>
-                  </div>
-                  <div class="kn kn--img" id="knImgs">
-                    <div class="kn__zone">
-                      <div class="kn__txt"><div class="kn__head"><span class="kn__t" id="knImgsT">Capturas</span><span class="kn__n">0 de 5</span></div>
-                        <p class="kn__hint" id="knImgsH">Hasta 5 imágenes de 2 MB. PNG, JPG o WebP.</p></div>
-                      <button class="wa-btn kn__pick" type="button" aria-describedby="knImgsT knImgsH" disabled>Elegir</button>
-                      <input class="sr-only" type="file" multiple tabindex="-1" aria-labelledby="knImgsT" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
-                    </div>
-                    <p class="kn__msg" aria-live="polite"></p>
-                    <ul class="kn__list" aria-labelledby="knImgsT"></ul>
-                  </div>
-                </div>
-                <!-- kn:end -->
               </div>
 
               <!-- Comportamiento -->
@@ -1316,25 +1371,131 @@
               </div>
               <div class="vf-act"><button class="wa-btn wa-btn-primary" id="vfGo" type="button">Verificar</button><p class="vf-wait" id="vfWait" hidden></p></div>
               <p class="vf-use" id="vfUse" hidden></p>
+              <p class="vf-mm" id="vfMm" hidden>Tu asistente ya puede leer tu sitio. <a href="/app/memoria" id="vfMmGo">Ir a Memoria</a></p>
             </div>
             <div class="cfg-card" id="vfPrev" hidden></div>
-            <div class="cfg-card">
-              <h2 class="cfg-card__title">Lo que se desbloquea</h2>
-              <div class="wg-field">
-                <span class="wg-field__label">Lectura del sitio</span>
-                <p class="vf-lock" id="rdLock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Verificá tu sitio para activarla</p>
-                <div id="rdOn" hidden>
-                  <p class="wg-field__hint">Leemos las páginas públicas de tu sitio y escribimos el resumen en Información para responder.</p>
-                  <div aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="vf-msg" id="rdMsg" hidden><span id="rdMsgT"></span> <a href="/app/widget" id="rdSee" hidden>Ver en Widget &gt; Conocimiento</a></p></div>
-                  <div id="rdAsk" hidden><p class="wg-field__hint">Tu Información para responder tiene texto escrito por vos. ¿Qué hacemos con él?</p><div class="vf-act"><button class="wa-btn" type="button" data-rdmode="replace">Reemplazar</button><button class="wa-btn" type="button" data-rdmode="update">Actualizar sin perder mis cambios</button></div></div>
-                  <div class="vf-act"><button class="wa-btn" id="rdGo" type="button">Leer mi sitio y generar el resumen</button><p class="vf-wait" id="rdWait" hidden></p></div>
-                  <p class="vf-use" id="rdUse" hidden></p>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
         <!-- vf:end -->
+
+        <!-- VIEW: Memoria (mm:start) — 4 pestañas en memoria, sin cambiar la URL; todos los paneles quedan en el DOM -->
+        <section class="wa-view" data-view="memoria">
+          <div class="mm-head">
+            <h1 class="wa-page-title">Memoria</h1>
+            <div class="mm-hact">
+              <button class="wa-btn" id="mmEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmSave" type="button" hidden>Guardar</button>
+              <button class="wa-btn wa-btn-primary" id="mmNotesEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button>
+            </div>
+          </div>
+          <p class="wa-page-sub">Lo que sabe tu asistente sobre tu sitio y tu app.</p>
+          <div class="wg-tabbar">
+            <div class="wg-tabs" id="mmTabs" role="tablist" aria-label="Secciones de la Memoria">
+              <button class="wg-tab" id="mmTab-memoria" type="button" role="tab" aria-selected="true" aria-controls="mmPanel-memoria" data-tab="memoria">Memoria</button>
+              <button class="wg-tab" id="mmTab-notas" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-notas" data-tab="notas" tabindex="-1">Notas</button>
+              <button class="wg-tab" id="mmTab-fuentes" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-fuentes" data-tab="fuentes" tabindex="-1">Fuentes</button>
+              <button class="wg-tab" id="mmTab-secciones" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-secciones" data-tab="secciones" tabindex="-1">Secciones</button>
+            </div>
+          </div>
+          <div class="mm">
+            <!-- Memoria: texto en tarjetas (columna de hasta 860px) y, desde 1100px, "Qué cubre" e índice a la derecha -->
+            <div class="wg-panel" id="mmPanel-memoria" role="tabpanel" aria-labelledby="mmTab-memoria" tabindex="0">
+              <div class="mm-cols">
+                <aside class="mm-side" id="mmSide" aria-label="Resumen de la Memoria" hidden>
+                  <div class="cfg-card" id="mmCover" hidden><h2 class="cfg-card__title">Qué cubre</h2><div class="mm-chips" id="mmCoverChips"></div></div>
+                  <nav class="cfg-card mm-idx" aria-labelledby="mmIdxT"><h2 class="cfg-card__title" id="mmIdxT">En esta Memoria</h2><ol id="mmIdxL"></ol></nav>
+                </aside>
+                <div class="mm-main">
+                  <div class="mm-band" id="mmBand" hidden>
+                    <p class="mm-band__t">Hay una versión nueva de la Memoria.</p>
+                    <div class="mm-act">
+                      <button class="wa-btn" id="mmDiffBtn" type="button" aria-expanded="false" aria-controls="mmDiff">Ver cambios</button>
+                      <button class="wa-btn wa-btn-primary" id="mmAccept" type="button">Usar la nueva</button>
+                      <button class="wa-btn" id="mmDiscard" type="button">Descartar</button>
+                    </div>
+                    <ol class="mm-diff" id="mmDiff" aria-label="Cambios entre la Memoria actual y la nueva" hidden></ol>
+                  </div>
+                  <div class="mm-empty" id="mmEmptyNo" hidden><p>La Memoria se crea leyendo tu sitio. Primero confirmá que el sitio es tuyo.</p><a class="mm-link" href="/app/verificaciones" data-mmgo="verificaciones">Verificar mi sitio</a></div>
+                  <div class="mm-empty" id="mmEmptyGo" hidden><p>La Memoria se crea leyendo tu sitio: un resumen de lo que tiene, para que tu asistente responda con eso.</p><button class="wa-btn wa-btn-primary" id="mmCreate" type="button">Leer mi sitio y crear la Memoria</button></div>
+                  <div class="mm-st mm-st--line" id="mmSt" data-hint="mmRegenH" hidden>
+                    <div role="status" aria-live="polite"><ul class="vf-steps" id="mmStSteps"></ul><p class="mm-st__t" id="mmStT"></p></div>
+                    <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="mmRegen" type="button">Regenerar</button><p class="vf-wait" hidden></p></div>
+                  </div>
+                  <p class="mm-note mm-st__h" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
+                  <div class="mm-blks" id="mmBlks" hidden></div>
+                  <div class="cfg-card" id="mmEditBox" hidden>
+                    <div class="kx-head"><label class="wg-field__label" for="mmTa">Texto de la Memoria</label><span class="kx-n" id="mmTaN"></span></div>
+                    <textarea class="wg-textarea mm-ta" id="mmTa" maxlength="8000" spellcheck="false" aria-describedby="mmTaN mmOver"></textarea>
+                    <p class="mm-over" id="mmOver" hidden>El asistente usa solo los primeros 8.000 caracteres.</p>
+                  </div>
+                  <p class="mm-msg" id="mmMsg" role="status" aria-live="polite"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notas (kx:start) — en lectura, texto recortado con "Ver más"; al editar, el campo crece -->
+            <div class="wg-panel mm-pane" id="mmPanel-notas" role="tabpanel" aria-labelledby="mmTab-notas" tabindex="0" hidden>
+              <div class="cfg-card">
+                <div class="kx-head"><label class="wg-field__label" for="mmNotes">Notas</label><span class="kx-n" id="mmNotesN" hidden>0/2000</span></div>
+                <textarea class="wg-textarea" id="mmNotes" maxlength="2000" hidden aria-describedby="mmNotesH mmNotesN" placeholder="Avisos temporales: cambios de horario, cierres o promociones vigentes."></textarea>
+                <div class="kx-box"><div class="kx-view" id="mmNotesV" data-empty="Sin notas."></div></div>
+                <button class="kx-more" id="mmNotesVM" type="button" aria-expanded="false" aria-controls="mmNotesV" hidden>Ver más</button>
+                <p class="wg-field__hint" id="mmNotesH">La IA las lee primero y tienen prioridad sobre la Memoria.</p>
+                <p class="mm-over" id="mmNotesBr" hidden>Completá lo que está entre corchetes antes de guardar.</p>
+                <p class="mm-msg" id="mmNotesMsg" role="status" aria-live="polite"></p>
+              </div>
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Ejemplos</h2>
+                <p class="mm-note">Tocá uno para agregarlo y completá lo que está entre corchetes.</p>
+                <div class="mm-chips" id="mmNotesEx">
+                  <button class="mm-chip" type="button" data-ins="Hoy atendemos hasta las [hora].">Horario de hoy</button>
+                  <button class="mm-chip" type="button" data-ins="El [fecha] estamos fuera de servicio.">Cierre</button>
+                  <button class="mm-chip" type="button" data-ins="Promoción vigente: [detalle].">Promoción</button>
+                  <button class="mm-chip" type="button" data-ins="Aviso: [detalle].">Aviso</button>
+                </div>
+              </div>
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Cómo las usa el asistente</h2>
+                <ol class="mm-how"><li>Notas</li><li>Secciones encontradas para la pregunta</li><li>Memoria</li></ol>
+                <p class="mm-note">Si algo se contradice, gana lo de arriba.</p>
+              </div>
+            </div>
+            <!-- kx:end -->
+
+            <!-- Fuentes -->
+            <div class="wg-panel mm-pane" id="mmPanel-fuentes" role="tabpanel" aria-labelledby="mmTab-fuentes" tabindex="0" hidden>
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Sitio</h2>
+                <div class="mm-src">
+                  <p class="mm-src__url" id="mmSrcUrl"></p>
+                  <p class="mm-src__st" id="mmSrcSt"></p>
+                  <p class="mm-src__meta" id="mmSrcMeta" hidden></p>
+                </div>
+                <div class="mm-st" id="rdSt" hidden>
+                  <div role="status" aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="mm-st__t" id="rdMsg"></p></div>
+                  <p class="mm-note mm-st__h" id="rdH" hidden></p>
+                  <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="rdGo" type="button">Actualizar</button><p class="vf-wait" id="rdWait" hidden></p></div>
+                </div>
+                <p class="vf-use" id="rdUse" hidden></p>
+              </div>
+              <div class="cfg-card" id="mmPages" hidden><h2 class="cfg-card__title">Páginas leídas</h2><ul class="mm-list" id="mmPagesL"></ul></div>
+              <div class="cfg-card" id="mmAct" hidden><h2 class="cfg-card__title">Actividad reciente</h2><ul class="mm-list" id="mmActL"></ul></div>
+              <p class="mm-note" id="mmSrcNone" hidden>Cuando leas tu sitio, acá vas a ver sus páginas y la actividad.</p>
+            </div>
+
+            <!-- Secciones (solo lectura) -->
+            <div class="wg-panel mm-pane" id="mmPanel-secciones" role="tabpanel" aria-labelledby="mmTab-secciones" tabindex="0" hidden>
+              <div class="cfg-card">
+                <p class="wg-panel__hint">Esto es lo que el asistente leyó de tu sitio.</p>
+                <label class="sr-only" for="mmSecQ">Buscar por título</label>
+                <input class="wg-input mm-search" id="mmSecQ" type="search" placeholder="Buscar por título" autocomplete="off" spellcheck="false" />
+                <div class="mm-chips" id="mmSecChips" role="group" aria-label="Filtrar por tipo"></div>
+              </div>
+              <div id="mmSecs"></div>
+              <button class="wa-btn mm-more" id="mmSecMore" type="button" hidden>Ver más</button>
+            </div>
+          </div>
+        </section>
+        <!-- mm:end -->
 
         <!-- VIEW: Placeholder (Conversaciones/Widget/Analíticas/Configuración) -->
       </div>
@@ -1494,6 +1655,20 @@
     </div>
   </div>
 
+  <div class="wa-modal" id="mmDiscardModal" role="dialog" aria-modal="true" aria-labelledby="mmDiscardT">
+    <div class="wa-modal__scrim" data-mmclose></div>
+    <div class="wa-modal__card" style="max-width:400px">
+      <div class="wa-modal__form">
+        <h2 class="wa-modal__title" id="mmDiscardT">¿Descartar la versión nueva?</h2>
+        <p class="wa-modal__desc">Tu Memoria actual queda como está.</p>
+        <div class="wa-modal__actions">
+          <button class="wa-btn" type="button" data-mmclose>Cancelar</button>
+          <button class="wa-btn wa-btn-danger solid" type="button" id="mmDiscardGo">Descartar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="wa-modal" id="delAccount" role="dialog" aria-modal="true" aria-labelledby="delAccountT">
     <div class="wa-modal__scrim" data-delclose></div>
     <div class="wa-modal__card" style="max-width:440px">
@@ -1569,6 +1744,7 @@
       if (view === "conversaciones") renderConversations();
       if (view === "widget"){ renderWidget(); wgTabSet("general"); }
       if (view !== "verificaciones") vfLeave(); else if (window.__wuUser) vfEnter();
+      if (view === "memoria" && window.__wuUser) mmEnter();
       window.scrollTo(0,0);
     }
     function setActive(a){ navLinks.forEach(function(x){ x.classList.remove("is-active"); }); if(a) a.classList.add("is-active"); }
@@ -1610,7 +1786,7 @@
     function nvBackSet(){
       var a = nav.querySelector('a[data-view="' + nvFrom + '"]');
       nvBack.setAttribute("href", a.getAttribute("href"));
-      document.getElementById("nvBackT").textContent = a.textContent.replace("(sin verificar)", "").replace("(notificaciones sin leer)", "").trim();
+      document.getElementById("nvBackT").textContent = a.textContent.replace("(sin verificar)", "").replace("(hay una versión nueva)", "").replace("(notificaciones sin leer)", "").trim();
     }
     nvBack.addEventListener("click", function(e){
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -2418,7 +2594,7 @@
         var un = it.result === 'unanswered', d = it.details || [];
         var rest = Math.max(it.chats, d.length) - Math.min(d.length, 5); // details puede traer solo una muestra
         return '<div class="qview__d">' +
-          (un ? '<button class="qview__link" type="button" data-k="add:' + esc(it.id) + '">Agregar a información →</button>' : '') +
+          (un ? '<button class="qview__link" type="button" data-k="add:' + esc(it.id) + '">Agregar a la Memoria →</button>' : '') +
           '<ul>' + d.slice(0, 5).map(function(c){
             return '<li><span class="qview__w">' + esc(full(c.when)) + '</span>' +
               '<span class="qview__a" title="' + esc(c.asked) + '">' + esc(c.asked) + '</span>' +
@@ -2546,8 +2722,8 @@
       var opts = {
         items: toQuestionItems(appState.conversations || []),
         inProgress: 0,
-        // Misma navegación que el menú: el clic en el enlace "Widget" hace setActive, showView y pushState.
-        onAddKnowledge: function(){ var a = nav.querySelector('a[data-view="widget"]'); if (a) a.click(); }
+        // Lleva a la Memoria (misma navegación que el menú: setActive, showView y pushState).
+        onAddKnowledge: function(){ wuGoView('memoria'); }
       };
       if (qvApi) qvApi.update(opts); else qvApi = mountQuestions(el, opts);
     }
@@ -2563,7 +2739,7 @@
     appState.widget = {
       name: 'Asistente', accent: 'auto', position: 'right',
       welcome: '¡Hola! ¿En qué te puedo ayudar?',
-      tone: 'cercano', language: 'es', fallback: 'email', knowledge: '', knowledgeAiAt: null, ownerNotes: '',
+      tone: 'cercano', language: 'es', fallback: 'email',
       avatar: 'w1', avatarHidden: false,
       siteUrl: '', contactEmail: '', privacyUrl: '',
       enabled: true, installed: false, theme: 'dark'
@@ -2623,8 +2799,6 @@
       if (!wgEditing || !wgDraft) return;
       if (wgId('wgName')) wgDraft.name = wgId('wgName').value;
       if (wgId('wgWelcome')) wgDraft.welcome = wgId('wgWelcome').value;
-      if (wgId('wgKnow')) wgDraft.knowledge = wgId('wgKnow').value;
-      if (wgId('wgNotes')) wgDraft.ownerNotes = wgId('wgNotes').value;
       if (wgId('wgLang')) wgDraft.language = wgId('wgLang').value;
       if (wgId('wgFallback')) wgDraft.fallback = wgId('wgFallback').value;
       if (wgId('wgEmail')) wgDraft.contactEmail = wgId('wgEmail').value;
@@ -2670,8 +2844,6 @@
       var initial = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase();
       if (wgId('wgName')) wgId('wgName').value = c.name || '';
       if (wgId('wgWelcome')) wgId('wgWelcome').value = c.welcome || '';
-      if (wgId('wgKnow')) wgId('wgKnow').value = c.knowledge || '';
-      if (wgId('wgNotes')) wgId('wgNotes').value = c.ownerNotes || '';
       if (wgId('wgLang')) wgId('wgLang').value = c.language;
       if (wgId('wgFallback')) wgId('wgFallback').value = wgNormFallback(c.fallback);
       wgFallbackHint(c);
@@ -2691,7 +2863,7 @@
       Array.prototype.slice.call(document.querySelectorAll('#wgTheme button')).forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-th') === (c.theme || 'dark')); });
 
       var dis = !wgEditing;
-      ['wgName','wgWelcome','wgKnow','wgNotes','wgLang','wgFallback','wgEmail','wgPrivacy'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
+      ['wgName','wgWelcome','wgLang','wgFallback','wgEmail','wgPrivacy'].forEach(function(id){ if (wgId(id)) wgId(id).disabled = dis; });
       Array.prototype.slice.call(document.querySelectorAll('#wgLogo .wg-logo__opt, #wgCpHue, #wgCpHex, #wgCpOk, #wgTone button, #wgTheme button')).forEach(function(b){ b.disabled = dis; });
 
       // avatar: modo mostrar/ocultar
@@ -2701,7 +2873,6 @@
       var avImg = wgId('wgAvImg'), hasImg = !c.avatarHidden && typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar];
       if (avImg){ avImg.hidden = !hasImg; avImg.innerHTML = hasImg ? '<img src="' + c.avatar + '" alt="">' : ''; }
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button, #wgAvatars button')).forEach(function(b){ b.disabled = dis; });
-      knRender('docs'); knRender('images'); kxSync();
 
       var act = wgId('wgActions');
       if (act){
@@ -2718,7 +2889,7 @@
     }
 
     // ===== Pestañas de la vista Widget (en memoria, sin tocar la URL; todos los paneles quedan en el DOM) =====
-    var WG_TABS = ['general','apariencia','conocimiento','comportamiento','contacto'];
+    var WG_TABS = ['general','apariencia','comportamiento','contacto'];
     var WG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
     function wgTabSet(name, focus){
       WG_TABS.forEach(function(t){
@@ -2730,45 +2901,15 @@
         if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
       });
       wgId('wgGrid').classList.toggle('is-full', name !== 'apariencia' && name !== 'comportamiento');
-      if (name === 'conocimiento') kxSync();   // el recorte y el alto se miden con la pestaña visible
     }
-    /* kx:start — Notas e Información. Lectura: texto plano recortado; "Ver más" solo si no cabe.
-       Edición: el campo se ve completo y crece con el contenido (sin scroll interno ni resize). */
-    var KX = ['wgNotes', 'wgKnow'], kxOpen = {}, kxDate = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
-    function kxFit(ta){ if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
-    function kxSync(){
-      if (!KX) return;   // llamado antes de que corra esta parte del script
-      KX.forEach(function(id){
-        var ta = wgId(id), v = wgId(id + 'V'), more = wgId(id + 'VM'), t = ta.value.trim();
-        ta.hidden = !wgEditing; v.parentNode.hidden = wgEditing;
-        if (wgEditing){ more.hidden = true; kxFit(ta); return; }
-        v.textContent = t || v.getAttribute('data-empty');
-        if (!v.offsetParent) return;   // pestaña oculta: se mide al mostrarla
-        v.classList.add('is-clamp');
-        var cut = v.scrollHeight > v.clientHeight + 1, open = cut && !!kxOpen[id];
-        v.classList.toggle('is-clamp', !open); kxOpen[id] = open;
-        more.hidden = !cut; more.textContent = open ? 'Ver menos' : 'Ver más'; more.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      var n = wgId('wgNotesN'), len = wgId('wgNotes').value.length;
-      n.hidden = !wgEditing; n.textContent = len + '/2000'; n.classList.toggle('is-max', len >= 2000);
-      var ai = wgId('wgKnowAi'), at = appState.widget.knowledgeAiAt ? new Date(appState.widget.knowledgeAiAt) : null, ok = !!at && !isNaN(at);
-      ai.hidden = !ok; ai.textContent = ok ? 'Generado por IA el ' + kxDate.format(at) + '.' : '';
-    }
-    KX.forEach(function(id){
-      wgId(id).addEventListener('input', kxSync);
-      wgId(id + 'VM').addEventListener('click', function(){ kxOpen[id] = !kxOpen[id]; kxSync(); });
-    });
-    var kxRaf = 0;
-    window.addEventListener('resize', function(){ cancelAnimationFrame(kxRaf); kxRaf = requestAnimationFrame(kxSync); });
-    /* kx:end */
     // "Hecho" y "Falta" (solo campos que empiezan vacíos, según lo guardado), instalación y color del logo.
     function wgRenderExtras(){
       var w = appState.widget || {}, c = wgCfg();
-      var items = [['knowledge','Información para responder','conocimiento'],['siteUrl','URL del sitio','verificaciones'],
+      var items = [['knowledge','Memoria','memoria'],['siteUrl','URL del sitio','verificaciones'],
                    ['contactEmail','Correo de contacto','contacto'],['privacyUrl','URL de privacidad','contacto']];
       var done = '', todo = '';
       items.forEach(function(it){
-        if (String(w[it[0]] || '').trim()) done += '<li>' + WG_CHECK + it[1] + '</li>';
+        if (String((it[0] === 'knowledge' ? appState.memory || {} : w)[it[0]] || '').trim()) done += '<li>' + WG_CHECK + it[1] + '</li>';
         else todo += '<li><button class="wg-link" type="button" data-goto="' + it[2] + '">' + it[1] + '</button></li>';
       });
       var box = wgId('wgTodo');
@@ -2793,7 +2934,7 @@
         e.preventDefault(); wgTabSet(WG_TABS[k], true);
       });
       var todo = wgId('wgTodo');
-      if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'), g = b && b.getAttribute('data-goto'); if (g === 'verificaciones') vfGo(); else if (g) wgTabSet(g, true); });
+      if (todo) todo.addEventListener('click', function(e){ var b = e.target.closest('[data-goto]'), g = b && b.getAttribute('data-goto'); if (g === 'verificaciones') vfGo(); else if (g === 'memoria') wuGoView('memoria'); else if (g) wgTabSet(g, true); });
     })();
 
     function renderChatState(){
@@ -2816,102 +2957,15 @@
       }, function(){ if (btn) btn.disabled = false; toast('No se pudo cambiar el estado'); });
     }
 
-    function wgEnterEdit(){ wgId('wgKnowNote').hidden = true; knEditStart(); wgDraft = wgClone(appState.widget); wgEditing = true; renderWidget(); if (wgId('wgName')) wgId('wgName').focus(); }
-    function wgCancel(){ wgId('wgKnowNote').hidden = true; knEditCancel(); wgEditing = false; wgDraft = null; renderWidget(); }
+    function wgEnterEdit(){ wgDraft = wgClone(appState.widget); wgEditing = true; renderWidget(); if (wgId('wgName')) wgId('wgName').focus(); }
+    function wgCancel(){ wgEditing = false; wgDraft = null; renderWidget(); }
 
-    /* kn:start — Conocimiento: Documentos y Capturas. La interfaz habla SOLO con knowledgeStore. */
-    // ENSAMBLE: reemplazar por Supabase Storage (buckets privados knowledge-docs y knowledge-images) y la tabla de metadatos; los límites se imponen también en el servidor
-    // Contrato: list(kind) -> [{ id, name, size, file }], add(kind, file) -> item, remove(kind, id). kind = 'docs' | 'images'.
-    var knowledgeStore = (function(){
-      var data = { docs: [], images: [] }, seq = 0;
-      return {
-        list: function(kind){ return data[kind].slice(); },
-        add: function(kind, file){ var it = { id: 'kn' + (++seq), name: file.name, size: file.size, file: file }; data[kind].push(it); return it; },
-        remove: function(kind, id){ data[kind] = data[kind].filter(function(it){ return it.id !== id; }); }
-      };
-    })();
-    var KN = {
-      docs:   { box: 'knDocs', ext: ['pdf','txt','md'], mime: ['application/pdf','text/plain','text/markdown','text/x-markdown'], max: 5242880, mb: 5 },
-      images: { box: 'knImgs', ext: ['png','jpg','jpeg','webp'], mime: ['image/png','image/jpeg','image/webp'], max: 2097152, mb: 2 }
-    };
-    var KN_MAX = 5, knUrls = {}, knMark = {}, knTimers = {};
-    var KN_DOC_ICON = '<svg class="kn__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>';
-    var KN_X_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-    function knShort(n){ n = String(n); return n.length > 60 ? n.slice(0, 59) + '…' : n; }
-    function knSize(b){ return b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
-    // Una sola validación para los dos bloques: tipo (extensión y MIME si viene), tamaño, duplicados y cupo.
-    function knCheck(kind, files){
-      var cfg = KN[kind], have = knowledgeStore.list(kind), ok = [], errs = [], full = false;
-      files.forEach(function(f){
-        var ext = f.name.lastIndexOf('.') > 0 ? f.name.split('.').pop().toLowerCase() : '', nm = knShort(f.name);
-        if (cfg.ext.indexOf(ext) < 0 || (f.type && cfg.mime.indexOf(f.type) < 0)) errs.push(nm + ': formato no admitido.');
-        else if (f.size > cfg.max) errs.push(nm + ': supera los ' + cfg.mb + ' MB.');
-        else if (have.concat(ok).some(function(x){ return x.name === f.name && x.size === f.size; })) errs.push(nm + ': ya está en la lista.');
-        else if (have.length + ok.length >= KN_MAX) full = true;
-        else ok.push(f);
-      });
-      if (full) errs.push('Llegaste al máximo de ' + KN_MAX + ' archivos.');
-      return { ok: ok, errs: errs };
-    }
-    function knMsg(kind, errs){
-      var p = wgId(KN[kind].box) && wgId(KN[kind].box).querySelector('.kn__msg'); if (!p) return;
-      clearTimeout(knTimers[kind]); p.textContent = errs.join('\n');
-      if (errs.length) knTimers[kind] = setTimeout(function(){ p.textContent = ''; }, 6000);
-    }
-    function knAdd(kind, list){
-      if (!wgEditing) return;
-      var r = knCheck(kind, Array.prototype.slice.call(list || []));
-      r.ok.forEach(function(f){ knowledgeStore.add(kind, f); });
-      knMsg(kind, r.errs); knRender(kind);
-    }
-    function knDrop(kind, id){ if (knUrls[id]){ URL.revokeObjectURL(knUrls[id]); delete knUrls[id]; } knowledgeStore.remove(kind, id); }
-    function knRender(kind){
-      if (!knowledgeStore) return;
-      var box = wgId(KN[kind].box); if (!box) return;
-      var items = knowledgeStore.list(kind), ul = box.querySelector('.kn__list');
-      box.classList.toggle('is-off', !wgEditing);
-      box.querySelector('.kn__pick').disabled = !wgEditing;
-      box.querySelector('.kn__n').textContent = items.length + ' de ' + KN_MAX;
-      ul.textContent = '';
-      items.forEach(function(it){
-        var li = document.createElement('li'), nm = document.createElement('span'), sz = document.createElement('span');
-        li.className = 'kn__row'; li.setAttribute('data-id', it.id);
-        if (kind === 'images'){ var im = document.createElement('img'); im.className = 'kn__thumb'; im.alt = ''; im.src = knUrls[it.id] || (knUrls[it.id] = URL.createObjectURL(it.file)); li.appendChild(im); }
-        else li.innerHTML = KN_DOC_ICON;
-        nm.className = 'kn__name'; nm.textContent = knShort(it.name);
-        sz.className = 'kn__size'; sz.textContent = knSize(it.size);
-        li.appendChild(nm); li.appendChild(sz);
-        if (wgEditing){ var x = document.createElement('button'); x.type = 'button'; x.className = 'kn__x'; x.setAttribute('aria-label', 'Quitar ' + knShort(it.name)); x.innerHTML = KN_X_ICON; li.appendChild(x); }
-        ul.appendChild(li);
-      });
-    }
-    // Cancelar descarta lo agregado en esa edición (lo quitado con "×" ya se quitó).
-    function knEditStart(){ Object.keys(KN).forEach(function(k){ knMark[k] = knowledgeStore.list(k).map(function(it){ return it.id; }); }); }
-    function knEditCancel(){ Object.keys(KN).forEach(function(k){ knowledgeStore.list(k).forEach(function(it){ if ((knMark[k] || []).indexOf(it.id) < 0) knDrop(k, it.id); }); knMsg(k, []); }); }
-    Object.keys(KN).forEach(function(kind){
-      var box = wgId(KN[kind].box); if (!box) return;
-      var zone = box.querySelector('.kn__zone'), input = box.querySelector('input[type=file]'), pick = box.querySelector('.kn__pick');
-      zone.addEventListener('click', function(){ if (wgEditing) input.click(); });
-      pick.addEventListener('click', function(e){ e.stopPropagation(); if (wgEditing) input.click(); });
-      input.addEventListener('click', function(e){ e.stopPropagation(); });
-      input.addEventListener('change', function(){ knAdd(kind, input.files); input.value = ''; });
-      zone.addEventListener('dragover', function(e){ if (!wgEditing) return; e.preventDefault(); zone.classList.add('is-over'); });
-      zone.addEventListener('dragleave', function(e){ if (!zone.contains(e.relatedTarget)) zone.classList.remove('is-over'); });
-      zone.addEventListener('drop', function(e){ e.preventDefault(); zone.classList.remove('is-over'); knAdd(kind, e.dataTransfer && e.dataTransfer.files); });
-      box.querySelector('.kn__list').addEventListener('click', function(e){
-        var x = e.target.closest('.kn__x'); if (!x || !wgEditing) return;
-        var li = x.closest('.kn__row'), sib = li.nextElementSibling || li.previousElementSibling, sid = sib && sib.getAttribute('data-id');
-        knDrop(kind, li.getAttribute('data-id')); knRender(kind);
-        (sid && box.querySelector('[data-id="' + sid + '"] .kn__x') || pick).focus();
-      });
-    });
-    /* kn:end */
     function wgSave(){
       wgReadInputs();
       var keep = appState.widget;   // la dirección y la verificación se manejan en Verificaciones: el borrador no las pisa
       appState.widget = wgClone(wgDraft);
-      ['siteUrl','verifiedHost','verifiedAt','verifyToken','knowledgeAiAt'].forEach(function(k){ appState.widget[k] = keep[k]; });
-      wgEditing = false; wgDraft = null; wgId('wgKnowNote').hidden = true;
+      ['siteUrl','verifiedHost','verifiedAt','verifyToken'].forEach(function(k){ appState.widget[k] = keep[k]; });
+      wgEditing = false; wgDraft = null;
       renderWidget();
       renderConversations(); // refleja apariencia en la bandeja
       wgPersist();
@@ -2923,9 +2977,9 @@
       return new Blob([u8], { type: mime });
     }
     // Columnas que guarda el Widget y su valor "cargado" (lo último leído o guardado en la base). Se envía SOLO lo que
-    // cambió contra ese valor: así un guardado no pisa lo que cambió por otro lado (p. ej. el resumen de la lectura del sitio).
+    // cambió contra ese valor: así un guardado no pisa lo que cambió por otro lado. La Memoria y las Notas se guardan en la vista Memoria.
     var WG_COLS = { name: 'name', accent: 'accent', position: 'position', welcome: 'welcome', tone: 'tone', language: 'language', fallback: 'fallback',
-      knowledge: 'knowledge', owner_notes: 'ownerNotes', avatar: 'avatar', avatar_hidden: 'avatarHidden', contact_email: 'contactEmail', privacy_url: 'privacyUrl', theme: 'theme' };
+      avatar: 'avatar', avatar_hidden: 'avatarHidden', contact_email: 'contactEmail', privacy_url: 'privacyUrl', theme: 'theme' };
     var wgLoaded = {};
     function wgVal(c, v){ return c === 'avatar_hidden' ? !!v : v == null ? '' : v; }
     function wgSetLoaded(row){ Object.keys(WG_COLS).forEach(function(c){ if (c in row) wgLoaded[c] = wgVal(c, row[c]); }); }
@@ -2956,27 +3010,9 @@
         }, send);
       } else send();
     }
-    // Después de la lectura del sitio: trae el resumen nuevo y lo marca como "cargado". Si el dueño tiene cambios sin
-    // guardar en "Información para responder", su borrador queda (con un aviso): si guarda, reemplaza al resumen.
-    function wgKnowReload(){
-      var uid = currentUserId(); if (!uid) return;
-      function apply(k){
-        if (!k || k.error || !k.data) return false;
-        var nk = wgVal('knowledge', k.data.knowledge), old = wgLoaded.knowledge, ta = wgId('wgKnow');
-        appState.widget.knowledge = nk; appState.widget.knowledgeAiAt = k.data.knowledge_ai_at; wgLoaded.knowledge = nk;
-        if (!wgEditing || !wgDraft) ta.value = nk;
-        else if (ta.value === old){ wgDraft.knowledge = ta.value = nk; }
-        else { wgDraft.knowledge = ta.value; wgId('wgKnowNote').hidden = false; }
-        kxSync();
-        return true;
-      }
-      SB.from('widgets').select('knowledge,knowledge_ai_at').eq('user_id', uid).maybeSingle().then(function(k){
-        if (!apply(k)) SB.from('widgets').select('knowledge').eq('user_id', uid).maybeSingle().then(apply);
-      });
-    }
 
     (function(){
-      ['wgName','wgWelcome','wgKnow','wgNotes','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
+      ['wgName','wgWelcome','wgEmail','wgPrivacy','wgFallback'].forEach(function(id){
         var el = wgId(id); if (el) el.addEventListener('input', function(){ if (!wgEditing) return; wgReadInputs(); renderWidgetPreview(); wgFallbackHint(wgDraft); });
       });
       // ===== Color del logo: Blanco · Negro · Paleta (picker propio) =====
@@ -3527,18 +3563,18 @@
     })();
 
     /* vf:start — Verificaciones: la dirección del sitio, su verificación (función verify-site) y la lectura del sitio
-       (función import-site). Todo texto del servidor o del sitio va con textContent. Un solo polling a la vez (vf.gen /
+       (función import-site, ahora en la vista Memoria). Todo texto del servidor o del sitio va con textContent. Un solo polling a la vez (vf.gen /
        rd.gen); se corta al terminar y al salir de la vista. El código de la etiqueta (verify_token) solo se muestra en su
        caja para copiar: nunca en la URL, la consola ni en data-*. */
-    var VF_LIMITS = { verifyHour: 5, verifyDay: 20, urlChanges: 5, reads: 10 };   // PROVISIONALES: cambian con los planes
+    var VF_LIMITS = { verifyHour: 5, verifyDay: 20, urlChanges: 5, reads: 10, memories: 10 };   // PROVISIONALES: cambian con los planes
     var VF_STEPS = [['publica','Comprobando que la dirección es pública'],['abre','Abriendo tu sitio'],['legible','Revisando que se pueda leer'],['codigo','Buscando el código de Walkylet'],['listo','Confirmando que el sitio es tuyo']];
     var VF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     var VF_IC = { ok: VF_SVG + '<path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', warn: VF_SVG + '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
       fail: VF_SVG + '<path d="M6 6l12 12M18 6L6 18"/></svg>', lock: VF_SVG + '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' };
-    var VF_SR = { pending: 'Pendiente', running: 'En curso', ok: 'Listo', warn: 'Con aviso', fail: 'Falló' };
+    var VF_SR = { pending: 'Pendiente', running: 'En curso', ok: 'Listo', warn: 'Con aviso', fail: 'Falló', err: 'Error' };
+    VF_IC.err = VF_SVG + '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16h.01"/></svg>';
     var VF_DATE = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
     var vf = { st: null, busy: false, saving: false, touched: false, hint: null, gen: 0, timer: null, waitT: null, waitEnd: 0, daily: false, tab: 'install', use: null, pvKey: '' };
-    var rd = { gen: 0, timer: null, waitT: null, waitEnd: 0, daily: false, phase: 'idle', found: 0, done: 0, msg: '', mode: undefined, retrySum: false };
     function vfW(){ return appState.widget || {}; }
     function vfHost(u){ try { return new URL(u).hostname.toLowerCase().replace(/\.$/, '').replace(/^www\./, ''); } catch(e){ return ''; } }
     function vfVerified(){ var w = vfW(); return !!(w.verifiedHost && w.verifiedAt && vfHost(w.siteUrl) === w.verifiedHost); }
@@ -3712,7 +3748,7 @@
       wgId('vfUse').hidden = !u;
       if (u) wgId('vfUse').textContent = 'Te quedan ' + Math.max(0, L.verifyHour - u.vh) + ' de ' + L.verifyHour + ' verificaciones en esta hora y ' + Math.max(0, L.verifyDay - u.vd) + ' de ' + L.verifyDay +
         ' en 24 h · ' + Math.max(0, L.urlChanges - u.ch) + ' de ' + L.urlChanges + ' cambios de dirección en 24 h.';
-      vfPreview(c && c.preview); rdRender(); vfBadge();
+      vfPreview(c && c.preview); wgId('vfMm').hidden = !ok || run; vfBadge(); mmRender();
     }
     // Vista previa del sitio: solo texto (textContent), sin iframe; el ícono solo si es https y del mismo dominio.
     function vfPreview(p){
@@ -3736,65 +3772,8 @@
       if (/^https?:\/\//i.test(cur.url || '')){ var a = rsEl('a', '', 'Abrir sitio'); a.href = cur.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; row.appendChild(a); }
       card.appendChild(row);
     }
-    // Lectura del sitio: import-site start → step (en bucle) → summarize.
-    function rdStop(){ rd.gen++; clearTimeout(rd.timer); rd.timer = null; if (rd.phase === 'reading' || rd.phase === 'writing') rd.phase = 'idle'; }
-    function rdCall(body){ var g = rd.gen; return vfInvoke('import-site', body).then(function(r){ if (g !== rd.gen) throw 0; return r; }); }
-    function rdNone(){}
-    function rdStart(){
-      if (rd.phase === 'reading' || rd.phase === 'writing') return;
-      rdStop(); rd.phase = 'reading'; rd.found = rd.done = 0; rd.msg = ''; rd.retrySum = false; rdRender();
-      rdCall({ action: 'start' }).then(rdJob, rdNone);
-    }
-    function rdJob(r){
-      var d = r.data || {};
-      if (!r.ok) return rdFail(r);
-      rd.found = d.pages_found || 0; rd.done = d.pages_done || 0;
-      if (d.status === 'done') return rdSum();
-      if (d.status !== 'running' || !d.job_id) return rdFail(r);
-      rdRender(); var g = rd.gen;
-      rd.timer = setTimeout(function(){ if (g === rd.gen) rdCall({ action: 'step', job_id: d.job_id }).then(rdJob, rdNone); }, 400);
-    }
-    function rdSum(mode){
-      rd.phase = 'writing'; rd.msg = ''; rdRender();
-      rdCall(mode ? { action: 'summarize', mode: mode } : { action: 'summarize' }).then(function(r){
-        var d = r.data || {};
-        if (r.ok){
-          rd.phase = 'done'; rd.msg = d.status === 'sin_cambios' ? 'Tu sitio no cambió desde la última lectura: el resumen sigue igual.' : 'Listo: leímos ' + rsCount(rd.done || d.pages_used || 0, 'página', 'páginas') + ' y escribimos el resumen.';
-          wgKnowReload();   // el resumen quedó en widgets.knowledge: se trae para Widget > Conocimiento
-          vfLoadUse(); return rdRender();
-        }
-        if (r.status === 409 && d.error === 'necesita_modo'){ rd.phase = 'ask'; return rdRender(); }
-        if (r.status === 502){ rd.phase = 'fail'; rd.retrySum = true; rd.msg = 'No pudimos escribir el resumen ahora. Probá de nuevo en un momento.'; return rdRender(); }
-        rdFail(r);
-      }, rdNone);
-    }
-    function rdFail(r){
-      var d = r.data || {};
-      rd.phase = 'idle'; rd.retrySum = false;
-      if (r.status === 429 && d.error === 'limite_diario') rd.daily = true;
-      else if (r.status === 429) return vfCount(rd, d.retry_after_s || 60, rdRender);
-      else if (r.status === 403) return vfRefresh();
-      else { rd.phase = 'fail'; rd.msg = 'No pudimos leer tu sitio ahora. Probá de nuevo en un momento.'; vfLoadUse(); }
-      rdRender();
-    }
-    function rdRender(){
-      var on = vfVerified(), ph = rd.phase, wait = vfLeft(rd), go = wgId('rdGo');
-      wgId('rdLock').hidden = on; wgId('rdOn').hidden = !on;
-      var sum = ph === 'writing' ? 'running' : ph === 'done' ? 'ok' : rd.retrySum ? 'fail' : 'pending';
-      vfSteps(wgId('rdSteps'), ph === 'idle' || (ph === 'fail' && !rd.retrySum) ? [] : [
-        { status: ph === 'reading' ? 'running' : 'ok', label: ph === 'reading' ? 'Leyendo tu sitio…' + (rd.found ? ' ' + fmtN(rd.done) + ' de ' + fmtN(rd.found) + ' páginas' : '') : 'Leímos ' + rsCount(rd.done, 'página', 'páginas') },
-        { status: sum, label: { running: 'Escribiendo el resumen…', ok: 'Resumen escrito', fail: 'No pudimos escribir el resumen', pending: 'Escribir el resumen' }[sum] }]);
-      wgId('rdMsg').hidden = !rd.msg; wgId('rdMsgT').textContent = rd.msg; wgId('rdSee').hidden = ph !== 'done';
-      wgId('rdAsk').hidden = ph !== 'ask';
-      go.hidden = !!wait || ph === 'ask';
-      go.disabled = ph === 'reading' || ph === 'writing' || rd.daily;
-      go.textContent = rd.retrySum ? 'Escribir el resumen de nuevo' : 'Leer mi sitio y generar el resumen';
-      wgId('rdWait').hidden = !wait && !rd.daily;
-      wgId('rdWait').textContent = rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : 'Podés leer de nuevo en ' + wait + ' s';
-      wgId('rdUse').hidden = !vf.use; if (vf.use) wgId('rdUse').textContent = 'Lecturas hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads;
-    }
-    function vfEnter(){ vfRender(); vfRefresh(); vfLoadUse(); if (vf.busy) vfPoll(); vfCount(vf, 0, vfRender); vfCount(rd, 0, rdRender); }
-    function vfLeave(){ vfStop(); rdStop(); clearInterval(vf.waitT); clearInterval(rd.waitT); vf.waitT = rd.waitT = null; }
+    function vfEnter(){ vfRender(); vfRefresh(); vfLoadUse(); if (vf.busy) vfPoll(); vfCount(vf, 0, vfRender); }
+    function vfLeave(){ vfStop(); clearInterval(vf.waitT); vf.waitT = null; }
     (function(){
       var inp = wgId('vfUrl');
       inp.addEventListener('input', function(){ vf.touched = true; vf.hint = null; vfRender(); });
@@ -3807,14 +3786,549 @@
         if (cp){ try { navigator.clipboard.writeText(wgId(cp.getAttribute('data-vfcopy')).textContent); } catch(_){}
           cp.textContent = 'Copiado'; setTimeout(function(){ cp.textContent = 'Copiar'; }, 1600); }
       });
-      wgId('rdGo').addEventListener('click', function(){ if (rd.retrySum) rdSum(rd.mode); else rdStart(); });
-      wgId('rdAsk').addEventListener('click', function(e){ var b = e.target.closest('[data-rdmode]'); if (b){ rd.mode = b.getAttribute('data-rdmode'); rdSum(rd.mode); } });
-      wgId('rdSee').addEventListener('click', function(e){
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-        e.preventDefault(); var a = nav.querySelector('a[data-view="widget"]'); if (a){ a.click(); wgTabSet('conocimiento'); }
-      });
     })();
     /* vf:end */
+
+    /* mm:start — Vista Memoria (pestañas Memoria · Notas · Fuentes · Secciones).
+       Escribe SOLO widgets.knowledge (Memoria) y widgets.owner_notes (Notas). memory_draft es de solo lectura: se usa o se
+       descarta con import-site (memory_accept / memory_discard). Lectura del sitio: import-site start → step (en bucle) →
+       memory_generate. Nunca se llama a summarize. Todo texto del servidor o del sitio va con textContent. */
+    appState.memory = { knowledge: '', aiAt: null, draft: '', draftAt: null, notes: '' };
+    var MM_MAX = 8000, MM_LINES = 6, MM_TABS = ['memoria', 'notas', 'fuentes', 'secciones'];
+    var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Flujos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
+    var MM_CHEV = '<svg class="mm-sr__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+    // edit / notes: null en lectura; el texto del borrador al editar (sobrevive al cambiar de vista).
+    var mm = { tab: 'memoria', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
+    var rd = { gen: 0, timer: null, doneT: 0, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
+    var mmSecs = null, mmSecReq = null, mmSecShown = 20, mmSecOpen = {}, mmSecText = {};
+    // Filtro de Secciones (lo comparten las fichas de "Qué cubre", las de Secciones y las filas de "Páginas leídas").
+    var MM_G = [['screen', 'Pantallas', ['screen']], ['steps', 'Flujos', ['steps']], ['pages', 'Páginas', ['info', 'faq', 'menu', 'ui']], ['legal', 'Legales', ['legal']]];
+    var mmF = { g: 'all', q: '', page: '' }, mmSrc = null, mmWide = window.matchMedia('(min-width:1100px)');
+    function mmSetRow(r){
+      var m = appState.memory;
+      if ('knowledge' in r) m.knowledge = r.knowledge || '';
+      if ('knowledge_ai_at' in r) m.aiAt = r.knowledge_ai_at || null;
+      if ('memory_draft' in r) m.draft = r.memory_draft || '';
+      if ('memory_draft_at' in r) m.draftAt = r.memory_draft_at || null;
+      if ('owner_notes' in r) m.notes = r.owner_notes || '';
+    }
+    // Vuelve a leer la Memoria, su fecha y el borrador desde la base (después de generar, usar o descartar).
+    function mmReload(){
+      var uid = currentUserId(); if (!uid) return Promise.resolve();
+      return SB.from('widgets').select('knowledge,knowledge_ai_at,memory_draft,memory_draft_at').eq('user_id', uid).maybeSingle().then(function(r){
+        if (r && r.data) mmSetRow(r.data);
+        mm.blkKey = ''; mmRender(); mmBadge(); wgRenderExtras();
+      }, function(){});
+    }
+    function mmBadge(){
+      if (!appState.memory) return;
+      var a = nav.querySelector('a[data-view="memoria"]'), on = !!String(appState.memory.draft || '').trim();
+      if (a) a.classList.toggle('has-todo', on); wgId('navMmSr').hidden = !on;
+    }
+    function mmSay(t, err){ mm.msg = t || ''; mm.err = !!err; var p = wgId('mmMsg'); p.textContent = mm.msg; p.classList.toggle('is-err', mm.err); }
+    function mmFit(ta){ if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+    function mmFine(){ return window.matchMedia('(pointer:fine)').matches; }   // en pantallas táctiles no se enfoca solo
+    function mmTabSet(name, focus){
+      mm.tab = name;
+      MM_TABS.forEach(function(t){
+        var b = wgId('mmTab-' + t), p = wgId('mmPanel-' + t), on = (t === name);
+        b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; p.hidden = !on;
+        if (!on) return;
+        if (focus) b.focus();
+        var bar = wgId('mmTabs'), l = b.offsetLeft, r = l + b.offsetWidth;
+        if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
+      });
+      if (name === 'fuentes'){ mmSecLoad(); vfLoadUse(); mmSrcLoad(); }
+      if (name === 'secciones' || name === 'memoria') mmSecLoad();
+      mmRender();
+    }
+    function mmEnter(){ if (!mm) return; mmTabSet('memoria'); vfCount(rd, 0, rdRender); }
+
+    // Bloques: una línea sin guion al inicio es un título; las líneas con guion van debajo.
+    function mmParse(t){
+      var out = [], cur = null;
+      String(t || '').split('\n').forEach(function(raw){
+        var l = raw.trim(), m = /^[-–—•]\s*/.exec(l); if (!l) return;
+        if (m){ if (!cur) out.push(cur = { t: '', l: [] }); cur.l.push(l.slice(m[0].length)); }
+        else out.push(cur = { t: l, l: [] });
+      });
+      return out;
+    }
+    // Cada bloque muestra hasta 6 líneas; "Ver más" solo si quedan 3 o más ocultas (con 1 o 2, se muestran).
+    function mmBlocks(){
+      var key = appState.memory.knowledge + '\u0000' + JSON.stringify(mm.open);
+      if (key === mm.blkKey) return; mm.blkKey = key;
+      var box = wgId('mmBlks'); box.textContent = '';
+      mmParse(appState.memory.knowledge).forEach(function(b, i){
+        var sec = rsEl('section', 'mm-blk'), k = i + '|' + b.t, hid = b.l.length - MM_LINES, cut = hid >= 3, open = cut && !!mm.open[k];
+        if (b.t){ var h = rsEl('h3', 'mm-blk__t', b.t); h.id = 'mmBt' + i; h.tabIndex = -1; sec.appendChild(h); }
+        if (b.l.length){
+          var ul = rsEl('ul', 'mm-blk__l'); ul.id = 'mmB' + i;
+          b.l.forEach(function(x, j){ var li = rsEl('li', '', x); if (cut && !open && j >= MM_LINES) li.hidden = true; ul.appendChild(li); });
+          sec.appendChild(ul);
+        }
+        if (cut){
+          var more = rsEl('button', 'kx-more', open ? 'Ver menos' : 'Ver más (' + hid + ' más)');
+          more.type = 'button'; more.setAttribute('aria-expanded', open ? 'true' : 'false'); more.setAttribute('aria-controls', 'mmB' + i); more.setAttribute('data-mmblk', k);
+          sec.appendChild(more);
+        }
+        box.appendChild(sec);
+      });
+      var ol = wgId('mmIdxL'); ol.textContent = '';
+      box.querySelectorAll('.mm-blk__t').forEach(function(h){ var li = rsEl('li'), b = rsEl('button', '', h.textContent); b.type = 'button'; b.setAttribute('data-mmidx', h.id); li.appendChild(b); ol.appendChild(li); });
+    }
+    // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a Secciones con ese filtro.
+    // Solo cuenta lo del dominio actual (site_url, sin "www."): lo leído antes de otro dominio no se lista ni suma.
+    // Sin site_url no se filtra nada.
+    function mmOwn(u){ var h = vfHost(vfW().siteUrl); return !h || vfHost(u) === h; }
+    function mmRows(){ return mmSecs && !mmSecs.err ? mmSecs.rows.filter(function(x){ return mmOwn(x.document_url); }) : []; }
+    function mmChips(el, all){
+      el.textContent = ''; if (!mmSecs || mmSecs.err) return 0;
+      var rows = mmRows(), n = 0, list = (all ? [['all', 'Todas', null]] : []).concat(MM_G);
+      list.forEach(function(g){
+        var c = g[2] ? rows.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }).length : rows.length; if (!c) return;
+        var b = rsEl('button', 'mm-chip', g[1] + ' '); b.type = 'button'; b.setAttribute('data-mmf', g[0]); b.appendChild(rsEl('span', '', fmtN(c)));
+        if (all) b.setAttribute('aria-pressed', mmF.g === g[0] ? 'true' : 'false'); el.appendChild(b); n++;
+      });
+      if (all && mmF.page){ var x = rsEl('button', 'mm-chip', 'Página: ' + mmPath(mmF.page) + ' ✕'); x.type = 'button'; x.setAttribute('data-mmfp', ''); x.setAttribute('aria-label', 'Quitar el filtro de página ' + mmPath(mmF.page)); el.appendChild(x); }
+      return n;
+    }
+    function mmCover(){ wgId('mmCover').hidden = !mmChips(wgId('mmCoverChips'), false); }
+    function mmPath(u){ try { var x = new URL(u); return x.pathname + x.search; } catch(e){ return String(u || ''); } }
+    function mmNorm(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function mmFilter(f){ mmF = { g: f.g || 'all', q: f.q || '', page: f.page || '' }; wgId('mmSecQ').value = mmF.q; mmSecShown = 20; if (mm.tab !== 'secciones') mmTabSet('secciones', true); else mmSecRender(); }
+    // Diferencias por línea (LCS): solo las distintas, con 2 de contexto. Sin color: prefijo y peso.
+    function mmDiffRender(){
+      var A = appState.memory.knowledge.split('\n').filter(function(l){ return l.trim(); }),
+          B = appState.memory.draft.split('\n').filter(function(l){ return l.trim(); }), n = A.length, m = B.length, L = [], i, j;
+      for (i = 0; i <= n; i++) L.push(new Int32Array(m + 1));
+      for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+      var ops = []; i = 0; j = 0;
+      while (i < n || j < m){
+        if (i < n && j < m && A[i] === B[j]){ ops.push([' ', A[i]]); i++; j++; }
+        else if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])){ ops.push(['+', B[j]]); j++; }
+        else { ops.push(['-', A[i]]); i++; }
+      }
+      var keep = ops.map(function(o, k){ for (var d = -2; d <= 2; d++){ var x = ops[k + d]; if (x && x[0] !== ' ') return true; } return false; });
+      var ol = wgId('mmDiff'), last = -1; ol.textContent = '';
+      ops.forEach(function(o, k){
+        if (!keep[k]) return;
+        if (last >= 0 && k > last + 1){ var g = rsEl('li', 'is-gap', '…'); g.setAttribute('aria-hidden', 'true'); ol.appendChild(g); }
+        last = k;
+        var li = rsEl('li', o[0] === '+' ? 'is-add' : o[0] === '-' ? 'is-del' : ''), sym = rsEl('span', '', o[0] === '+' ? '+ ' : o[0] === '-' ? '− ' : '  ');
+        sym.setAttribute('aria-hidden', 'true'); li.appendChild(sym);
+        if (o[0] !== ' ') li.appendChild(rsEl('span', 'sr-only', o[0] === '+' ? 'Agregada: ' : 'Quitada: '));
+        li.appendChild(document.createTextNode(o[1])); ol.appendChild(li);
+      });
+      if (!ol.children.length) ol.appendChild(rsEl('li', '', 'El texto es igual al de tu Memoria actual.'));
+    }
+    // Tarjeta de estado (Memoria › Regenerar y Fuentes › Actualizar): pasos con ícono (pendiente, en curso, listo, error),
+    // un texto y un botón. role="status" + aria-live anuncian cada paso. Sin barra ni números: el servidor no informa avance.
+    function stRender(id, o){
+      var root = wgId(id), t = root.querySelector('.mm-st__t'), h = wgId(root.getAttribute('data-hint')) || root.querySelector('.mm-st__h'), b = root.querySelector('.mm-st__btn'), w = root.querySelector('.vf-wait');
+      root.hidden = !!o.hidden; if (o.hidden){ h.hidden = true; return; }
+      vfSteps(root.querySelector('.vf-steps'), o.steps || []);
+      var k = JSON.stringify([o.text, o.link, !!o.err]);
+      if (t.getAttribute('data-k') !== k){   // se rehace solo si cambia lo que dice (el lector no repite)
+        t.setAttribute('data-k', k); t.textContent = o.text || ''; t.classList.toggle('is-err', !!o.err);
+        if (o.link){ var a = rsEl('a', 'mm-link', o.link); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); if (o.text) t.appendChild(document.createTextNode(' ')); t.appendChild(a); }
+      }
+      t.hidden = !o.text && !o.link;
+      h.textContent = o.hint || ''; h.hidden = !o.hint;
+      if (o.hint) b.setAttribute('aria-describedby', h.id); else b.removeAttribute('aria-describedby');
+      b.hidden = !o.btn; b.textContent = o.btn || ''; b.disabled = !!o.busy; b.classList.toggle('wa-btn-primary', !!o.primary);
+      w.textContent = o.wait || ''; w.hidden = !o.wait;
+    }
+    function mmRender(){
+      if (!mm || !appState.memory) return;
+      var m = appState.memory, has = !!m.knowledge.trim(), ok = vfVerified(), draft = !!m.draft.trim(), ed = mm.edit !== null,
+          busy = mm.busy || rdBusy() || mm.run === 'run', r = mm.run;
+      // Cabecera (pestaña Memoria): Editar en lectura; Cancelar y Guardar al editar. Guardar solo con cambios.
+      var onM = mm.tab === 'memoria';
+      wgId('mmEdit').hidden = !onM || ed || !has;
+      // Un solo negro: Guardar (editando) > Usar la nueva (hay versión nueva) > Editar.
+      wgId('mmEdit').classList.toggle('wa-btn-primary', !draft);
+      wgId('mmCancel').hidden = wgId('mmSave').hidden = !onM || !ed;
+      wgId('mmSave').disabled = !ed || mm.saving || mm.edit === m.knowledge;
+      // Franja del borrador. Un solo botón negro a la vez: mientras editás, el negro es "Guardar".
+      wgId('mmBand').hidden = !draft;
+      wgId('mmAccept').classList.toggle('wa-btn-primary', !ed);
+      wgId('mmAccept').disabled = wgId('mmDiscard').disabled = busy;
+      wgId('mmDiffBtn').setAttribute('aria-expanded', mm.diff && draft ? 'true' : 'false');
+      wgId('mmDiffBtn').textContent = mm.diff && draft ? 'Ocultar cambios' : 'Ver cambios';
+      wgId('mmDiff').hidden = !(mm.diff && draft);
+      // Vacía: sin verificar (enlace) o verificada (botón negro que lee el sitio).
+      wgId('mmEmptyNo').hidden = has || ed || ok;
+      wgId('mmEmptyGo').hidden = has || ed || !ok;
+      wgId('mmCreate').disabled = busy; wgId('mmCreate').classList.toggle('wa-btn-primary', !draft);
+      wgId('mmBlks').hidden = !has || ed;
+      if (has && !ed) mmBlocks();
+      mmCover(); wgId('mmSide').hidden = !has || ed || (wgId('mmCover').hidden && !mmWide.matches);
+      // Línea de estado: "Generada por IA el … · N / 8.000 caracteres" y Regenerar (memory_generate con force, un paso).
+      var stamp = (m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) : 'Editada por vos') + ' · ' + fmtN(m.knowledge.length) + ' / ' + fmtN(MM_MAX) + ' caracteres';
+      stRender('mmSt', { hidden: !has || ed, busy: busy,
+        steps: r === 'run' ? [{ status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }] : r !== 'idle' ? [{ status: r === 'ok' ? 'ok' : 'err', label: mm.runMsg }] : [],
+        text: r === 'idle' ? stamp + (ok ? '' : ' ·') : '', link: r === 'idle' && !ok ? 'Verificar mi sitio' : '',
+        hint: ok && !m.aiAt && r === 'idle' ? 'Se creará una versión nueva para que la compares. Tu texto no se toca.' : '',
+        btn: ok ? (r === 'fail' ? 'Probar de nuevo' : 'Regenerar') : '' });
+      // Edición: un campo que crece, contador y aviso si el texto pasa de 8.000.
+      wgId('mmEditBox').hidden = !ed;
+      if (ed){
+        var ta = wgId('mmTa'); if (ta.value !== mm.edit) ta.value = mm.edit;
+        var len = ta.value.length, n = wgId('mmTaN');
+        n.textContent = fmtN(len) + ' / ' + fmtN(MM_MAX); n.classList.toggle('is-max', len >= MM_MAX);
+        wgId('mmOver').hidden = len <= MM_MAX; mmFit(ta);
+      }
+      mmNotesRender(); rdRender();
+    }
+    function mmEditStart(){ mm.edit = appState.memory.knowledge; mmSay(''); mmRender(); if (mmFine()) wgId('mmTa').focus(); }
+    function mmEditEnd(){ mm.edit = null; mm.blkKey = ''; mmRender(); wgId('mmEdit').focus(); }
+    function mmSave(){
+      var uid = currentUserId(), v = wgId('mmTa').value, btn = wgId('mmSave');
+      if (!uid) return toast('Perdimos tu sesión. Recargá.');
+      if (v === appState.memory.knowledge) return mmEditEnd();   // sin cambios: no hay pedido
+      function fail(){ mm.saving = false; btn.textContent = 'Guardar'; mmSay('No se pudo guardar. Probá de nuevo.', true); mmRender(); }
+      mm.saving = true; btn.disabled = true; btn.textContent = 'Guardando…'; mmSay('');
+      SB.from('widgets').update({ knowledge: v }).eq('user_id', uid).select('knowledge,knowledge_ai_at,memory_draft,memory_draft_at').maybeSingle().then(function(r){
+        if (!r || r.error || !r.data) return fail();
+        mm.saving = false; btn.textContent = 'Guardar';
+        mmSetRow(r.data); mm.open = {}; mmEditEnd(); mmBadge(); wgRenderExtras(); toast('Memoria guardada');
+      }, fail);
+    }
+    // Resultado de memory_generate (Regenerar o Actualizar): el texto a mostrar, sin códigos.
+    function mmGenText(r, afterRead){
+      var d = r.data || {}, e = d.error;
+      if (r.ok) return d.status === 'borrador' ? 'Hay una versión nueva para revisar.' : d.status === 'sin_cambios' ? 'Todo al día: tu sitio no cambió.' : 'Memoria actualizada.';
+      if (r.status === 502) return 'No se pudo crear la Memoria ahora. Probá de nuevo más tarde.' + (afterRead ? ' La lectura de tu sitio sí se guardó.' : '');
+      if (r.status === 429) return 'Llegaste al límite de Memorias de hoy. Probá mañana.';
+      if (r.status === 409 && e === 'en_curso') return 'Ya se está creando la Memoria. Volvé a mirar en un minuto.';
+      if (r.status === 409 && e === 'sin_secciones') return afterRead ? 'No encontramos texto para leer en tu sitio. Revisá que sus páginas sean públicas.' : 'Primero leé tu sitio desde Fuentes con Actualizar.';
+      if (r.status === 403) return 'Tu sitio no está verificado. Verificalo para crear la Memoria.';
+      return 'No se pudo crear la Memoria. Probá de nuevo en un momento.';
+    }
+    function mmRegen(){
+      if (mm.busy || rdBusy() || mm.run === 'run') return;
+      clearTimeout(mm.runT); mm.run = 'run'; mm.runMsg = ''; mmSay(''); mmRender();
+      vfInvoke('import-site', { action: 'memory_generate', force: true }).then(function(r){
+        mm.run = r.ok ? 'ok' : 'fail'; mm.runMsg = mmGenText(r, false);
+        // Bien: check y resultado; vuelve al reposo a los 5 s. Error: queda con "Probar de nuevo".
+        if (r.ok){ mmReload(); mm.runT = setTimeout(function(){ mm.run = 'idle'; mm.runMsg = ''; mmRender(); }, 5000); }
+        else if (r.status === 403) vfRefresh();
+        mmRender();
+      });
+    }
+    function mmAccept(){
+      if (mm.busy) return;
+      mm.busy = true; mmSay(''); mmRender();
+      vfInvoke('import-site', { action: 'memory_accept' }).then(function(r){
+        mm.busy = false;
+        if (r.ok){ mm.diff = false; mm.open = {}; mmSay('Listo: tu asistente usa la versión nueva.'); toast('Memoria actualizada'); }
+        else mmSay(r.status === 409 ? 'Esa versión ya no está disponible.' : 'No se pudo usar la versión nueva. Probá de nuevo.', true);
+        mmReload();
+      });
+    }
+    // Descartar el borrador: aviso corto (mismo patrón que "¿Cerrar sesión?").
+    var mmDm = wgId('mmDiscardModal'), mmDmBack = null;
+    function mmDiscardAsk(){ mmDmBack = document.activeElement; mmDm.classList.add('is-open'); document.body.style.overflow = 'hidden'; mmDm.querySelector('.wa-btn[data-mmclose]').focus(); }
+    function mmDiscardClose(){
+      if (!mmDm.classList.contains('is-open')) return;
+      mmDm.classList.remove('is-open'); document.body.style.overflow = '';
+      var b = mmDmBack && mmDmBack.offsetParent ? mmDmBack : wgId('mmEdit'); if (b && b.focus) b.focus();
+    }
+    function mmDiscardGo(){
+      var go = wgId('mmDiscardGo'); go.disabled = true; mm.busy = true; mmRender();
+      vfInvoke('import-site', { action: 'memory_discard' }).then(function(r){
+        go.disabled = false; mm.busy = false;
+        if (r.ok){ mm.diff = false; mmDmBack = null; mmDiscardClose(); mmSay(''); toast('Versión nueva descartada'); }
+        else { mmDiscardClose(); mmSay('No se pudo descartar. Probá de nuevo.', true); }
+        mmReload();
+      });
+    }
+
+    /* kx:start — Notas: lectura recortada a 3 líneas con "Ver más" solo si no cabe; al editar, el campo crece. Guarda SOLO owner_notes. */
+    function mmNotesRender(){
+      var ed = mm.notes !== null, ta = wgId('mmNotes'), v = wgId('mmNotesV'), more = wgId('mmNotesVM'), n = wgId('mmNotesN');
+      ta.hidden = !ed; v.parentNode.hidden = ed; n.hidden = !ed;
+      var onN = mm.tab === 'notas';   // sus botones van en la cabecera, solo en esta pestaña
+      wgId('mmNotesEdit').hidden = !onN || ed; wgId('mmNotesCancel').hidden = wgId('mmNotesSave').hidden = !onN || !ed;
+      var txt = ed ? mm.notes : appState.memory.notes, br = ed && /\[[^\]\n]*\]/.test(mm.notes), sv = wgId('mmNotesSave');
+      sv.disabled = !ed || mm.notesSaving || mm.notes === appState.memory.notes || br; wgId('mmNotesBr').hidden = !br;
+      if (br) sv.setAttribute('aria-describedby', 'mmNotesBr'); else sv.removeAttribute('aria-describedby');
+      wgId('mmNotesEx').querySelectorAll('[data-ins]').forEach(function(b){ b.disabled = (txt + (txt && !/\n$/.test(txt) ? '\n' : '') + b.getAttribute('data-ins')).length > 2000; });
+      if (ed){
+        if (ta.value !== mm.notes) ta.value = mm.notes;
+        more.hidden = true; n.textContent = ta.value.length + '/2000'; n.classList.toggle('is-max', ta.value.length >= 2000); mmFit(ta); return;
+      }
+      v.textContent = appState.memory.notes.trim() || v.getAttribute('data-empty');
+      if (!v.offsetParent) return;   // pestaña oculta: se mide al mostrarla
+      v.classList.add('is-clamp');
+      var cut = v.scrollHeight > v.clientHeight + 1, open = cut && mm.notesOpen;
+      v.classList.toggle('is-clamp', !open); mm.notesOpen = open;
+      more.hidden = !cut; more.textContent = open ? 'Ver menos' : 'Ver más'; more.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function mmNotesSave(){
+      var uid = currentUserId(), v = wgId('mmNotes').value, btn = wgId('mmNotesSave'), msg = wgId('mmNotesMsg');
+      if (!uid) return toast('Perdimos tu sesión. Recargá.');
+      function done(){ mm.notes = null; mmNotesRender(); wgId('mmNotesEdit').focus(); }
+      if (v === appState.memory.notes) return done();
+      function fail(){ mm.notesSaving = false; btn.textContent = 'Guardar'; msg.textContent = 'No se pudo guardar. Probá de nuevo.'; msg.classList.add('is-err'); mmNotesRender(); }
+      mm.notesSaving = true; btn.disabled = true; btn.textContent = 'Guardando…'; msg.textContent = ''; msg.classList.remove('is-err');
+      SB.from('widgets').update({ owner_notes: v }).eq('user_id', uid).select('owner_notes').maybeSingle().then(function(r){
+        if (!r || r.error || !r.data) return fail();
+        mm.notesSaving = false; btn.textContent = 'Guardar'; mmSetRow(r.data); done(); toast('Notas guardadas');
+      }, fail);
+    }
+    /* kx:end */
+
+    // Fuentes: lectura del sitio (movida desde Verificaciones). La cuenta regresiva de "espera" usa vfCount.
+    function rdBusy(){ return !!rd && (rd.phase === 'reading' || rd.phase === 'writing'); }
+    function rdCall(body){ var g = rd.gen; return vfInvoke('import-site', body).then(function(r){ if (g !== rd.gen) throw 0; return r; }); }
+    function rdNone(){}
+    function rdStart(){
+      if (rdBusy() || mm.busy || mm.run === 'run' || !vfVerified() || vfLeft(rd) || rd.daily) return;
+      rd.gen++; clearTimeout(rd.timer); clearTimeout(rd.doneT);
+      rd.phase = 'reading'; rd.failAt = ''; rd.found = rd.done = 0; rd.msg = ''; rd.err = false; rd.until = Date.now() + 600000;
+      mmRender();
+      rdCall({ action: 'start' }).then(rdJob, rdNone);
+    }
+    function rdJob(r){
+      var d = r.data || {};
+      if (!r.ok) return rdFail(r);
+      rd.found = d.pages_found || 0; rd.done = d.pages_done || 0;
+      if (d.status === 'done') return rdMem();
+      if (d.status !== 'running' || !d.job_id || Date.now() > rd.until) return rdFail(r);
+      rdRender(); var g = rd.gen;
+      rd.timer = setTimeout(function(){ if (g === rd.gen) rdCall({ action: 'step', job_id: d.job_id }).then(rdJob, rdNone); }, 400);
+    }
+    function rdMem(){
+      mmSecs = null; mmSecText = {}; mmSecOpen = {};   // la lectura cambió las secciones: se vuelven a pedir
+      rd.phase = 'writing'; rdRender();
+      rdCall({ action: 'memory_generate' }).then(function(r){
+        var st = (r.data || {}).status;
+        rd.phase = r.ok ? 'done' : 'fail'; rd.failAt = r.ok ? '' : 'writing'; rd.err = !r.ok; rd.msg = mmGenText(r, true);
+        if (!r.ok && r.status === 403) vfRefresh();
+        if (r.ok) rd.doneT = setTimeout(function(){ if (rd.phase === 'done'){ rd.phase = 'idle'; rd.msg = ''; rdRender(); } }, 5000);   // vuelve al reposo
+        vfLoadUse(); mmSecLoad(); mmSrcLoad(); mmReload();
+        // Con una versión nueva, se lleva a la pestaña Memoria para revisarla.
+        if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('memoria'); }
+      }, rdNone);
+    }
+    function rdFail(r){
+      var d = r.data || {};
+      rd.phase = 'fail'; rd.failAt = 'reading'; rd.err = true; rd.msg = '';
+      if (r.status === 429 && d.error === 'limite_diario') rd.daily = true;
+      else if (r.status === 429){ rd.phase = 'idle'; rd.err = false; vfCount(rd, d.retry_after_s || 60, rdRender); return mmRender(); }
+      else if (r.status === 403){ rd.msg = 'Tu sitio no está verificado. Verificalo para poder leerlo.'; vfRefresh(); }
+      else if (r.status === 400 && (d.error === 'sin_url' || d.error === 'url_no_permitida')) rd.msg = 'No pudimos leer esa dirección. Revisala en Verificaciones.';
+      else rd.msg = 'No pudimos leer tu sitio ahora. Probá de nuevo en un momento.';
+      vfLoadUse(); mmSrcLoad(); mmRender();
+    }
+    function rdRender(){
+      if (!rd || !mm) return;
+      var ph = rd.phase, wait = vfLeft(rd), R1 = 'Leyendo tu sitio', R2 = 'Creando la Memoria', fail = ph === 'fail' && !rd.daily;
+      // Mismo componente que Regenerar, con dos pasos: leer el sitio y crear la Memoria.
+      stRender('rdSt', { hidden: !vfVerified() && ph !== 'fail', primary: true, busy: rdBusy() || mm.busy || mm.run === 'run' || rd.daily,
+        steps: ph === 'reading' ? [{ status: 'running', label: R1 + '…' }, { status: 'pending', label: R2 }]
+          : ph === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'running', label: R2 + '… puede tardar hasta un minuto' }]
+          : ph === 'done' ? [{ status: 'ok', label: R1 }, { status: 'ok', label: R2 }]
+          : fail ? (rd.failAt === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'err', label: R2 }] : [{ status: 'err', label: R1 }, { status: 'pending', label: R2 }]) : [],
+        text: ph === 'idle' ? 'Leemos las páginas públicas de tu sitio y actualizamos la Memoria.' : rd.msg, err: rd.err && !!rd.msg,
+        btn: wait || !vfVerified() ? '' : fail ? 'Probar de nuevo' : 'Actualizar',
+        wait: rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : wait ? 'Podés actualizar de nuevo en ' + wait + ' s' : '' });
+      var r24 = mmSrc && !mmSrc.err ? mmSrc.runs24 : null; wgId('rdUse').hidden = !vf.use;
+      if (vf.use) wgId('rdUse').textContent = 'Hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads + ' lecturas' + (r24 != null ? ' · ' + r24 + ' de ' + VF_LIMITS.memories + ' Memorias' : '');
+      // Tarjeta "Sitio": dirección, estado (verde solo para "Verificado"), última lectura y cantidad de secciones.
+      var w = vfW(), ok = vfVerified(), st = wgId('mmSrcSt'), meta = wgId('mmSrcMeta'), k = ok + '|' + (w.siteUrl || '');
+      wgId('mmSrcUrl').textContent = w.siteUrl || 'Sin dirección';
+      if (st.getAttribute('data-k') !== k){
+        st.setAttribute('data-k', k); st.textContent = ''; st.classList.toggle('is-ok', ok);
+        if (ok){ st.innerHTML = VF_IC.ok; st.appendChild(document.createTextNode('Verificado')); }
+        else {
+          if (w.siteUrl) st.appendChild(document.createTextNode('Sin verificar ·'));
+          var a = rsEl('a', 'mm-link', w.siteUrl ? 'Verificar mi sitio' : 'Agregar la dirección en Verificaciones'); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); st.appendChild(a);
+        }
+      }
+      var last = mmSrc && !mmSrc.err ? mmSrc.pages.reduce(function(a, x){ return x.status === 'done' && mmOwn(x.url) && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
+          own = mmRows().length, parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', own ? rsCount(own, 'sección', 'secciones') : ''].filter(Boolean);
+      meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
+    }
+
+    // Fuentes: páginas leídas (máx. 50), últimas 5 lecturas y 5 Memorias, y Memorias de las últimas 24 h. Solo lectura.
+    // Los errores nunca se muestran crudos: openai_429 → "sin crédito o límite de la IA"; el resto, "error".
+    var MM_PST = { done: ['Leída', 'ok'], error: ['Con error', 'err'], blocked: ['Bloqueada', 'lock'] };
+    function mmSrcLoad(){
+      var since = new Date(Date.now() - 864e5).toISOString();
+      Promise.all([
+        SB.from('site_pages').select('url,status,fetched_at,flags,error,text_chars').order('fetched_at', { ascending: false, nullsFirst: false }).limit(50),
+        SB.from('site_import_jobs').select('status,pages_found,pages_new,pages_changed,pages_same,created_at,finished_at').order('created_at', { ascending: false }).limit(5),
+        SB.from('memory_runs').select('status,mode,chars,error,started_at').order('started_at', { ascending: false }).limit(5),
+        SB.from('memory_runs').select('started_at', { count: 'exact', head: true }).gte('started_at', since)
+      ]).then(function(rs){
+        mmSrc = rs.slice(0, 3).some(function(r){ return !r || r.error; }) ? { err: true } : { pages: rs[0].data || [], jobs: rs[1].data || [], runs: rs[2].data || [], runs24: rs[3] && !rs[3].error && rs[3].count != null ? rs[3].count : null };
+        mmSrcRender(); rdRender();
+      }, function(){ mmSrc = { err: true }; mmSrcRender(); });
+    }
+    function mmSrcRow(ic, cls, title, meta, page){
+      var li = rsEl('li'), b = rsEl(page ? 'button' : 'div', 'mm-row'), i = rsEl('span', 'mm-row__i' + cls), bd = rsEl('span', 'mm-row__b');
+      i.innerHTML = ic; i.setAttribute('aria-hidden', 'true');
+      if (page){ b.type = 'button'; b.setAttribute('data-mmpage', page); }
+      bd.appendChild(rsEl('span', 'mm-row__t', title)); bd.appendChild(rsEl('span', 'mm-row__m', meta));
+      b.appendChild(i); b.appendChild(bd); li.appendChild(b); return li;
+    }
+    function mmSrcRender(){
+      var s = mmSrc && !mmSrc.err ? mmSrc : null, now = Date.now(), pl = wgId('mmPagesL'), al = wgId('mmActL');
+      var pages = s ? s.pages.filter(function(p){ return MM_PST[p.status] && mmOwn(p.url); }) : [];
+      pl.textContent = ''; al.textContent = '';
+      pages.forEach(function(p){
+        var st = MM_PST[p.status], n = p.flags && typeof p.flags.sections === 'number' && p.flags.sections > 0 ? p.flags.sections : 0;   // sin dato o 0 → "sin secciones"
+        pl.appendChild(mmSrcRow(VF_IC[st[1]], st[1] === 'err' ? ' is-err' : '', mmPath(p.url), [st[0], p.fetched_at ? rsAgo(p.fetched_at, now) : '', n ? rsCount(n, 'sección', 'secciones') : 'sin secciones'].filter(Boolean).join(' · '), p.url));
+      });
+      var acts = !s ? [] : s.jobs.map(function(j){
+        var ch = (j.pages_new || 0) + (j.pages_changed || 0);
+        return { at: j.created_at, st: j.status, t: j.status === 'done' ? 'Lectura: ' + rsCount(j.pages_found || 0, 'página', 'páginas') + ', ' + (ch ? rsCount(ch, 'con cambios', 'con cambios') : 'sin cambios')
+          : j.status === 'error' ? 'Lectura: no se pudo completar' : j.status === 'running' ? 'Lectura en curso' : 'Lectura cancelada' };
+      }).concat(s.runs.map(function(r){
+        return { at: r.started_at, st: r.status, t: r.status === 'done' ? (r.mode === 'draft' ? 'Memoria: versión nueva para revisar' : 'Memoria: actualizada')
+          : r.status === 'error' ? 'Memoria: no se pudo crear (' + (/openai_429/.test(String(r.error || '')) ? 'sin crédito o límite de la IA' : 'error') + ')' : 'Memoria: creándose' };
+      })).sort(function(a, b){ return new Date(b.at) - new Date(a.at); }).slice(0, 6);
+      acts.forEach(function(a){ al.appendChild(mmSrcRow(a.st === 'done' ? VF_IC.ok : a.st === 'error' ? VF_IC.err : '', a.st === 'error' ? ' is-err' : '', a.t, a.at ? rsAgo(a.at, now) : '')); });
+      wgId('mmPages').hidden = !pages.length; wgId('mmAct').hidden = !acts.length;
+      wgId('mmSrcNone').hidden = !s || pages.length || acts.length;
+    }
+
+    // Secciones (solo lectura): se piden al abrir la pestaña, SIN la columna text; el texto se pide al abrir cada fila.
+    function mmKind(x){ return MM_KINDS.some(function(k){ return k[0] === x.kind; }) ? x.kind : 'info'; }
+    function mmSecTitle(x){
+      var t = String(x.heading_path || '').trim(); if (t) return t;
+      try { var u = new URL(x.document_url); return u.hostname + (u.pathname === '/' ? '' : u.pathname); } catch(e){ return String(x.document_url || ''); }
+    }
+    function mmSecLoad(force){
+      if (mmSecs && !force){ mmSecRender(); return rdRender(); }
+      if (mmSecReq) return;
+      if (force){ mmSecs = null; mmSecText = {}; mmSecOpen = {}; }
+      mmSecRender();
+      function set(v){ mmSecReq = null; mmSecs = v; mmSecShown = 20; mmSecRender(); mmRender(); }
+      mmSecReq = SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url').order('document_url').order('position').then(function(r){
+        set(!r || r.error ? { err: true, rows: [] } : { rows: r.data || [] });
+      }, function(){ set({ err: true, rows: [] }); });
+    }
+    function mmSBox(t){ var b = rsEl('div', 'mm-sbox'), i = rsEl('div'); i.appendChild(rsEl('p', '', t)); b.appendChild(i); return b; }
+    function mmSecRender(){
+      var box = wgId('mmSecs'), more = wgId('mmSecMore'), s = mmSecs; box.textContent = ''; more.hidden = true; mmChips(wgId('mmSecChips'), true);
+      if (!s){ box.appendChild(mmSBox('Cargando…')); return; }
+      var own = s.err ? [] : mmRows();
+      if (s.err || !own.length){
+        var b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : 'Tu sitio no tiene secciones leídas.'), l = null;
+        if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.setAttribute('data-mmretry', ''); }
+        else if (vfVerified()){ l = rsEl('button', 'mm-link', 'Ir a Fuentes'); l.setAttribute('data-mmtab', 'fuentes'); }
+        if (l){ l.type = 'button'; b.firstChild.appendChild(l); }
+        box.appendChild(b); return;
+      }
+      var G = MM_G.filter(function(g){ return g[0] === mmF.g; })[0], q = mmNorm(mmF.q).trim();
+      var all = own.filter(function(x){ return (!G || G[2].indexOf(mmKind(x)) >= 0) && (!mmF.page || x.document_url === mmF.page) && (!q || mmNorm(mmSecTitle(x)).indexOf(q) >= 0); });
+      if (!all.length){ box.appendChild(mmSBox('No hay secciones con este filtro.')); return; }
+      var left = mmSecShown;
+      MM_KINDS.forEach(function(k){
+        var rows = all.filter(function(x){ return mmKind(x) === k[0]; }); if (!rows.length || left <= 0) return;
+        var g = rsEl('div', 'mm-sg'), h = rsEl('h3', 'mm-sg__t', k[1]), bx = rsEl('div', 'mm-box');
+        h.appendChild(rsEl('span', '', fmtN(rows.length))); g.appendChild(h);
+        rows.slice(0, left).forEach(function(x){
+          var wrap = rsEl('div', 'mm-card'), b = rsEl('button', 'mm-sr'), d = rsEl('div', 'mm-sr__x'), open = !!mmSecOpen[x.id];
+          b.type = 'button'; b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.setAttribute('aria-controls', 'mmSx' + x.id); b.setAttribute('data-sec', x.id);
+          b.appendChild(rsEl('span', 'mm-sr__t', mmSecTitle(x))); b.appendChild(rsEl('span', 'mm-sr__m', x.is_hidden ? 'De la app' : 'Del sitio'));
+          b.insertAdjacentHTML('beforeend', MM_CHEV);
+          d.id = 'mmSx' + x.id; d.hidden = !open;
+          wrap.appendChild(b); wrap.appendChild(d); bx.appendChild(wrap);
+          if (open) mmSecFill(x, d);
+        });
+        left -= rows.length; g.appendChild(bx); box.appendChild(g);
+      });
+      more.hidden = mmSecShown >= all.length;
+    }
+    function mmSecFill(x, d){
+      d.textContent = '';
+      if (typeof mmSecText[x.id] === 'string'){
+        d.appendChild(rsEl('p', '', mmSecText[x.id]));
+        if (/^https?:\/\//i.test(x.document_url || '')){ var a = rsEl('a', '', 'Abrir la página'); a.href = x.document_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; d.appendChild(a); }
+        return;
+      }
+      d.appendChild(rsEl('p', '', 'Cargando…'));
+      if (mmSecText[x.id] === 1) return; mmSecText[x.id] = 1;
+      SB.from('sections').select('text').eq('id', x.id).maybeSingle().then(function(r){
+        var dd = wgId('mmSx' + x.id);
+        if (!r || r.error || !r.data){ delete mmSecText[x.id]; if (dd){ dd.textContent = ''; dd.appendChild(rsEl('p', '', 'No pudimos cargar el texto. Cerrá la fila y abrila de nuevo.')); } return; }
+        mmSecText[x.id] = String(r.data.text || ''); if (dd && !dd.hidden) mmSecFill(x, dd);
+      }, function(){ delete mmSecText[x.id]; });
+    }
+
+    (function(){
+      var bar = wgId('mmTabs');
+      bar.addEventListener('click', function(e){ var b = e.target.closest('[role=tab]'); if (b) mmTabSet(b.getAttribute('data-tab')); });
+      bar.addEventListener('keydown', function(e){
+        var i = MM_TABS.indexOf(e.target.getAttribute('data-tab') || ''), n = MM_TABS.length;
+        var k = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
+        if (i < 0 || k === undefined) return;
+        e.preventDefault(); mmTabSet(MM_TABS[k], true);
+      });
+      // Enlaces internos: a otra vista (sin recargar) o a otra pestaña; reintentar la carga de secciones.
+      document.addEventListener('click', function(e){
+        var a = e.target.closest('[data-mmgo],#vfMmGo,[data-mmtab],[data-mmretry]'); if (!a) return;
+        if (a.hasAttribute('data-mmretry')) return mmSecLoad(true);
+        if (a.hasAttribute('data-mmtab')) return mmTabSet(a.getAttribute('data-mmtab'), true);
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+        e.preventDefault(); wuGoView(a.id === 'vfMmGo' ? 'memoria' : a.getAttribute('data-mmgo'));
+      });
+      wgId('mmBlks').addEventListener('click', function(e){
+        var b = e.target.closest('[data-mmblk]'); if (!b) return;
+        var k = b.getAttribute('data-mmblk'); mm.open[k] = !mm.open[k]; mmBlocks();
+        var all = wgId('mmBlks').querySelectorAll('[data-mmblk]');
+        for (var i = 0; i < all.length; i++) if (all[i].getAttribute('data-mmblk') === k) all[i].focus();
+      });
+      wgId('mmEdit').addEventListener('click', mmEditStart);
+      wgId('mmCancel').addEventListener('click', function(){ mmSay(''); mmEditEnd(); });
+      wgId('mmSave').addEventListener('click', mmSave);
+      wgId('mmTa').addEventListener('input', function(){ mm.edit = this.value; mmRender(); });
+      wgId('mmRegen').addEventListener('click', mmRegen);
+      wgId('mmCreate').addEventListener('click', function(){ mmTabSet('fuentes', true); rdStart(); });
+      wgId('mmDiffBtn').addEventListener('click', function(){ mm.diff = !mm.diff; if (mm.diff) mmDiffRender(); mmRender(); });
+      wgId('mmAccept').addEventListener('click', mmAccept);
+      wgId('mmDiscard').addEventListener('click', mmDiscardAsk);
+      wgId('mmDiscardGo').addEventListener('click', mmDiscardGo);
+      Array.prototype.forEach.call(mmDm.querySelectorAll('[data-mmclose]'), function(el){ el.addEventListener('click', mmDiscardClose); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') mmDiscardClose(); });
+      wgId('mmNotesEdit').addEventListener('click', function(){ mm.notes = appState.memory.notes; wgId('mmNotesMsg').textContent = ''; mmNotesRender(); if (mmFine()) wgId('mmNotes').focus(); });
+      wgId('mmNotesCancel').addEventListener('click', function(){ mm.notes = null; wgId('mmNotesMsg').textContent = ''; mmNotesRender(); wgId('mmNotesEdit').focus(); });
+      wgId('mmNotesSave').addEventListener('click', mmNotesSave);
+      wgId('mmNotes').addEventListener('input', function(){ mm.notes = this.value; mmNotesRender(); });
+      wgId('mmNotesVM').addEventListener('click', function(){ mm.notesOpen = !mm.notesOpen; mmNotesRender(); });
+      wgId('rdGo').addEventListener('click', rdStart);
+      wgId('mmSecs').addEventListener('click', function(e){
+        var b = e.target.closest('[data-sec]'); if (!b) return;
+        var id = b.getAttribute('data-sec'), open = b.getAttribute('aria-expanded') !== 'true', d = wgId('mmSx' + id);
+        b.setAttribute('aria-expanded', open ? 'true' : 'false'); d.hidden = !open; mmSecOpen[id] = open;
+        if (open) mmSecFill(mmSecs.rows.filter(function(x){ return String(x.id) === id; })[0], d);
+      });
+      wgId('mmSecMore').addEventListener('click', function(){ mmSecShown += 20; mmSecRender(); });
+      wgId('mmSecQ').addEventListener('input', function(){ mmF.q = this.value; mmSecShown = 20; mmSecRender(); });
+      document.querySelector('section[data-view="memoria"]').addEventListener('click', function(e){
+        var f = e.target.closest('[data-mmf]'), fp = e.target.closest('[data-mmfp]'), ix = e.target.closest('[data-mmidx]'), pg = e.target.closest('[data-mmpage]');
+        if (f) mmFilter({ g: f.getAttribute('data-mmf'), q: f.closest('#mmSecChips') ? mmF.q : '', page: f.closest('#mmSecChips') ? mmF.page : '' });
+        if (fp) mmFilter({ g: mmF.g, q: mmF.q });
+        if (pg) mmFilter({ page: pg.getAttribute('data-mmpage') });
+        if (ix){ var h = wgId(ix.getAttribute('data-mmidx')); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
+      });
+      wgId('mmNotesEx').addEventListener('click', function(e){
+        var b = e.target.closest('[data-ins]'); if (!b || b.disabled) return;
+        var cur = mm.notes !== null ? mm.notes : appState.memory.notes, t = cur + (cur && !/\n$/.test(cur) ? '\n' : '') + b.getAttribute('data-ins');
+        if (t.length > 2000) return;
+        mm.notes = t; wgId('mmNotesMsg').textContent = ''; mmNotesRender();
+        var ta = wgId('mmNotes'), i = t.lastIndexOf('['), j = t.indexOf(']', i);
+        if (mmFine()){ ta.focus(); if (i >= 0) ta.setSelectionRange(i, j + 1); }   // en táctil no se enfoca solo
+      });
+      var raf = 0;
+      window.addEventListener('resize', function(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(function(){ if (wuViewFromPath() === 'memoria') mmRender(); }); });
+    })();
+    /* mm:end */
 
     /* ---------- Router por ruta (pathname) ----------
        El router decide la vista SOLO leyendo location.pathname. Nunca usamos
@@ -3828,7 +4342,8 @@
       analiticas: '/app/analiticas',
       notificaciones: '/app/notificaciones',
       config: '/app/configuracion',
-      verificaciones: '/app/verificaciones'
+      verificaciones: '/app/verificaciones',
+      memoria: '/app/memoria'
     };
     var WU_PATH_TO_VIEW = {
       '/app': 'resumen',
@@ -3837,7 +4352,8 @@
       '/app/analiticas': 'analiticas',
       '/app/notificaciones': 'notificaciones',
       '/app/configuracion': 'config',
-      '/app/verificaciones': 'verificaciones'
+      '/app/verificaciones': 'verificaciones',
+      '/app/memoria': 'memoria'
     };
     // Sufijo actual del título (" — Panel"): solo cambia la parte inicial.
     var WU_TITLE_SUFFIX = (function(){
@@ -3906,7 +4422,8 @@
       else if (current === 'conversaciones') renderConversations();
       else if (current === 'analiticas') renderAnalytics();
       else if (current === 'verificaciones') vfEnter();
-      vfBadge();
+      else if (current === 'memoria') mmEnter();
+      vfBadge(); mmBadge();
     }
 
     // El valor 'resolved' de la base significa chat cerrado; se renombra a 'closed' en la Fase 3 (migración de Supabase, no ahora).
@@ -4092,7 +4609,7 @@
             var def = {
               user_id: user.id, name: appState.widget.name, accent: appState.widget.accent,
               position: appState.widget.position, welcome: appState.widget.welcome, tone: appState.widget.tone,
-              language: appState.widget.language, fallback: appState.widget.fallback, knowledge: appState.widget.knowledge,
+              language: appState.widget.language, fallback: appState.widget.fallback, knowledge: '',
               avatar: appState.widget.avatar, avatar_hidden: appState.widget.avatarHidden,
               site_url: '', contact_email: '', privacy_url: ''
             };
@@ -4101,14 +4618,13 @@
             if (wrow){
               appState.widget = {
                 name: wrow.name, accent: wgNormAccent(wrow.accent), position: wrow.position, welcome: wrow.welcome,
-                tone: wrow.tone, language: wrow.language, fallback: wgNormFallback(wrow.fallback), knowledge: wrow.knowledge,
-                knowledgeAiAt: wrow.knowledge_ai_at || null, ownerNotes: wrow.owner_notes || '',
+                tone: wrow.tone, language: wrow.language, fallback: wgNormFallback(wrow.fallback),
                 avatar: wrow.avatar, avatarHidden: !!wrow.avatar_hidden,
                 siteUrl: wrow.site_url || '', verifyToken: wrow.verify_token || '', verifiedHost: wrow.verified_host || null, verifiedAt: wrow.verified_at || null, contactEmail: wrow.contact_email || '', privacyUrl: wrow.privacy_url || '',
                 enabled: wrow.enabled !== false, installed: !!wrow.installed_at, theme: (wrow.theme === 'light' ? 'light' : 'dark')
               };
               if (wrow.id) wgSetSnippet(wrow.id);
-              wgSetLoaded(wrow);
+              wgSetLoaded(wrow); mmSetRow(wrow);
             }
             // Notificaciones
             return SB.from('notifications').select('*').order('created_at', { ascending: false }).then(function(nq){
