@@ -3878,9 +3878,13 @@
       box.querySelectorAll('.mm-blk__t').forEach(function(h){ var li = rsEl('li'), b = rsEl('button', '', h.textContent); b.type = 'button'; b.setAttribute('data-mmidx', h.id); li.appendChild(b); ol.appendChild(li); });
     }
     // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a Secciones con ese filtro.
+    // Solo cuenta lo del dominio actual (site_url, sin "www."): lo leído antes de otro dominio no se lista ni suma.
+    // Sin site_url no se filtra nada.
+    function mmOwn(u){ var h = vfHost(vfW().siteUrl); return !h || vfHost(u) === h; }
+    function mmRows(){ return mmSecs && !mmSecs.err ? mmSecs.rows.filter(function(x){ return mmOwn(x.document_url); }) : []; }
     function mmChips(el, all){
       el.textContent = ''; if (!mmSecs || mmSecs.err) return 0;
-      var rows = mmSecs.rows, n = 0, list = (all ? [['all', 'Todas', null]] : []).concat(MM_G);
+      var rows = mmRows(), n = 0, list = (all ? [['all', 'Todas', null]] : []).concat(MM_G);
       list.forEach(function(g){
         var c = g[2] ? rows.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }).length : rows.length; if (!c) return;
         var b = rsEl('button', 'mm-chip', g[1] + ' '); b.type = 'button'; b.setAttribute('data-mmf', g[0]); b.appendChild(rsEl('span', '', fmtN(c)));
@@ -4144,8 +4148,8 @@
           var a = rsEl('a', 'mm-link', w.siteUrl ? 'Verificar mi sitio' : 'Agregar la dirección en Verificaciones'); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); st.appendChild(a);
         }
       }
-      var last = mmSrc && !mmSrc.err ? mmSrc.pages.reduce(function(a, x){ return x.status === 'done' && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
-          parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', mmSecs && !mmSecs.err ? rsCount(mmSecs.rows.length, 'sección', 'secciones') : ''].filter(Boolean);
+      var last = mmSrc && !mmSrc.err ? mmSrc.pages.reduce(function(a, x){ return x.status === 'done' && mmOwn(x.url) && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
+          own = mmRows().length, parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', own ? rsCount(own, 'sección', 'secciones') : ''].filter(Boolean);
       meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
     }
 
@@ -4173,11 +4177,11 @@
     }
     function mmSrcRender(){
       var s = mmSrc && !mmSrc.err ? mmSrc : null, now = Date.now(), pl = wgId('mmPagesL'), al = wgId('mmActL');
-      var pages = s ? s.pages.filter(function(p){ return MM_PST[p.status]; }) : [];
+      var pages = s ? s.pages.filter(function(p){ return MM_PST[p.status] && mmOwn(p.url); }) : [];
       pl.textContent = ''; al.textContent = '';
       pages.forEach(function(p){
-        var st = MM_PST[p.status], n = p.flags && typeof p.flags.sections === 'number' ? p.flags.sections : null;
-        pl.appendChild(mmSrcRow(VF_IC[st[1]], st[1] === 'err' ? ' is-err' : '', mmPath(p.url), [st[0], p.fetched_at ? rsAgo(p.fetched_at, now) : '', n != null ? rsCount(n, 'sección', 'secciones') : ''].filter(Boolean).join(' · '), p.url));
+        var st = MM_PST[p.status], n = p.flags && typeof p.flags.sections === 'number' && p.flags.sections > 0 ? p.flags.sections : 0;   // sin dato o 0 → "sin secciones"
+        pl.appendChild(mmSrcRow(VF_IC[st[1]], st[1] === 'err' ? ' is-err' : '', mmPath(p.url), [st[0], p.fetched_at ? rsAgo(p.fetched_at, now) : '', n ? rsCount(n, 'sección', 'secciones') : 'sin secciones'].filter(Boolean).join(' · '), p.url));
       });
       var acts = !s ? [] : s.jobs.map(function(j){
         var ch = (j.pages_new || 0) + (j.pages_changed || 0);
@@ -4212,7 +4216,8 @@
     function mmSecRender(){
       var box = wgId('mmSecs'), more = wgId('mmSecMore'), s = mmSecs; box.textContent = ''; more.hidden = true; mmChips(wgId('mmSecChips'), true);
       if (!s){ box.appendChild(mmSBox('Cargando…')); return; }
-      if (s.err || !s.rows.length){
+      var own = s.err ? [] : mmRows();
+      if (s.err || !own.length){
         var b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : 'Tu sitio no tiene secciones leídas.'), l = null;
         if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.setAttribute('data-mmretry', ''); }
         else if (vfVerified()){ l = rsEl('button', 'mm-link', 'Ir a Fuentes'); l.setAttribute('data-mmtab', 'fuentes'); }
@@ -4220,7 +4225,7 @@
         box.appendChild(b); return;
       }
       var G = MM_G.filter(function(g){ return g[0] === mmF.g; })[0], q = mmNorm(mmF.q).trim();
-      var all = s.rows.filter(function(x){ return (!G || G[2].indexOf(mmKind(x)) >= 0) && (!mmF.page || x.document_url === mmF.page) && (!q || mmNorm(mmSecTitle(x)).indexOf(q) >= 0); });
+      var all = own.filter(function(x){ return (!G || G[2].indexOf(mmKind(x)) >= 0) && (!mmF.page || x.document_url === mmF.page) && (!q || mmNorm(mmSecTitle(x)).indexOf(q) >= 0); });
       if (!all.length){ box.appendChild(mmSBox('No hay secciones con este filtro.')); return; }
       var left = mmSecShown;
       MM_KINDS.forEach(function(k){
