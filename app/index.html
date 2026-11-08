@@ -776,27 +776,70 @@
     .mm-note{margin:8px 0 0;font-size:.8125rem;color:var(--text-2);}
     .mm-msg{margin:12px 0 0;font-size:.875rem;color:var(--text);} .mm-msg:empty{display:none;}
     .mm-msg.is-err{color:var(--danger);}
-    .mm-empty{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:24px;border:1px solid var(--border);border-radius:10px;}
+    .mm-empty{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:20px;border:1px solid var(--border);border-radius:10px;}
     .mm-empty p{margin:0;color:var(--text-2);max-width:56ch;}
     /* Franja del borrador: borde, sin relleno de color */
-    .mm-band{margin-bottom:24px;padding:16px;border:1px solid var(--border);border-radius:10px;}
+    .mm-band{margin-bottom:12px;padding:16px;border:1px solid var(--border);border-radius:10px;}
     .mm-band__t{margin:0;font-weight:500;}
     .mm-band .mm-act{margin-top:12px;}
     .mm-diff{margin:12px 0 0;padding:12px 16px;list-style:none;border-radius:6px;background:var(--surface);font-size:.875rem;line-height:1.6;max-height:60vh;overflow:auto;}
     .mm-diff li{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text-2);}
     .mm-diff .is-add{color:var(--text);font-weight:500;}
     .mm-diff .is-gap{padding:2px 0;}
-    /* Bloques de la Memoria: título + líneas */
-    .mm-blks{display:flex;flex-direction:column;}
-    .mm-blk{padding:16px 0;border-top:1px solid var(--border);}
-    .mm-blk:first-child{border-top:0;padding-top:0;}
-    .mm-blk__t{margin:0 0 4px;font-size:.9375rem;line-height:1.5;font-weight:500;overflow-wrap:anywhere;}
+    /* Bloques de la Memoria: cada uno es una tarjeta (como .cfg-card), 12px entre tarjetas; "Ver más" adentro */
+    .mm-blks{display:flex;flex-direction:column;gap:12px;}
+    .mm-blk{padding:20px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .mm-blk__t{margin:0 0 4px;font-size:.9375rem;line-height:1.5;font-weight:500;overflow-wrap:anywhere;scroll-margin-top:24px;}
     .mm-blk__l{margin:0;padding:0;list-style:none;}
     .mm-blk__l li{position:relative;padding-left:16px;line-height:1.6;overflow-wrap:anywhere;}
     .mm-blk__l li::before{content:"–";position:absolute;left:0;color:var(--text-2);}
-    .mm-stamp{margin:16px 0 0;font-size:.8125rem;color:var(--text-2);}
     .mm-ta{min-height:calc(10lh + 18px) !important;}
     .mm-over{margin:6px 0 0;font-size:.8125rem;color:var(--text);}
+    /* Columnas: texto de hasta 860px; desde 1100px, "Qué cubre" e índice a la derecha (sticky). En menos, arriba y sin índice. */
+    .mm-pane{max-width:860px;}
+    .mm-pane > * + *{margin-top:16px;}
+    .mm-cols{display:flex;flex-direction:column;gap:24px;}
+    .mm-main{min-width:0;max-width:860px;}
+    .mm-side{display:flex;flex-direction:column;gap:12px;}
+    .mm-side .cfg-card{padding:16px;}
+    .mm-idx{display:none;}
+    .mm-idx ol{margin:8px 0 0;padding:0;list-style:none;}
+    .mm-idx button{display:block;width:100%;min-height:32px;padding:4px 0;border:0;background:none;font:inherit;font-size:.875rem;color:var(--text-2);text-align:left;cursor:pointer;overflow-wrap:anywhere;}
+    .mm-idx button:hover{color:var(--text);}
+    @media (min-width:1100px){
+      .mm-cols{display:grid;grid-template-columns:minmax(0,860px) 232px;align-items:start;}
+      .mm-main{grid-column:1;grid-row:1;}
+      .mm-side{grid-column:2;grid-row:1;position:sticky;top:24px;}
+      .mm-idx{display:block;}
+    }
+    /* Fichas (filtros y ejemplos): borde, sin relleno de color; la elegida con borde --text */
+    .mm-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+    .mm-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font:inherit;font-size:.875rem;color:var(--text);cursor:pointer;}
+    .mm-chip span{color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .mm-chip:hover{border-color:var(--text-2);}
+    .mm-chip[aria-pressed="true"]{border-color:var(--text);font-weight:500;}
+    .mm-chip:disabled{opacity:.5;cursor:default;}
+    .mm-chip:focus-visible,.mm-idx button:focus-visible,.mm-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
+    .mm-how{margin:12px 0 0;padding-left:20px;line-height:1.8;}
+    .mm-search{margin-top:12px;}
+    /* Línea de estado de la Memoria: una fila (estado a la izquierda, Regenerar a la derecha) */
+    .mm-st--line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:56px;margin-bottom:12px;padding:7px 8px 7px 16px;}
+    .mm-st--line > [role=status]{flex:1 1 240px;min-width:0;}
+    .mm-st--line .mm-st__act{margin:0;}
+    .mm-st--line .vf-s[data-st=err] .vf-s__l{color:var(--danger);}
+    .mm-st__h.mm-note{margin:-4px 0 12px;}
+    /* Fuentes: filas de páginas y de actividad */
+    .mm-list{margin:8px 0 0;padding:0;list-style:none;}
+    .mm-list > li + li{border-top:1px solid var(--border);}
+    .mm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 0;border:0;background:none;font:inherit;color:var(--text);text-align:left;}
+    button.mm-row{cursor:pointer;}
+    button.mm-row:hover .mm-row__t{text-decoration:underline;}
+    .mm-row__i{display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;color:var(--text);}
+    .mm-row__i svg{width:20px;height:20px;}
+    .mm-row__i.is-err{color:var(--danger);}
+    .mm-row__b{flex:1;min-width:0;}
+    .mm-row__t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .mm-row__m{display:block;font-size:.8125rem;color:var(--text-2);}
     /* Fuentes */
     .mm-src{display:flex;flex-direction:column;gap:4px;margin-top:12px;}
     .mm-src__url{margin:0;font-weight:500;overflow-wrap:anywhere;}
@@ -806,7 +849,7 @@
     .mm-src__meta{margin:0;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
     /* Secciones: grupos con caja y filas que se abren */
     .mm-sg{margin-top:24px;}
-    .mm-sg:first-child{margin-top:16px;}
+    .mm-sg:first-child{margin-top:0;}
     .mm-sg__t{margin:0 0 8px;font-size:.875rem;font-weight:500;color:var(--text);}
     .mm-sg__t span{margin-left:6px;font-weight:400;color:var(--text-2);font-variant-numeric:tabular-nums;}
     /* Cada sección es una tarjeta (8px entre tarjetas); se abre dentro de su tarjeta. El hover solo cambia el borde. */
@@ -822,7 +865,7 @@
     .mm-sr__x{padding:0 16px 14px;font-size:.875rem;line-height:1.6;color:var(--text-2);white-space:pre-line;overflow-wrap:anywhere;}
     .mm-sr__x p{margin:0;max-width:68ch;}
     .mm-sr__x a{display:inline-block;margin-top:4px;font-size:.8125rem;}
-    .mm-sbox{display:grid;place-items:center;min-height:280px;margin-top:16px;padding:24px 16px;border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-2);}
+    .mm-sbox{display:grid;place-items:center;min-height:280px;padding:24px 16px;border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-2);}
     .mm-sbox p{margin:0;}
     .mm-more{margin-top:16px;}
     @media (max-width:768px){
@@ -830,6 +873,7 @@
       .mm-sr__t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
       .mm-act .wa-btn{flex:1 1 auto;}
       .mm-link{min-height:44px;}
+      .mm-chip,.mm-idx button{min-height:44px;}
       .mm-head{row-gap:12px;}
       .mm-hact{margin:-8px 0 -8px auto;}
     }
@@ -1340,7 +1384,7 @@
             <h1 class="wa-page-title">Memoria</h1>
             <div class="mm-hact">
               <button class="wa-btn" id="mmEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmSave" type="button" hidden>Guardar</button>
-              <button class="wa-btn" id="mmNotesEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button>
+              <button class="wa-btn wa-btn-primary" id="mmNotesEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button>
             </div>
           </div>
           <p class="wa-page-sub">Lo que sabe tu asistente sobre tu sitio y tu app.</p>
@@ -1353,49 +1397,72 @@
             </div>
           </div>
           <div class="mm">
-            <!-- Memoria -->
+            <!-- Memoria: texto en tarjetas (columna de hasta 860px) y, desde 1100px, "Qué cubre" e índice a la derecha -->
             <div class="wg-panel" id="mmPanel-memoria" role="tabpanel" aria-labelledby="mmTab-memoria" tabindex="0">
-              <div class="mm-band" id="mmBand" hidden>
-                <p class="mm-band__t">Hay una versión nueva de la Memoria.</p>
-                <div class="mm-act">
-                  <button class="wa-btn" id="mmDiffBtn" type="button" aria-expanded="false" aria-controls="mmDiff">Ver cambios</button>
-                  <button class="wa-btn wa-btn-primary" id="mmAccept" type="button">Usar la nueva</button>
-                  <button class="wa-btn" id="mmDiscard" type="button">Descartar</button>
+              <div class="mm-cols">
+                <aside class="mm-side" id="mmSide" aria-label="Resumen de la Memoria" hidden>
+                  <div class="cfg-card" id="mmCover" hidden><h2 class="cfg-card__title">Qué cubre</h2><div class="mm-chips" id="mmCoverChips"></div></div>
+                  <nav class="cfg-card mm-idx" aria-labelledby="mmIdxT"><h2 class="cfg-card__title" id="mmIdxT">En esta Memoria</h2><ol id="mmIdxL"></ol></nav>
+                </aside>
+                <div class="mm-main">
+                  <div class="mm-band" id="mmBand" hidden>
+                    <p class="mm-band__t">Hay una versión nueva de la Memoria.</p>
+                    <div class="mm-act">
+                      <button class="wa-btn" id="mmDiffBtn" type="button" aria-expanded="false" aria-controls="mmDiff">Ver cambios</button>
+                      <button class="wa-btn wa-btn-primary" id="mmAccept" type="button">Usar la nueva</button>
+                      <button class="wa-btn" id="mmDiscard" type="button">Descartar</button>
+                    </div>
+                    <ol class="mm-diff" id="mmDiff" aria-label="Cambios entre la Memoria actual y la nueva" hidden></ol>
+                  </div>
+                  <div class="mm-empty" id="mmEmptyNo" hidden><p>La Memoria se crea leyendo tu sitio. Primero confirmá que el sitio es tuyo.</p><a class="mm-link" href="/app/verificaciones" data-mmgo="verificaciones">Verificar mi sitio</a></div>
+                  <div class="mm-empty" id="mmEmptyGo" hidden><p>La Memoria se crea leyendo tu sitio: un resumen de lo que tiene, para que tu asistente responda con eso.</p><button class="wa-btn wa-btn-primary" id="mmCreate" type="button">Leer mi sitio y crear la Memoria</button></div>
+                  <div class="mm-st mm-st--line" id="mmSt" data-hint="mmRegenH" hidden>
+                    <div role="status" aria-live="polite"><ul class="vf-steps" id="mmStSteps"></ul><p class="mm-st__t" id="mmStT"></p></div>
+                    <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="mmRegen" type="button">Regenerar</button><p class="vf-wait" hidden></p></div>
+                  </div>
+                  <p class="mm-note mm-st__h" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
+                  <div class="mm-blks" id="mmBlks" hidden></div>
+                  <div class="cfg-card" id="mmEditBox" hidden>
+                    <div class="kx-head"><label class="wg-field__label" for="mmTa">Texto de la Memoria</label><span class="kx-n" id="mmTaN"></span></div>
+                    <textarea class="wg-textarea mm-ta" id="mmTa" maxlength="8000" spellcheck="false" aria-describedby="mmTaN mmOver"></textarea>
+                    <p class="mm-over" id="mmOver" hidden>El asistente usa solo los primeros 8.000 caracteres.</p>
+                  </div>
+                  <p class="mm-msg" id="mmMsg" role="status" aria-live="polite"></p>
                 </div>
-                <ol class="mm-diff" id="mmDiff" aria-label="Cambios entre la Memoria actual y la nueva" hidden></ol>
               </div>
-              <div class="mm-empty" id="mmEmptyNo" hidden><p>La Memoria se crea leyendo tu sitio. Primero confirmá que el sitio es tuyo.</p><a class="mm-link" href="/app/verificaciones" data-mmgo="verificaciones">Verificar mi sitio</a></div>
-              <div class="mm-empty" id="mmEmptyGo" hidden><p>La Memoria se crea leyendo tu sitio: un resumen de lo que tiene, para que tu asistente responda con eso.</p><button class="wa-btn wa-btn-primary" id="mmCreate" type="button">Leer mi sitio y crear la Memoria</button></div>
-              <div class="mm-st" id="mmSt" hidden>
-                <div role="status" aria-live="polite"><ul class="vf-steps" id="mmStSteps"></ul><p class="mm-st__t" id="mmStT"></p></div>
-                <p class="mm-note mm-st__h" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
-                <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="mmRegen" type="button">Regenerar</button><p class="vf-wait" hidden></p></div>
-              </div>
-              <div id="mmRead" hidden>
-                <div class="mm-blks" id="mmBlks"></div>
-                <p class="mm-stamp" id="mmStamp"></p>
-              </div>
-              <div id="mmEditBox" hidden>
-                <div class="kx-head"><label class="wg-field__label" for="mmTa">Texto de la Memoria</label><span class="kx-n" id="mmTaN"></span></div>
-                <textarea class="wg-textarea mm-ta" id="mmTa" maxlength="8000" spellcheck="false" aria-describedby="mmTaN mmOver"></textarea>
-                <p class="mm-over" id="mmOver" hidden>El asistente usa solo los primeros 8.000 caracteres.</p>
-              </div>
-              <p class="mm-msg" id="mmMsg" role="status" aria-live="polite"></p>
             </div>
 
             <!-- Notas (kx:start) — en lectura, texto recortado con "Ver más"; al editar, el campo crece -->
-            <div class="wg-panel" id="mmPanel-notas" role="tabpanel" aria-labelledby="mmTab-notas" tabindex="0" hidden>
-              <div class="kx-head"><label class="wg-field__label" for="mmNotes">Notas</label><span class="kx-n" id="mmNotesN" hidden>0/2000</span></div>
-              <textarea class="wg-textarea" id="mmNotes" maxlength="2000" hidden aria-describedby="mmNotesH mmNotesN" placeholder="Avisos temporales: cambios de horario, cierres o promociones vigentes."></textarea>
-              <div class="kx-box"><div class="kx-view" id="mmNotesV" data-empty="Sin notas."></div></div>
-              <button class="kx-more" id="mmNotesVM" type="button" aria-expanded="false" aria-controls="mmNotesV" hidden>Ver más</button>
-              <p class="wg-field__hint" id="mmNotesH">La IA las lee primero y tienen prioridad sobre la Memoria.</p>
-              <p class="mm-msg" id="mmNotesMsg" role="status" aria-live="polite"></p>
+            <div class="wg-panel mm-pane" id="mmPanel-notas" role="tabpanel" aria-labelledby="mmTab-notas" tabindex="0" hidden>
+              <div class="cfg-card">
+                <div class="kx-head"><label class="wg-field__label" for="mmNotes">Notas</label><span class="kx-n" id="mmNotesN" hidden>0/2000</span></div>
+                <textarea class="wg-textarea" id="mmNotes" maxlength="2000" hidden aria-describedby="mmNotesH mmNotesN" placeholder="Avisos temporales: cambios de horario, cierres o promociones vigentes."></textarea>
+                <div class="kx-box"><div class="kx-view" id="mmNotesV" data-empty="Sin notas."></div></div>
+                <button class="kx-more" id="mmNotesVM" type="button" aria-expanded="false" aria-controls="mmNotesV" hidden>Ver más</button>
+                <p class="wg-field__hint" id="mmNotesH">La IA las lee primero y tienen prioridad sobre la Memoria.</p>
+                <p class="mm-over" id="mmNotesBr" hidden>Completá lo que está entre corchetes antes de guardar.</p>
+                <p class="mm-msg" id="mmNotesMsg" role="status" aria-live="polite"></p>
+              </div>
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Ejemplos</h2>
+                <p class="mm-note">Tocá uno para agregarlo y completá lo que está entre corchetes.</p>
+                <div class="mm-chips" id="mmNotesEx">
+                  <button class="mm-chip" type="button" data-ins="Hoy atendemos hasta las [hora].">Horario de hoy</button>
+                  <button class="mm-chip" type="button" data-ins="El [fecha] estamos fuera de servicio.">Cierre</button>
+                  <button class="mm-chip" type="button" data-ins="Promoción vigente: [detalle].">Promoción</button>
+                  <button class="mm-chip" type="button" data-ins="Aviso: [detalle].">Aviso</button>
+                </div>
+              </div>
+              <div class="cfg-card">
+                <h2 class="cfg-card__title">Cómo las usa el asistente</h2>
+                <ol class="mm-how"><li>Notas</li><li>Secciones encontradas para la pregunta</li><li>Memoria</li></ol>
+                <p class="mm-note">Si algo se contradice, gana lo de arriba.</p>
+              </div>
             </div>
             <!-- kx:end -->
 
             <!-- Fuentes -->
-            <div class="wg-panel" id="mmPanel-fuentes" role="tabpanel" aria-labelledby="mmTab-fuentes" tabindex="0" hidden>
+            <div class="wg-panel mm-pane" id="mmPanel-fuentes" role="tabpanel" aria-labelledby="mmTab-fuentes" tabindex="0" hidden>
               <div class="cfg-card">
                 <h2 class="cfg-card__title">Sitio</h2>
                 <div class="mm-src">
@@ -1410,11 +1477,19 @@
                 </div>
                 <p class="vf-use" id="rdUse" hidden></p>
               </div>
+              <div class="cfg-card" id="mmPages" hidden><h2 class="cfg-card__title">Páginas leídas</h2><ul class="mm-list" id="mmPagesL"></ul></div>
+              <div class="cfg-card" id="mmAct" hidden><h2 class="cfg-card__title">Actividad reciente</h2><ul class="mm-list" id="mmActL"></ul></div>
+              <p class="mm-note" id="mmSrcNone" hidden>Cuando leas tu sitio, acá vas a ver sus páginas y la actividad.</p>
             </div>
 
             <!-- Secciones (solo lectura) -->
-            <div class="wg-panel" id="mmPanel-secciones" role="tabpanel" aria-labelledby="mmTab-secciones" tabindex="0" hidden>
-              <p class="wg-panel__hint">Esto es lo que el asistente leyó de tu sitio.</p>
+            <div class="wg-panel mm-pane" id="mmPanel-secciones" role="tabpanel" aria-labelledby="mmTab-secciones" tabindex="0" hidden>
+              <div class="cfg-card">
+                <p class="wg-panel__hint">Esto es lo que el asistente leyó de tu sitio.</p>
+                <label class="sr-only" for="mmSecQ">Buscar por título</label>
+                <input class="wg-input mm-search" id="mmSecQ" type="search" placeholder="Buscar por título" autocomplete="off" spellcheck="false" />
+                <div class="mm-chips" id="mmSecChips" role="group" aria-label="Filtrar por tipo"></div>
+              </div>
               <div id="mmSecs"></div>
               <button class="wa-btn mm-more" id="mmSecMore" type="button" hidden>Ver más</button>
             </div>
@@ -3491,7 +3566,7 @@
        (función import-site, ahora en la vista Memoria). Todo texto del servidor o del sitio va con textContent. Un solo polling a la vez (vf.gen /
        rd.gen); se corta al terminar y al salir de la vista. El código de la etiqueta (verify_token) solo se muestra en su
        caja para copiar: nunca en la URL, la consola ni en data-*. */
-    var VF_LIMITS = { verifyHour: 5, verifyDay: 20, urlChanges: 5, reads: 10 };   // PROVISIONALES: cambian con los planes
+    var VF_LIMITS = { verifyHour: 5, verifyDay: 20, urlChanges: 5, reads: 10, memories: 10 };   // PROVISIONALES: cambian con los planes
     var VF_STEPS = [['publica','Comprobando que la dirección es pública'],['abre','Abriendo tu sitio'],['legible','Revisando que se pueda leer'],['codigo','Buscando el código de Walkylet'],['listo','Confirmando que el sitio es tuyo']];
     var VF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     var VF_IC = { ok: VF_SVG + '<path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', warn: VF_SVG + '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
@@ -3720,12 +3795,15 @@
        memory_generate. Nunca se llama a summarize. Todo texto del servidor o del sitio va con textContent. */
     appState.memory = { knowledge: '', aiAt: null, draft: '', draftAt: null, notes: '' };
     var MM_MAX = 8000, MM_LINES = 6, MM_TABS = ['memoria', 'notas', 'fuentes', 'secciones'];
-    var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Pasos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
+    var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Flujos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
     var MM_CHEV = '<svg class="mm-sr__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
     // edit / notes: null en lectura; el texto del borrador al editar (sobrevive al cambiar de vista).
     var mm = { tab: 'memoria', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
     var rd = { gen: 0, timer: null, doneT: 0, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
     var mmSecs = null, mmSecReq = null, mmSecShown = 20, mmSecOpen = {}, mmSecText = {};
+    // Filtro de Secciones (lo comparten las fichas de "Qué cubre", las de Secciones y las filas de "Páginas leídas").
+    var MM_G = [['screen', 'Pantallas', ['screen']], ['steps', 'Flujos', ['steps']], ['pages', 'Páginas', ['info', 'faq', 'menu', 'ui']], ['legal', 'Legales', ['legal']]];
+    var mmF = { g: 'all', q: '', page: '' }, mmSrc = null, mmWide = window.matchMedia('(min-width:1100px)');
     function mmSetRow(r){
       var m = appState.memory;
       if ('knowledge' in r) m.knowledge = r.knowledge || '';
@@ -3760,8 +3838,8 @@
         var bar = wgId('mmTabs'), l = b.offsetLeft, r = l + b.offsetWidth;
         if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
       });
-      if (name === 'fuentes'){ mmSecLoad(); vfLoadUse(); }
-      if (name === 'secciones') mmSecLoad();
+      if (name === 'fuentes'){ mmSecLoad(); vfLoadUse(); mmSrcLoad(); }
+      if (name === 'secciones' || name === 'memoria') mmSecLoad();
       mmRender();
     }
     function mmEnter(){ if (!mm) return; mmTabSet('memoria'); vfCount(rd, 0, rdRender); }
@@ -3783,7 +3861,7 @@
       var box = wgId('mmBlks'); box.textContent = '';
       mmParse(appState.memory.knowledge).forEach(function(b, i){
         var sec = rsEl('section', 'mm-blk'), k = i + '|' + b.t, hid = b.l.length - MM_LINES, cut = hid >= 3, open = cut && !!mm.open[k];
-        if (b.t) sec.appendChild(rsEl('h3', 'mm-blk__t', b.t));
+        if (b.t){ var h = rsEl('h3', 'mm-blk__t', b.t); h.id = 'mmBt' + i; h.tabIndex = -1; sec.appendChild(h); }
         if (b.l.length){
           var ul = rsEl('ul', 'mm-blk__l'); ul.id = 'mmB' + i;
           b.l.forEach(function(x, j){ var li = rsEl('li', '', x); if (cut && !open && j >= MM_LINES) li.hidden = true; ul.appendChild(li); });
@@ -3796,7 +3874,25 @@
         }
         box.appendChild(sec);
       });
+      var ol = wgId('mmIdxL'); ol.textContent = '';
+      box.querySelectorAll('.mm-blk__t').forEach(function(h){ var li = rsEl('li'), b = rsEl('button', '', h.textContent); b.type = 'button'; b.setAttribute('data-mmidx', h.id); li.appendChild(b); ol.appendChild(li); });
     }
+    // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a Secciones con ese filtro.
+    function mmChips(el, all){
+      el.textContent = ''; if (!mmSecs || mmSecs.err) return 0;
+      var rows = mmSecs.rows, n = 0, list = (all ? [['all', 'Todas', null]] : []).concat(MM_G);
+      list.forEach(function(g){
+        var c = g[2] ? rows.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }).length : rows.length; if (!c) return;
+        var b = rsEl('button', 'mm-chip', g[1] + ' '); b.type = 'button'; b.setAttribute('data-mmf', g[0]); b.appendChild(rsEl('span', '', fmtN(c)));
+        if (all) b.setAttribute('aria-pressed', mmF.g === g[0] ? 'true' : 'false'); el.appendChild(b); n++;
+      });
+      if (all && mmF.page){ var x = rsEl('button', 'mm-chip', 'Página: ' + mmPath(mmF.page) + ' ✕'); x.type = 'button'; x.setAttribute('data-mmfp', ''); x.setAttribute('aria-label', 'Quitar el filtro de página ' + mmPath(mmF.page)); el.appendChild(x); }
+      return n;
+    }
+    function mmCover(){ wgId('mmCover').hidden = !mmChips(wgId('mmCoverChips'), false); }
+    function mmPath(u){ try { var x = new URL(u); return x.pathname + x.search; } catch(e){ return String(u || ''); } }
+    function mmNorm(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function mmFilter(f){ mmF = { g: f.g || 'all', q: f.q || '', page: f.page || '' }; wgId('mmSecQ').value = mmF.q; mmSecShown = 20; if (mm.tab !== 'secciones') mmTabSet('secciones', true); else mmSecRender(); }
     // Diferencias por línea (LCS): solo las distintas, con 2 de contexto. Sin color: prefijo y peso.
     function mmDiffRender(){
       var A = appState.memory.knowledge.split('\n').filter(function(l){ return l.trim(); }),
@@ -3825,8 +3921,8 @@
     // Tarjeta de estado (Memoria › Regenerar y Fuentes › Actualizar): pasos con ícono (pendiente, en curso, listo, error),
     // un texto y un botón. role="status" + aria-live anuncian cada paso. Sin barra ni números: el servidor no informa avance.
     function stRender(id, o){
-      var root = wgId(id), t = root.querySelector('.mm-st__t'), h = root.querySelector('.mm-st__h'), b = root.querySelector('.mm-st__btn'), w = root.querySelector('.vf-wait');
-      root.hidden = !!o.hidden; if (o.hidden) return;
+      var root = wgId(id), t = root.querySelector('.mm-st__t'), h = wgId(root.getAttribute('data-hint')) || root.querySelector('.mm-st__h'), b = root.querySelector('.mm-st__btn'), w = root.querySelector('.vf-wait');
+      root.hidden = !!o.hidden; if (o.hidden){ h.hidden = true; return; }
       vfSteps(root.querySelector('.vf-steps'), o.steps || []);
       var k = JSON.stringify([o.text, o.link, !!o.err]);
       if (t.getAttribute('data-k') !== k){   // se rehace solo si cambia lo que dice (el lector no repite)
@@ -3846,6 +3942,8 @@
       // Cabecera (pestaña Memoria): Editar en lectura; Cancelar y Guardar al editar. Guardar solo con cambios.
       var onM = mm.tab === 'memoria';
       wgId('mmEdit').hidden = !onM || ed || !has;
+      // Un solo negro: Guardar (editando) > Usar la nueva (hay versión nueva) > Editar.
+      wgId('mmEdit').classList.toggle('wa-btn-primary', !draft);
       wgId('mmCancel').hidden = wgId('mmSave').hidden = !onM || !ed;
       wgId('mmSave').disabled = !ed || mm.saving || mm.edit === m.knowledge;
       // Franja del borrador. Un solo botón negro a la vez: mientras editás, el negro es "Guardar".
@@ -3858,16 +3956,16 @@
       // Vacía: sin verificar (enlace) o verificada (botón negro que lee el sitio).
       wgId('mmEmptyNo').hidden = has || ed || ok;
       wgId('mmEmptyGo').hidden = has || ed || !ok;
-      wgId('mmCreate').disabled = busy;
-      wgId('mmRead').hidden = !has || ed;
+      wgId('mmCreate').disabled = busy; wgId('mmCreate').classList.toggle('wa-btn-primary', !draft);
+      wgId('mmBlks').hidden = !has || ed;
       if (has && !ed) mmBlocks();
-      wgId('mmStamp').textContent = m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) + '.' : 'Editada por vos.';
-      // Tarjeta de estado: Regenerar = memory_generate con force (un solo paso).
+      mmCover(); wgId('mmSide').hidden = !has || ed || (wgId('mmCover').hidden && !mmWide.matches);
+      // Línea de estado: "Generada por IA el … · N / 8.000 caracteres" y Regenerar (memory_generate con force, un paso).
+      var stamp = (m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) : 'Editada por vos') + ' · ' + fmtN(m.knowledge.length) + ' / ' + fmtN(MM_MAX) + ' caracteres';
       stRender('mmSt', { hidden: !has || ed, busy: busy,
-        steps: r === 'run' ? [{ status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }] : r === 'ok' ? [{ status: 'ok', label: 'Creando la Memoria' }] : r === 'fail' ? [{ status: 'err', label: 'Creando la Memoria' }] : [],
-        text: r !== 'idle' ? mm.runMsg : !ok ? 'Para crear la Memoria desde tu sitio, primero verificalo.' : draft ? 'Hay una versión nueva para revisar.' : m.aiAt ? 'Memoria al día según tu último escaneo.' : 'Tu Memoria tiene cambios tuyos.',
-        err: r === 'fail', link: r === 'idle' && !ok ? 'Verificar mi sitio' : '',
-        hint: ok && !m.aiAt && r !== 'run' ? 'Se creará una versión nueva para que la compares. Tu texto no se toca.' : '',
+        steps: r === 'run' ? [{ status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }] : r !== 'idle' ? [{ status: r === 'ok' ? 'ok' : 'err', label: mm.runMsg }] : [],
+        text: r === 'idle' ? stamp + (ok ? '' : ' ·') : '', link: r === 'idle' && !ok ? 'Verificar mi sitio' : '',
+        hint: ok && !m.aiAt && r === 'idle' ? 'Se creará una versión nueva para que la compares. Tu texto no se toca.' : '',
         btn: ok ? (r === 'fail' ? 'Probar de nuevo' : 'Regenerar') : '' });
       // Edición: un campo que crece, contador y aviso si el texto pasa de 8.000.
       wgId('mmEditBox').hidden = !ed;
@@ -3949,7 +4047,10 @@
       ta.hidden = !ed; v.parentNode.hidden = ed; n.hidden = !ed;
       var onN = mm.tab === 'notas';   // sus botones van en la cabecera, solo en esta pestaña
       wgId('mmNotesEdit').hidden = !onN || ed; wgId('mmNotesCancel').hidden = wgId('mmNotesSave').hidden = !onN || !ed;
-      wgId('mmNotesSave').disabled = !ed || mm.notesSaving || mm.notes === appState.memory.notes;
+      var txt = ed ? mm.notes : appState.memory.notes, br = ed && /\[[^\]\n]*\]/.test(mm.notes), sv = wgId('mmNotesSave');
+      sv.disabled = !ed || mm.notesSaving || mm.notes === appState.memory.notes || br; wgId('mmNotesBr').hidden = !br;
+      if (br) sv.setAttribute('aria-describedby', 'mmNotesBr'); else sv.removeAttribute('aria-describedby');
+      wgId('mmNotesEx').querySelectorAll('[data-ins]').forEach(function(b){ b.disabled = (txt + (txt && !/\n$/.test(txt) ? '\n' : '') + b.getAttribute('data-ins')).length > 2000; });
       if (ed){
         if (ta.value !== mm.notes) ta.value = mm.notes;
         more.hidden = true; n.textContent = ta.value.length + '/2000'; n.classList.toggle('is-max', ta.value.length >= 2000); mmFit(ta); return;
@@ -4003,7 +4104,7 @@
         rd.phase = r.ok ? 'done' : 'fail'; rd.failAt = r.ok ? '' : 'writing'; rd.err = !r.ok; rd.msg = mmGenText(r, true);
         if (!r.ok && r.status === 403) vfRefresh();
         if (r.ok) rd.doneT = setTimeout(function(){ if (rd.phase === 'done'){ rd.phase = 'idle'; rd.msg = ''; rdRender(); } }, 5000);   // vuelve al reposo
-        vfLoadUse(); mmSecLoad(); mmReload();
+        vfLoadUse(); mmSecLoad(); mmSrcLoad(); mmReload();
         // Con una versión nueva, se lleva a la pestaña Memoria para revisarla.
         if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('memoria'); }
       }, rdNone);
@@ -4016,7 +4117,7 @@
       else if (r.status === 403){ rd.msg = 'Tu sitio no está verificado. Verificalo para poder leerlo.'; vfRefresh(); }
       else if (r.status === 400 && (d.error === 'sin_url' || d.error === 'url_no_permitida')) rd.msg = 'No pudimos leer esa dirección. Revisala en Verificaciones.';
       else rd.msg = 'No pudimos leer tu sitio ahora. Probá de nuevo en un momento.';
-      vfLoadUse(); mmRender();
+      vfLoadUse(); mmSrcLoad(); mmRender();
     }
     function rdRender(){
       if (!rd || !mm) return;
@@ -4030,7 +4131,8 @@
         text: ph === 'idle' ? 'Leemos las páginas públicas de tu sitio y actualizamos la Memoria.' : rd.msg, err: rd.err && !!rd.msg,
         btn: wait || !vfVerified() ? '' : fail ? 'Probar de nuevo' : 'Actualizar',
         wait: rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : wait ? 'Podés actualizar de nuevo en ' + wait + ' s' : '' });
-      wgId('rdUse').hidden = !vf.use; if (vf.use) wgId('rdUse').textContent = 'Lecturas hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads;
+      var r24 = mmSrc && !mmSrc.err ? mmSrc.runs24 : null; wgId('rdUse').hidden = !vf.use;
+      if (vf.use) wgId('rdUse').textContent = 'Hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads + ' lecturas' + (r24 != null ? ' · ' + r24 + ' de ' + VF_LIMITS.memories + ' Memorias' : '');
       // Tarjeta "Sitio": dirección, estado (verde solo para "Verificado"), última lectura y cantidad de secciones.
       var w = vfW(), ok = vfVerified(), st = wgId('mmSrcSt'), meta = wgId('mmSrcMeta'), k = ok + '|' + (w.siteUrl || '');
       wgId('mmSrcUrl').textContent = w.siteUrl || 'Sin dirección';
@@ -4042,11 +4144,52 @@
           var a = rsEl('a', 'mm-link', w.siteUrl ? 'Verificar mi sitio' : 'Agregar la dirección en Verificaciones'); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); st.appendChild(a);
         }
       }
-      meta.hidden = !mmSecs || !!mmSecs.err;
-      if (mmSecs && !mmSecs.err){
-        var last = mmSecs.rows.reduce(function(a, x){ return x.fetched_at > a ? x.fetched_at : a; }, '');
-        meta.textContent = mmSecs.rows.length ? 'Última lectura: ' + VF_DATE.format(new Date(last)) + ' · ' + rsCount(mmSecs.rows.length, 'sección', 'secciones') : 'Tu sitio no tiene secciones leídas.';
-      }
+      var last = mmSrc && !mmSrc.err ? mmSrc.pages.reduce(function(a, x){ return x.status === 'done' && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
+          parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', mmSecs && !mmSecs.err ? rsCount(mmSecs.rows.length, 'sección', 'secciones') : ''].filter(Boolean);
+      meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
+    }
+
+    // Fuentes: páginas leídas (máx. 50), últimas 5 lecturas y 5 Memorias, y Memorias de las últimas 24 h. Solo lectura.
+    // Los errores nunca se muestran crudos: openai_429 → "sin crédito o límite de la IA"; el resto, "error".
+    var MM_PST = { done: ['Leída', 'ok'], error: ['Con error', 'err'], blocked: ['Bloqueada', 'lock'] };
+    function mmSrcLoad(){
+      var since = new Date(Date.now() - 864e5).toISOString();
+      Promise.all([
+        SB.from('site_pages').select('url,status,fetched_at,flags,error,text_chars').order('fetched_at', { ascending: false, nullsFirst: false }).limit(50),
+        SB.from('site_import_jobs').select('status,pages_found,pages_new,pages_changed,pages_same,created_at,finished_at').order('created_at', { ascending: false }).limit(5),
+        SB.from('memory_runs').select('status,mode,chars,error,started_at').order('started_at', { ascending: false }).limit(5),
+        SB.from('memory_runs').select('started_at', { count: 'exact', head: true }).gte('started_at', since)
+      ]).then(function(rs){
+        mmSrc = rs.slice(0, 3).some(function(r){ return !r || r.error; }) ? { err: true } : { pages: rs[0].data || [], jobs: rs[1].data || [], runs: rs[2].data || [], runs24: rs[3] && !rs[3].error && rs[3].count != null ? rs[3].count : null };
+        mmSrcRender(); rdRender();
+      }, function(){ mmSrc = { err: true }; mmSrcRender(); });
+    }
+    function mmSrcRow(ic, cls, title, meta, page){
+      var li = rsEl('li'), b = rsEl(page ? 'button' : 'div', 'mm-row'), i = rsEl('span', 'mm-row__i' + cls), bd = rsEl('span', 'mm-row__b');
+      i.innerHTML = ic; i.setAttribute('aria-hidden', 'true');
+      if (page){ b.type = 'button'; b.setAttribute('data-mmpage', page); }
+      bd.appendChild(rsEl('span', 'mm-row__t', title)); bd.appendChild(rsEl('span', 'mm-row__m', meta));
+      b.appendChild(i); b.appendChild(bd); li.appendChild(b); return li;
+    }
+    function mmSrcRender(){
+      var s = mmSrc && !mmSrc.err ? mmSrc : null, now = Date.now(), pl = wgId('mmPagesL'), al = wgId('mmActL');
+      var pages = s ? s.pages.filter(function(p){ return MM_PST[p.status]; }) : [];
+      pl.textContent = ''; al.textContent = '';
+      pages.forEach(function(p){
+        var st = MM_PST[p.status], n = p.flags && typeof p.flags.sections === 'number' ? p.flags.sections : null;
+        pl.appendChild(mmSrcRow(VF_IC[st[1]], st[1] === 'err' ? ' is-err' : '', mmPath(p.url), [st[0], p.fetched_at ? rsAgo(p.fetched_at, now) : '', n != null ? rsCount(n, 'sección', 'secciones') : ''].filter(Boolean).join(' · '), p.url));
+      });
+      var acts = !s ? [] : s.jobs.map(function(j){
+        var ch = (j.pages_new || 0) + (j.pages_changed || 0);
+        return { at: j.created_at, st: j.status, t: j.status === 'done' ? 'Lectura: ' + rsCount(j.pages_found || 0, 'página', 'páginas') + ', ' + (ch ? rsCount(ch, 'con cambios', 'con cambios') : 'sin cambios')
+          : j.status === 'error' ? 'Lectura: no se pudo completar' : j.status === 'running' ? 'Lectura en curso' : 'Lectura cancelada' };
+      }).concat(s.runs.map(function(r){
+        return { at: r.started_at, st: r.status, t: r.status === 'done' ? (r.mode === 'draft' ? 'Memoria: versión nueva para revisar' : 'Memoria: actualizada')
+          : r.status === 'error' ? 'Memoria: no se pudo crear (' + (/openai_429/.test(String(r.error || '')) ? 'sin crédito o límite de la IA' : 'error') + ')' : 'Memoria: creándose' };
+      })).sort(function(a, b){ return new Date(b.at) - new Date(a.at); }).slice(0, 6);
+      acts.forEach(function(a){ al.appendChild(mmSrcRow(a.st === 'done' ? VF_IC.ok : a.st === 'error' ? VF_IC.err : '', a.st === 'error' ? ' is-err' : '', a.t, a.at ? rsAgo(a.at, now) : '')); });
+      wgId('mmPages').hidden = !pages.length; wgId('mmAct').hidden = !acts.length;
+      wgId('mmSrcNone').hidden = !s || pages.length || acts.length;
     }
 
     // Secciones (solo lectura): se piden al abrir la pestaña, SIN la columna text; el texto se pide al abrir cada fila.
@@ -4060,14 +4203,14 @@
       if (mmSecReq) return;
       if (force){ mmSecs = null; mmSecText = {}; mmSecOpen = {}; }
       mmSecRender();
-      function set(v){ mmSecReq = null; mmSecs = v; mmSecShown = 20; mmSecRender(); rdRender(); }
-      mmSecReq = SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url,fetched_at').order('document_url').order('position').then(function(r){
+      function set(v){ mmSecReq = null; mmSecs = v; mmSecShown = 20; mmSecRender(); mmRender(); }
+      mmSecReq = SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url').order('document_url').order('position').then(function(r){
         set(!r || r.error ? { err: true, rows: [] } : { rows: r.data || [] });
       }, function(){ set({ err: true, rows: [] }); });
     }
     function mmSBox(t){ var b = rsEl('div', 'mm-sbox'), i = rsEl('div'); i.appendChild(rsEl('p', '', t)); b.appendChild(i); return b; }
     function mmSecRender(){
-      var box = wgId('mmSecs'), more = wgId('mmSecMore'), s = mmSecs; box.textContent = ''; more.hidden = true;
+      var box = wgId('mmSecs'), more = wgId('mmSecMore'), s = mmSecs; box.textContent = ''; more.hidden = true; mmChips(wgId('mmSecChips'), true);
       if (!s){ box.appendChild(mmSBox('Cargando…')); return; }
       if (s.err || !s.rows.length){
         var b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : 'Tu sitio no tiene secciones leídas.'), l = null;
@@ -4076,9 +4219,12 @@
         if (l){ l.type = 'button'; b.firstChild.appendChild(l); }
         box.appendChild(b); return;
       }
+      var G = MM_G.filter(function(g){ return g[0] === mmF.g; })[0], q = mmNorm(mmF.q).trim();
+      var all = s.rows.filter(function(x){ return (!G || G[2].indexOf(mmKind(x)) >= 0) && (!mmF.page || x.document_url === mmF.page) && (!q || mmNorm(mmSecTitle(x)).indexOf(q) >= 0); });
+      if (!all.length){ box.appendChild(mmSBox('No hay secciones con este filtro.')); return; }
       var left = mmSecShown;
       MM_KINDS.forEach(function(k){
-        var rows = s.rows.filter(function(x){ return mmKind(x) === k[0]; }); if (!rows.length || left <= 0) return;
+        var rows = all.filter(function(x){ return mmKind(x) === k[0]; }); if (!rows.length || left <= 0) return;
         var g = rsEl('div', 'mm-sg'), h = rsEl('h3', 'mm-sg__t', k[1]), bx = rsEl('div', 'mm-box');
         h.appendChild(rsEl('span', '', fmtN(rows.length))); g.appendChild(h);
         rows.slice(0, left).forEach(function(x){
@@ -4092,7 +4238,7 @@
         });
         left -= rows.length; g.appendChild(bx); box.appendChild(g);
       });
-      more.hidden = mmSecShown >= s.rows.length;
+      more.hidden = mmSecShown >= all.length;
     }
     function mmSecFill(x, d){
       d.textContent = '';
@@ -4158,6 +4304,22 @@
         if (open) mmSecFill(mmSecs.rows.filter(function(x){ return String(x.id) === id; })[0], d);
       });
       wgId('mmSecMore').addEventListener('click', function(){ mmSecShown += 20; mmSecRender(); });
+      wgId('mmSecQ').addEventListener('input', function(){ mmF.q = this.value; mmSecShown = 20; mmSecRender(); });
+      document.querySelector('section[data-view="memoria"]').addEventListener('click', function(e){
+        var f = e.target.closest('[data-mmf]'), fp = e.target.closest('[data-mmfp]'), ix = e.target.closest('[data-mmidx]'), pg = e.target.closest('[data-mmpage]');
+        if (f) mmFilter({ g: f.getAttribute('data-mmf'), q: f.closest('#mmSecChips') ? mmF.q : '', page: f.closest('#mmSecChips') ? mmF.page : '' });
+        if (fp) mmFilter({ g: mmF.g, q: mmF.q });
+        if (pg) mmFilter({ page: pg.getAttribute('data-mmpage') });
+        if (ix){ var h = wgId(ix.getAttribute('data-mmidx')); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
+      });
+      wgId('mmNotesEx').addEventListener('click', function(e){
+        var b = e.target.closest('[data-ins]'); if (!b || b.disabled) return;
+        var cur = mm.notes !== null ? mm.notes : appState.memory.notes, t = cur + (cur && !/\n$/.test(cur) ? '\n' : '') + b.getAttribute('data-ins');
+        if (t.length > 2000) return;
+        mm.notes = t; wgId('mmNotesMsg').textContent = ''; mmNotesRender();
+        var ta = wgId('mmNotes'), i = t.lastIndexOf('['), j = t.indexOf(']', i);
+        if (mmFine()){ ta.focus(); if (i >= 0) ta.setSelectionRange(i, j + 1); }   // en táctil no se enfoca solo
+      });
       var raf = 0;
       window.addEventListener('resize', function(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(function(){ if (wuViewFromPath() === 'memoria') mmRender(); }); });
     })();
