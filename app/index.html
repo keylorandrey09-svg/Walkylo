@@ -754,6 +754,21 @@
 
     /* mm:start — Memoria (pestañas Memoria · Notas · Fuentes · Secciones) */
     .mm{margin-top:24px;}
+    /* Cabecera: acciones en la fila del título, centradas con él (mismo patrón que .cfg-head); el margen negativo
+       hace que la fila mida lo mismo que el título solo, así el título no salta al cambiar de pestaña. */
+    .mm-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;}
+    .mm-hact{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-6px 0 -6px auto;}
+    .mm-hact .wa-btn[hidden]{display:none;}
+    /* Tarjeta de estado (Regenerar y Actualizar): pasos con ícono, texto y un botón. Sin barra ni números de avance. */
+    .mm-st{margin-bottom:24px;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .cfg-card .mm-st{margin:16px 0 0;}
+    .mm-st .vf-steps{margin:0;}
+    .mm-st__t{margin:0;font-size:.875rem;color:var(--text-2);}
+    .mm-st .vf-steps:not(:empty) + .mm-st__t{margin-top:12px;color:var(--text);}
+    .mm-st .vf-steps ~ .mm-st__t.is-err{color:var(--danger);}   /* misma especificidad que la regla de arriba y va después: gana */
+    .mm-st__act{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;}
+    .mm-st .vf-s[data-st=pending] .vf-s__i::before{border-color:var(--text-2);}
+    .vf-s[data-st=err] .vf-s__i{color:var(--danger);}
     .mm a,.mm-link{color:var(--accent);}
     .mm-link{min-height:44px;padding:0;border:0;background:none;font:inherit;cursor:pointer;text-align:left;}
     .mm-link:hover,.mm a:hover{text-decoration:underline;}
@@ -789,15 +804,16 @@
     .mm-src__st svg{width:16px;height:16px;flex-shrink:0;}
     .mm-src__st.is-ok{color:var(--text);} .mm-src__st.is-ok svg{color:var(--ok);}
     .mm-src__meta{margin:0;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
-    #rdSteps .vf-s[data-st=running] .vf-s__i::before{animation:wa-spin .9s linear infinite;}
     /* Secciones: grupos con caja y filas que se abren */
     .mm-sg{margin-top:24px;}
     .mm-sg:first-child{margin-top:16px;}
     .mm-sg__t{margin:0 0 8px;font-size:.875rem;font-weight:500;color:var(--text);}
     .mm-sg__t span{margin-left:6px;font-weight:400;color:var(--text-2);font-variant-numeric:tabular-nums;}
-    .mm-box{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
-    .mm-box > div + div{border-top:1px solid var(--border);}
-    .mm-sr{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 16px;border:0;background:none;font:inherit;color:var(--text);text-align:left;cursor:pointer;}
+    /* Cada sección es una tarjeta (8px entre tarjetas); se abre dentro de su tarjeta. El hover solo cambia el borde. */
+    .mm-box{display:flex;flex-direction:column;gap:8px;}
+    .mm-card{border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+    .mm-card:hover{border-color:var(--text-2);}
+    .mm-sr{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:12px 16px;border:0;border-radius:9px;background:none;font:inherit;color:var(--text);text-align:left;cursor:pointer;}
     .mm-sr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
     .mm-sr__t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .mm-sr__m{flex-shrink:0;font-size:.8125rem;color:var(--text-2);}
@@ -814,8 +830,9 @@
       .mm-sr__t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
       .mm-act .wa-btn{flex:1 1 auto;}
       .mm-link{min-height:44px;}
+      .mm-head{row-gap:12px;}
+      .mm-hact{margin:-8px 0 -8px auto;}
     }
-    @media (prefers-reduced-motion:reduce){ #rdSteps .vf-s[data-st=running] .vf-s__i::before{animation:none;} }
     /* mm:end */
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
@@ -1319,7 +1336,13 @@
 
         <!-- VIEW: Memoria (mm:start) — 4 pestañas en memoria, sin cambiar la URL; todos los paneles quedan en el DOM -->
         <section class="wa-view" data-view="memoria">
-          <h1 class="wa-page-title">Memoria</h1>
+          <div class="mm-head">
+            <h1 class="wa-page-title">Memoria</h1>
+            <div class="mm-hact">
+              <button class="wa-btn" id="mmEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmSave" type="button" hidden>Guardar</button>
+              <button class="wa-btn" id="mmNotesEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button>
+            </div>
+          </div>
           <p class="wa-page-sub">Lo que sabe tu asistente sobre tu sitio y tu app.</p>
           <div class="wg-tabbar">
             <div class="wg-tabs" id="mmTabs" role="tablist" aria-label="Secciones de la Memoria">
@@ -1343,17 +1366,19 @@
               </div>
               <div class="mm-empty" id="mmEmptyNo" hidden><p>La Memoria se crea leyendo tu sitio. Primero confirmá que el sitio es tuyo.</p><a class="mm-link" href="/app/verificaciones" data-mmgo="verificaciones">Verificar mi sitio</a></div>
               <div class="mm-empty" id="mmEmptyGo" hidden><p>La Memoria se crea leyendo tu sitio: un resumen de lo que tiene, para que tu asistente responda con eso.</p><button class="wa-btn wa-btn-primary" id="mmCreate" type="button">Leer mi sitio y crear la Memoria</button></div>
+              <div class="mm-st" id="mmSt" hidden>
+                <div role="status" aria-live="polite"><ul class="vf-steps" id="mmStSteps"></ul><p class="mm-st__t" id="mmStT"></p></div>
+                <p class="mm-note mm-st__h" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
+                <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="mmRegen" type="button">Regenerar</button><p class="vf-wait" hidden></p></div>
+              </div>
               <div id="mmRead" hidden>
                 <div class="mm-blks" id="mmBlks"></div>
                 <p class="mm-stamp" id="mmStamp"></p>
-                <div class="mm-act"><button class="wa-btn" id="mmEdit" type="button">Editar</button><button class="wa-btn" id="mmRegen" type="button">Regenerar</button></div>
-                <p class="mm-note" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
               </div>
               <div id="mmEditBox" hidden>
                 <div class="kx-head"><label class="wg-field__label" for="mmTa">Texto de la Memoria</label><span class="kx-n" id="mmTaN"></span></div>
                 <textarea class="wg-textarea mm-ta" id="mmTa" maxlength="8000" spellcheck="false" aria-describedby="mmTaN mmOver"></textarea>
                 <p class="mm-over" id="mmOver" hidden>El asistente usa solo los primeros 8.000 caracteres.</p>
-                <div class="mm-act"><button class="wa-btn" id="mmCancel" type="button">Cancelar</button><button class="wa-btn wa-btn-primary" id="mmSave" type="button">Guardar</button></div>
               </div>
               <p class="mm-msg" id="mmMsg" role="status" aria-live="polite"></p>
             </div>
@@ -1365,7 +1390,6 @@
               <div class="kx-box"><div class="kx-view" id="mmNotesV" data-empty="Sin notas."></div></div>
               <button class="kx-more" id="mmNotesVM" type="button" aria-expanded="false" aria-controls="mmNotesV" hidden>Ver más</button>
               <p class="wg-field__hint" id="mmNotesH">La IA las lee primero y tienen prioridad sobre la Memoria.</p>
-              <div class="mm-act"><button class="wa-btn" id="mmNotesEdit" type="button">Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button></div>
               <p class="mm-msg" id="mmNotesMsg" role="status" aria-live="polite"></p>
             </div>
             <!-- kx:end -->
@@ -1379,11 +1403,12 @@
                   <p class="mm-src__st" id="mmSrcSt"></p>
                   <p class="mm-src__meta" id="mmSrcMeta" hidden></p>
                 </div>
-                <div id="rdBox" hidden>
-                  <div aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="mm-msg" id="rdMsg"></p></div>
-                  <div class="vf-act"><button class="wa-btn wa-btn-primary" id="rdGo" type="button">Actualizar</button><p class="vf-wait" id="rdWait" hidden></p></div>
-                  <p class="vf-use" id="rdUse" hidden></p>
+                <div class="mm-st" id="rdSt" hidden>
+                  <div role="status" aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="mm-st__t" id="rdMsg"></p></div>
+                  <p class="mm-note mm-st__h" id="rdH" hidden></p>
+                  <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="rdGo" type="button">Actualizar</button><p class="vf-wait" id="rdWait" hidden></p></div>
                 </div>
+                <p class="vf-use" id="rdUse" hidden></p>
               </div>
             </div>
 
@@ -3471,7 +3496,8 @@
     var VF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     var VF_IC = { ok: VF_SVG + '<path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', warn: VF_SVG + '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
       fail: VF_SVG + '<path d="M6 6l12 12M18 6L6 18"/></svg>', lock: VF_SVG + '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' };
-    var VF_SR = { pending: 'Pendiente', running: 'En curso', ok: 'Listo', warn: 'Con aviso', fail: 'Falló' };
+    var VF_SR = { pending: 'Pendiente', running: 'En curso', ok: 'Listo', warn: 'Con aviso', fail: 'Falló', err: 'Error' };
+    VF_IC.err = VF_SVG + '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16h.01"/></svg>';
     var VF_DATE = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
     var vf = { st: null, busy: false, saving: false, touched: false, hint: null, gen: 0, timer: null, waitT: null, waitEnd: 0, daily: false, tab: 'install', use: null, pvKey: '' };
     function vfW(){ return appState.widget || {}; }
@@ -3697,8 +3723,8 @@
     var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Pasos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
     var MM_CHEV = '<svg class="mm-sr__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
     // edit / notes: null en lectura; el texto del borrador al editar (sobrevive al cambiar de vista).
-    var mm = { tab: 'memoria', edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
-    var rd = { gen: 0, timer: null, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
+    var mm = { tab: 'memoria', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
+    var rd = { gen: 0, timer: null, doneT: 0, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
     var mmSecs = null, mmSecReq = null, mmSecShown = 20, mmSecOpen = {}, mmSecText = {};
     function mmSetRow(r){
       var m = appState.memory;
@@ -3796,9 +3822,32 @@
       });
       if (!ol.children.length) ol.appendChild(rsEl('li', '', 'El texto es igual al de tu Memoria actual.'));
     }
+    // Tarjeta de estado (Memoria › Regenerar y Fuentes › Actualizar): pasos con ícono (pendiente, en curso, listo, error),
+    // un texto y un botón. role="status" + aria-live anuncian cada paso. Sin barra ni números: el servidor no informa avance.
+    function stRender(id, o){
+      var root = wgId(id), t = root.querySelector('.mm-st__t'), h = root.querySelector('.mm-st__h'), b = root.querySelector('.mm-st__btn'), w = root.querySelector('.vf-wait');
+      root.hidden = !!o.hidden; if (o.hidden) return;
+      vfSteps(root.querySelector('.vf-steps'), o.steps || []);
+      var k = JSON.stringify([o.text, o.link, !!o.err]);
+      if (t.getAttribute('data-k') !== k){   // se rehace solo si cambia lo que dice (el lector no repite)
+        t.setAttribute('data-k', k); t.textContent = o.text || ''; t.classList.toggle('is-err', !!o.err);
+        if (o.link){ var a = rsEl('a', 'mm-link', o.link); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); if (o.text) t.appendChild(document.createTextNode(' ')); t.appendChild(a); }
+      }
+      t.hidden = !o.text && !o.link;
+      h.textContent = o.hint || ''; h.hidden = !o.hint;
+      if (o.hint) b.setAttribute('aria-describedby', h.id); else b.removeAttribute('aria-describedby');
+      b.hidden = !o.btn; b.textContent = o.btn || ''; b.disabled = !!o.busy; b.classList.toggle('wa-btn-primary', !!o.primary);
+      w.textContent = o.wait || ''; w.hidden = !o.wait;
+    }
     function mmRender(){
       if (!mm || !appState.memory) return;
-      var m = appState.memory, has = !!m.knowledge.trim(), ok = vfVerified(), draft = !!m.draft.trim(), ed = mm.edit !== null, busy = mm.busy || rdBusy();
+      var m = appState.memory, has = !!m.knowledge.trim(), ok = vfVerified(), draft = !!m.draft.trim(), ed = mm.edit !== null,
+          busy = mm.busy || rdBusy() || mm.run === 'run', r = mm.run;
+      // Cabecera (pestaña Memoria): Editar en lectura; Cancelar y Guardar al editar. Guardar solo con cambios.
+      var onM = mm.tab === 'memoria';
+      wgId('mmEdit').hidden = !onM || ed || !has;
+      wgId('mmCancel').hidden = wgId('mmSave').hidden = !onM || !ed;
+      wgId('mmSave').disabled = !ed || mm.saving || mm.edit === m.knowledge;
       // Franja del borrador. Un solo botón negro a la vez: mientras editás, el negro es "Guardar".
       wgId('mmBand').hidden = !draft;
       wgId('mmAccept').classList.toggle('wa-btn-primary', !ed);
@@ -3813,9 +3862,13 @@
       wgId('mmRead').hidden = !has || ed;
       if (has && !ed) mmBlocks();
       wgId('mmStamp').textContent = m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) + '.' : 'Editada por vos.';
-      var rg = wgId('mmRegen'), note = !m.aiAt;
-      rg.hidden = !ok; rg.disabled = busy; wgId('mmRegenH').hidden = !ok || !note;
-      if (ok && note) rg.setAttribute('aria-describedby', 'mmRegenH'); else rg.removeAttribute('aria-describedby');
+      // Tarjeta de estado: Regenerar = memory_generate con force (un solo paso).
+      stRender('mmSt', { hidden: !has || ed, busy: busy,
+        steps: r === 'run' ? [{ status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }] : r === 'ok' ? [{ status: 'ok', label: 'Creando la Memoria' }] : r === 'fail' ? [{ status: 'err', label: 'Creando la Memoria' }] : [],
+        text: r !== 'idle' ? mm.runMsg : !ok ? 'Para crear la Memoria desde tu sitio, primero verificalo.' : draft ? 'Hay una versión nueva para revisar.' : m.aiAt ? 'Memoria al día según tu último escaneo.' : 'Tu Memoria tiene cambios tuyos.',
+        err: r === 'fail', link: r === 'idle' && !ok ? 'Verificar mi sitio' : '',
+        hint: ok && !m.aiAt && r !== 'run' ? 'Se creará una versión nueva para que la compares. Tu texto no se toca.' : '',
+        btn: ok ? (r === 'fail' ? 'Probar de nuevo' : 'Regenerar') : '' });
       // Edición: un campo que crece, contador y aviso si el texto pasa de 8.000.
       wgId('mmEditBox').hidden = !ed;
       if (ed){
@@ -3832,11 +3885,11 @@
       var uid = currentUserId(), v = wgId('mmTa').value, btn = wgId('mmSave');
       if (!uid) return toast('Perdimos tu sesión. Recargá.');
       if (v === appState.memory.knowledge) return mmEditEnd();   // sin cambios: no hay pedido
-      function fail(){ btn.disabled = false; btn.textContent = 'Guardar'; mmSay('No se pudo guardar. Probá de nuevo.', true); }
-      btn.disabled = true; btn.textContent = 'Guardando…'; mmSay('');
+      function fail(){ mm.saving = false; btn.textContent = 'Guardar'; mmSay('No se pudo guardar. Probá de nuevo.', true); mmRender(); }
+      mm.saving = true; btn.disabled = true; btn.textContent = 'Guardando…'; mmSay('');
       SB.from('widgets').update({ knowledge: v }).eq('user_id', uid).select('knowledge,knowledge_ai_at,memory_draft,memory_draft_at').maybeSingle().then(function(r){
         if (!r || r.error || !r.data) return fail();
-        btn.disabled = false; btn.textContent = 'Guardar';
+        mm.saving = false; btn.textContent = 'Guardar';
         mmSetRow(r.data); mm.open = {}; mmEditEnd(); mmBadge(); wgRenderExtras(); toast('Memoria guardada');
       }, fail);
     }
@@ -3852,11 +3905,14 @@
       return 'No se pudo crear la Memoria. Probá de nuevo en un momento.';
     }
     function mmRegen(){
-      if (mm.busy || rdBusy()) return;
-      mm.busy = true; mmSay('Creando la Memoria… puede tardar hasta un minuto'); mmRender();
+      if (mm.busy || rdBusy() || mm.run === 'run') return;
+      clearTimeout(mm.runT); mm.run = 'run'; mm.runMsg = ''; mmSay(''); mmRender();
       vfInvoke('import-site', { action: 'memory_generate', force: true }).then(function(r){
-        mm.busy = false; mmSay(mmGenText(r, false), !r.ok);
-        if (r.ok) mmReload(); else { if (r.status === 403) vfRefresh(); mmRender(); }
+        mm.run = r.ok ? 'ok' : 'fail'; mm.runMsg = mmGenText(r, false);
+        // Bien: check y resultado; vuelve al reposo a los 5 s. Error: queda con "Probar de nuevo".
+        if (r.ok){ mmReload(); mm.runT = setTimeout(function(){ mm.run = 'idle'; mm.runMsg = ''; mmRender(); }, 5000); }
+        else if (r.status === 403) vfRefresh();
+        mmRender();
       });
     }
     function mmAccept(){
@@ -3891,7 +3947,9 @@
     function mmNotesRender(){
       var ed = mm.notes !== null, ta = wgId('mmNotes'), v = wgId('mmNotesV'), more = wgId('mmNotesVM'), n = wgId('mmNotesN');
       ta.hidden = !ed; v.parentNode.hidden = ed; n.hidden = !ed;
-      wgId('mmNotesEdit').hidden = ed; wgId('mmNotesCancel').hidden = wgId('mmNotesSave').hidden = !ed;
+      var onN = mm.tab === 'notas';   // sus botones van en la cabecera, solo en esta pestaña
+      wgId('mmNotesEdit').hidden = !onN || ed; wgId('mmNotesCancel').hidden = wgId('mmNotesSave').hidden = !onN || !ed;
+      wgId('mmNotesSave').disabled = !ed || mm.notesSaving || mm.notes === appState.memory.notes;
       if (ed){
         if (ta.value !== mm.notes) ta.value = mm.notes;
         more.hidden = true; n.textContent = ta.value.length + '/2000'; n.classList.toggle('is-max', ta.value.length >= 2000); mmFit(ta); return;
@@ -3908,11 +3966,11 @@
       if (!uid) return toast('Perdimos tu sesión. Recargá.');
       function done(){ mm.notes = null; mmNotesRender(); wgId('mmNotesEdit').focus(); }
       if (v === appState.memory.notes) return done();
-      function fail(){ btn.disabled = false; btn.textContent = 'Guardar'; msg.textContent = 'No se pudo guardar. Probá de nuevo.'; msg.classList.add('is-err'); }
-      btn.disabled = true; btn.textContent = 'Guardando…'; msg.textContent = ''; msg.classList.remove('is-err');
+      function fail(){ mm.notesSaving = false; btn.textContent = 'Guardar'; msg.textContent = 'No se pudo guardar. Probá de nuevo.'; msg.classList.add('is-err'); mmNotesRender(); }
+      mm.notesSaving = true; btn.disabled = true; btn.textContent = 'Guardando…'; msg.textContent = ''; msg.classList.remove('is-err');
       SB.from('widgets').update({ owner_notes: v }).eq('user_id', uid).select('owner_notes').maybeSingle().then(function(r){
         if (!r || r.error || !r.data) return fail();
-        btn.disabled = false; btn.textContent = 'Guardar'; mmSetRow(r.data); done(); toast('Notas guardadas');
+        mm.notesSaving = false; btn.textContent = 'Guardar'; mmSetRow(r.data); done(); toast('Notas guardadas');
       }, fail);
     }
     /* kx:end */
@@ -3922,8 +3980,8 @@
     function rdCall(body){ var g = rd.gen; return vfInvoke('import-site', body).then(function(r){ if (g !== rd.gen) throw 0; return r; }); }
     function rdNone(){}
     function rdStart(){
-      if (rdBusy() || mm.busy || !vfVerified() || vfLeft(rd) || rd.daily) return;
-      rd.gen++; clearTimeout(rd.timer);
+      if (rdBusy() || mm.busy || mm.run === 'run' || !vfVerified() || vfLeft(rd) || rd.daily) return;
+      rd.gen++; clearTimeout(rd.timer); clearTimeout(rd.doneT);
       rd.phase = 'reading'; rd.failAt = ''; rd.found = rd.done = 0; rd.msg = ''; rd.err = false; rd.until = Date.now() + 600000;
       mmRender();
       rdCall({ action: 'start' }).then(rdJob, rdNone);
@@ -3944,6 +4002,7 @@
         var st = (r.data || {}).status;
         rd.phase = r.ok ? 'done' : 'fail'; rd.failAt = r.ok ? '' : 'writing'; rd.err = !r.ok; rd.msg = mmGenText(r, true);
         if (!r.ok && r.status === 403) vfRefresh();
+        if (r.ok) rd.doneT = setTimeout(function(){ if (rd.phase === 'done'){ rd.phase = 'idle'; rd.msg = ''; rdRender(); } }, 5000);   // vuelve al reposo
         vfLoadUse(); mmSecLoad(); mmReload();
         // Con una versión nueva, se lleva a la pestaña Memoria para revisarla.
         if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('memoria'); }
@@ -3961,16 +4020,16 @@
     }
     function rdRender(){
       if (!rd || !mm) return;
-      var ph = rd.phase, wait = vfLeft(rd), go = wgId('rdGo'), read = 'Leímos ' + rsCount(rd.done, 'página', 'páginas');
-      wgId('rdBox').hidden = !vfVerified();
-      vfSteps(wgId('rdSteps'), ph === 'reading' ? [{ status: 'running', label: 'Leyendo tu sitio…' + (rd.found ? ' ' + fmtN(rd.done) + ' de ' + fmtN(rd.found) + ' páginas' : '') }, { status: 'pending', label: 'Crear la Memoria' }]
-        : ph === 'writing' ? [{ status: 'ok', label: read }, { status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }]
-        : ph === 'fail' && rd.failAt === 'writing' ? [{ status: 'ok', label: read }, { status: 'fail', label: 'No se pudo crear la Memoria' }] : []);
-      var msg = wgId('rdMsg'); msg.textContent = rd.msg; msg.classList.toggle('is-err', rd.err);
-      go.hidden = !!wait; go.disabled = rdBusy() || mm.busy || rd.daily;
-      go.textContent = rdBusy() ? 'Actualizando…' : 'Actualizar';
-      wgId('rdWait').hidden = !wait && !rd.daily;
-      wgId('rdWait').textContent = rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : 'Podés actualizar de nuevo en ' + wait + ' s';
+      var ph = rd.phase, wait = vfLeft(rd), R1 = 'Leyendo tu sitio', R2 = 'Creando la Memoria', fail = ph === 'fail' && !rd.daily;
+      // Mismo componente que Regenerar, con dos pasos: leer el sitio y crear la Memoria.
+      stRender('rdSt', { hidden: !vfVerified() && ph !== 'fail', primary: true, busy: rdBusy() || mm.busy || mm.run === 'run' || rd.daily,
+        steps: ph === 'reading' ? [{ status: 'running', label: R1 + '…' }, { status: 'pending', label: R2 }]
+          : ph === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'running', label: R2 + '… puede tardar hasta un minuto' }]
+          : ph === 'done' ? [{ status: 'ok', label: R1 }, { status: 'ok', label: R2 }]
+          : fail ? (rd.failAt === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'err', label: R2 }] : [{ status: 'err', label: R1 }, { status: 'pending', label: R2 }]) : [],
+        text: ph === 'idle' ? 'Leemos las páginas públicas de tu sitio y actualizamos la Memoria.' : rd.msg, err: rd.err && !!rd.msg,
+        btn: wait || !vfVerified() ? '' : fail ? 'Probar de nuevo' : 'Actualizar',
+        wait: rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : wait ? 'Podés actualizar de nuevo en ' + wait + ' s' : '' });
       wgId('rdUse').hidden = !vf.use; if (vf.use) wgId('rdUse').textContent = 'Lecturas hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads;
       // Tarjeta "Sitio": dirección, estado (verde solo para "Verificado"), última lectura y cantidad de secciones.
       var w = vfW(), ok = vfVerified(), st = wgId('mmSrcSt'), meta = wgId('mmSrcMeta'), k = ok + '|' + (w.siteUrl || '');
@@ -4023,7 +4082,7 @@
         var g = rsEl('div', 'mm-sg'), h = rsEl('h3', 'mm-sg__t', k[1]), bx = rsEl('div', 'mm-box');
         h.appendChild(rsEl('span', '', fmtN(rows.length))); g.appendChild(h);
         rows.slice(0, left).forEach(function(x){
-          var wrap = rsEl('div'), b = rsEl('button', 'mm-sr'), d = rsEl('div', 'mm-sr__x'), open = !!mmSecOpen[x.id];
+          var wrap = rsEl('div', 'mm-card'), b = rsEl('button', 'mm-sr'), d = rsEl('div', 'mm-sr__x'), open = !!mmSecOpen[x.id];
           b.type = 'button'; b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.setAttribute('aria-controls', 'mmSx' + x.id); b.setAttribute('data-sec', x.id);
           b.appendChild(rsEl('span', 'mm-sr__t', mmSecTitle(x))); b.appendChild(rsEl('span', 'mm-sr__m', x.is_hidden ? 'De la app' : 'Del sitio'));
           b.insertAdjacentHTML('beforeend', MM_CHEV);
