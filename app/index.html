@@ -323,7 +323,7 @@
     /* Widget */
     .wg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
     .wg-actions{display:flex;gap:8px;flex-shrink:0;}
-    .wg-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;margin-top:24px;}
+    .wg-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,44%,432px);gap:16px;align-items:start;margin-top:24px;}
     .wg-form{display:flex;flex-direction:column;gap:16px;min-width:0;}
     .wg-field{padding:16px 0;border-top:1px solid var(--border);}
     .cfg-card__title + .wg-field{border-top:0;padding-top:12px;}
@@ -386,7 +386,7 @@
     /* Foto del asistente: botón "Elegir logo" + galería (popover en escritorio, hoja desde abajo en móvil) */
     .wg-avatars{position:relative;margin-top:2px;}
     .wg-avbtn{display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:7px 16px 7px 7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font:inherit;font-size:.9375rem;cursor:pointer;}
-    .wg-avcur{width:40px;height:40px;border-radius:50%;overflow:hidden;border:1px solid transparent;flex-shrink:0;}
+    .wg-avcur{width:40px;height:40px;border-radius:50%;overflow:hidden;border:1px solid transparent;flex-shrink:0;display:grid;place-items:center;font-size:.875rem;font-weight:500;}
     .wg-avcur svg,.wg-avcur img,.wg-av img{display:block;width:100%;height:100%;object-fit:cover;}
     .wg-avgal{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:320px;max-width:100%;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;}
     .wg-avgal__t{margin:0 0 12px;font-size:.875rem;font-weight:500;color:var(--text-2);}
@@ -513,155 +513,46 @@
       [data-view="resumen"] .wa-stat__value{font-size:1.75rem;}
       .rs-q__m{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
     }
-    /* ===== Vista previa: ventana de chat real (mismo diseño que w.js) ===== */
-    .wg-openchat{display:none;width:100%;justify-content:center;margin-bottom:12px;}
-    .cw-holder{position:relative;}
-    .cw{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);
-      --ubub:#2a2b31;--uink:#f4f5f7;--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--thumb:#26272c;
-      --send-bg:#f4f5f7;--send-ink:#0e0f12;--stop-bg:#3a3b41;--stop-ink:#f4f5f7;--dot:#52545b;--dot-on:#c9ccd1;--sb:rgba(255,255,255,.18);
-      --imgline:rgba(255,255,255,.1);--danger:#ff6b6b;--danger-bg:rgba(255,107,107,.12);
-      position:relative;width:100%;height:calc(100dvh - 40px);max-height:760px;background:var(--bg);color:var(--ink);border:1px solid var(--line);
-      border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,.22);}
-    .cw[data-theme="light"]{--bg:#fff;--surface:#f6f6f7;--surface2:#ececed;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;
-      --ubub:#ededee;--uink:#0a0a0a;--ava-bg:#0a0a0a;--ava-ink:#fff;--thumb:#ececed;
-      --send-bg:#0a0a0a;--send-ink:#fff;--stop-bg:#e6e6e8;--stop-ink:#0a0a0a;--dot:#c7c7cc;--dot-on:#6b7280;--sb:rgba(0,0,0,.18);
-      --imgline:rgba(0,0,0,.08);--danger:#dc2626;--danger-bg:rgba(220,38,38,.08);}
-    .cw *{-webkit-tap-highlight-color:transparent;}
-    .cw button:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink2);}
-    .cw-head{display:flex;align-items:center;gap:8px;padding:10px 10px 6px;flex-shrink:0;}
-    .cw .cw-ava{width:30px;height:30px;border-radius:50%;background:var(--ava-bg);color:var(--ava-ink);display:grid;place-items:center;font:800 .9rem var(--wa-font);flex-shrink:0;overflow:hidden;margin:0 2px;padding:0;transition:background .15s ease,color .15s ease;}
-    .cw .cw-ava.cw-ava--accent-lt{border:1px solid rgba(0,0,0,.16);}
-    @media(prefers-reduced-motion:reduce){ .cw .cw-ava{transition:none;} }
-    .cw .cw-ava svg{width:60%;height:60%;}
-    .cw .cw-ava img{width:100%;height:100%;object-fit:cover;display:block;}
-    .cw-name{font-weight:650;font-size:.95rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .cw-head .sp{margin-left:auto;}
-    .cw-ico{width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;flex-shrink:0;}
-    .cw-ico:hover{background:var(--surface);}
-    .cw-ico svg{width:20px;height:20px;}
-    .cw-body{flex:1;overflow-y:auto;padding:10px 16px 4px;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}
-    .cw-body::-webkit-scrollbar{width:7px;} .cw-body::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;} .cw-body::-webkit-scrollbar-track{background:transparent;}
-    .cw-hero{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;min-height:150px;}
-    .cw.has-hero .cw-hero{display:flex;}
-    .cw-hero h2{margin:0;font-size:1.5rem;line-height:1.25;font-weight:800;letter-spacing:-.01em;color:var(--ink);}
-    .cw.has-hero .cw-hero h2{animation:cwtitlein .15s ease both;}
-    @keyframes cwtitlein{from{opacity:0}to{opacity:1}}
-    .cw-msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}
-    .cw-msg{max-width:85%;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;}
-    .cw-msg .tx{white-space:pre-wrap;}
-    .cw-in{align-self:flex-start;color:var(--ink);max-width:100%;}
-    .cw-out{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
-    .cw-out .bubble{background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:default;}
-    .cw-out.editing{max-width:100%;width:100%;align-items:stretch;}
-    .cw-stopped{color:var(--ink2);font-style:italic;}
-    .cw-atts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%;}
-    .cw-atts img{width:88px;height:88px;object-fit:cover;border-radius:14px;border:1px solid var(--imgline);cursor:pointer;display:block;}
-    .cw-att-fail{width:88px;height:88px;border-radius:14px;border:1px solid var(--imgline);background:var(--surface);display:grid;place-items:center;color:var(--ink2);} .cw-att-fail svg{width:26px;height:26px;}
-    .cw-msg-actions{display:flex;gap:2px;margin-top:2px;margin-left:-11px;align-self:flex-start;}
-    .cw-msg-act{width:40px;height:40px;border:0;border-radius:9px;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .cw-msg-act:hover{background:var(--surface);color:var(--ink);} .cw-msg-act:active{background:var(--surface2);} .cw-msg-act.ok{color:var(--ink);} .cw-msg-act svg{width:18px;height:18px;} .cw-msg-regen[hidden]{display:none;}
-    .cw-msgmenu{position:absolute;z-index:7;min-width:150px;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.4);padding:5px;}
-    .cw-msgmenu-item{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-size:.9rem;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;} .cw-msgmenu-item:hover,.cw-msgmenu-item:focus-visible{background:var(--surface);outline:none;} .cw-msgmenu-item svg{width:17px;height:17px;color:var(--ink2);flex-shrink:0;}
-    .cw-editbox{width:100%;display:flex;flex-direction:column;gap:8px;}
-    .cw-editta{width:100%;border:1px solid var(--ink2);background:var(--surface);color:var(--ink);border-radius:16px;padding:10px 13px;font:inherit;font-size:16px;line-height:1.4;resize:none;outline:none;min-height:42px;max-height:160px;}
-    .cw-editbtns{display:flex;justify-content:flex-end;gap:8px;}
-    .cw-editbtn{border-radius:11px;padding:7px 15px;font:inherit;font-size:.86rem;font-weight:600;cursor:pointer;} .cw-editbtn.sec{border:1px solid var(--line);background:none;color:var(--ink);} .cw-editbtn.sec:hover{background:var(--surface);} .cw-editbtn.pri{border:0;background:var(--send-bg);color:var(--send-ink);} .cw-editbtn.pri:hover{opacity:.9;}
-    .cw-typing{display:flex;align-items:center;gap:6px;padding:2px 2px 10px;align-self:flex-start;}
-    .cw-typing[hidden]{display:none;}
-    .cw-typing .dot{width:8px;height:8px;border-radius:50%;background:var(--dot-on);opacity:.35;animation:cwblink 1.2s infinite ease-in-out;will-change:transform,opacity;}
-    .cw-typing .dot:nth-child(2){animation-delay:.2s;} .cw-typing .dot:nth-child(3){animation-delay:.4s;}
-    @keyframes cwblink{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
-    @keyframes cwblink-rm{0%,100%{opacity:.35}50%{opacity:1}}
-    .cw-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
-    .cw-wrap{padding:6px 14px 8px;flex-shrink:0;}
-    .cw-composer{display:grid;gap:0 8px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:7px 8px 7px 12px;
-      grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "plus text send";}
-    .cw-composer.focus{border-color:var(--ink2);}
-    .cw-thumbs{grid-area:thumbs;display:flex;flex-wrap:wrap;gap:7px;padding:4px 2px 2px;margin-bottom:7px;}
-    .cw-thumbs[hidden]{display:none;}
-    .cw-thumb{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--thumb);border:1px solid var(--line);}
-    .cw-thumb img{width:100%;height:100%;object-fit:cover;}
-    .cw-thumbx{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;cursor:pointer;line-height:0;touch-action:manipulation;} .cw-thumbx svg{width:12px;height:12px;display:block;}
-    .cw-ta{grid-area:text;width:100%;border:0;background:none;color:var(--ink);resize:none;outline:none;font:inherit;font-size:16px;line-height:1.4;padding:10px 2px;min-height:44px;max-height:140px;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}
-    .cw-ta::-webkit-scrollbar{width:6px;} .cw-ta::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px;}
-    .cw-ta::placeholder{color:var(--ink2);}
-    .cw-plus{grid-area:plus;align-self:end;width:44px;height:44px;border-radius:50%;border:0;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;} .cw-plus:hover{color:var(--ink);} .cw-plus:active{background:var(--surface2);color:var(--ink);} .cw-plus svg{width:24px;height:24px;}
-    .cw-send{grid-area:send;align-self:end;width:44px;height:44px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:background .15s,opacity .15s,transform .1s;} .cw-send:active:not(:disabled){transform:scale(.94);}
-    .cw-send:disabled{opacity:.35;cursor:default;} .cw-send svg{width:18px;height:18px;} .cw-send .sqr{display:none;width:11px;height:11px;border-radius:3px;background:var(--stop-ink);}
-    .cw-send.busy{background:var(--stop-bg);opacity:1;} .cw-send.busy .sicon{display:none;} .cw-send.busy .sqr{display:block;}
-    .cw-foot{flex-shrink:0;text-align:center;padding:9px 6px 2px;}
-    .cw-foot .disc{margin:0;font-size:.68rem;line-height:1.45;color:var(--ink2);}
-    .cw-atterr{color:#e5484d;font-size:.74rem;text-align:center;padding:4px 6px 0;} .cw-atterr[hidden]{display:none;}
-    .cw-confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:22px;}
-    .cw-confirm[hidden]{display:none;}
-    .cw-confirm__scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);}
-    .cw-confirm__box{position:relative;width:100%;max-width:300px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.4);text-align:center;}
-    .cw-confirm__box h3{margin:0 0 6px;font-size:1.05rem;font-weight:800;color:var(--ink);}
-    .cw-confirm__box p{margin:0 0 16px;font-size:.88rem;line-height:1.45;color:var(--ink2);}
-    .cw-confirm__btns{display:flex;gap:9px;}
-    .cw-btn-sec,.cw-btn-pri{flex:1;border-radius:11px;padding:10px 12px;font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;}
-    .cw-btn-sec{border:1px solid var(--line);background:none;color:var(--ink);} .cw-btn-sec:hover{background:var(--surface);}
-    .cw-btn-pri{border:0;background:var(--send-bg);color:var(--send-ink);} .cw-btn-pri:hover{opacity:.9;}
-    .cw-viewer{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:44px 16px;}
-    .cw-viewer[hidden]{display:none;}
-    .cw-viewer__scrim{position:absolute;inset:0;background:rgba(0,0,0,.82);}
-    .cw-viewer img{position:relative;max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;}
-    .cw-viewer__x{position:absolute;top:12px;right:12px;z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;} .cw-viewer__x:hover{background:rgba(255,255,255,.26);} .cw-viewer__x svg{width:20px;height:20px;}
-    .cw-viewer__nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;} .cw-viewer__nav:hover{background:rgba(255,255,255,.26);} .cw-viewer__nav svg{width:22px;height:22px;} .cw-viewer__nav[hidden]{display:none;}
-    .cw-viewer__prev{left:10px;} .cw-viewer__next{right:10px;}
-    .cw-stopped{color:var(--ink2);font-style:italic;} .cw-noimg{font-size:.78rem;color:var(--ink2);font-style:italic;margin-bottom:4px;}
-    .cw-history{position:absolute;inset:0;z-index:4;background:var(--bg);display:flex;flex-direction:column;}
-    .cw-history[hidden]{display:none;}
-    .cw-hhead{display:flex;align-items:center;gap:6px;padding:10px 8px 6px;flex-shrink:0;}
-    .cw-htitle{font-weight:700;font-size:.98rem;}
-    .cw-hsearch{position:relative;margin:4px 14px 8px;flex-shrink:0;}
-    .cw-hsearch__ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--ink2);pointer-events:none;}
-    .cw-hsearch__inp{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 36px;font:inherit;font-size:16px;outline:none;}
-    .cw-hsearch__inp:focus{border-color:var(--ink2);} .cw-hsearch__inp::placeholder{color:var(--ink2);}
-    .cw-hsearch__clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:50%;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;} .cw-hsearch__clear:hover{background:var(--surface2);} .cw-hsearch__clear svg{width:15px;height:15px;} .cw-hsearch__clear[hidden]{display:none;}
-    .cw-hnew{display:flex;align-items:center;gap:10px;margin:0 10px 6px;padding:11px 12px;width:calc(100% - 20px);border:0;border-radius:12px;background:none;color:var(--ink);font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;flex-shrink:0;} .cw-hnew:hover{background:var(--surface);} .cw-hnew svg{width:19px;height:19px;color:var(--ink2);}
-    .cw-hlist{flex:1;overflow-y:auto;padding:2px 10px 10px;scrollbar-width:thin;scrollbar-color:var(--sb) transparent;}
-    .cw-hlist:empty{flex:0 0 auto;} /* sin chats: no crecer, para que el estado vacío quede centrado */
-    .cw-hlist::-webkit-scrollbar{width:7px;} .cw-hlist::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px;}
-    .cw-hgroup{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--ink2);text-transform:uppercase;padding:12px 8px 4px;}
-    .cw-hrow{position:relative;display:flex;align-items:center;border-radius:12px;} .cw-hrow:hover,.cw-hrow.is-current{background:var(--surface);}
-    .cw-hrow__main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--ink);font:inherit;text-align:left;padding:11px 8px 11px 12px;cursor:pointer;}
-    .cw-hrow__title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.9rem;} .cw-hrow.is-current .cw-hrow__title{font-weight:700;}
-    .cw-hrow__time{flex-shrink:0;font-size:.74rem;color:var(--ink2);}
-    .cw-hrow__kebab{flex-shrink:0;width:34px;height:34px;margin-right:4px;border:0;border-radius:50%;background:none;color:var(--ink2);display:grid;place-items:center;cursor:pointer;} .cw-hrow__kebab:hover{background:var(--surface2);color:var(--ink);} .cw-hrow__kebab svg{width:18px;height:18px;}
-    .cw-hrow__menu{position:absolute;right:8px;top:calc(100% - 6px);z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);padding:4px;} .cw-hrow__menu[hidden]{display:none;}
-    .cw-hrow__del{border:0;background:none;color:var(--ink);font:inherit;font-size:.86rem;padding:8px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;} .cw-hrow__del:hover{background:var(--surface);}
-    .cw-hempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink2);font-size:.95rem;padding:20px;gap:6px;} .cw-hempty span{font-size:.8rem;} .cw-hempty[hidden]{display:none;}
-    .cw-hclear-wrap{flex-shrink:0;border-top:1px solid var(--line);} .cw-hclear-wrap[hidden]{display:none;}
-    .cw-hclear{display:block;width:100%;height:52px;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;font-weight:500;text-align:center;cursor:pointer;touch-action:manipulation;transition:background .12s,color .12s;}
-    .cw-hclear:hover,.cw-hclear:focus-visible,.cw-hclear:active{background:var(--danger-bg);color:var(--danger);outline:none;box-shadow:none;}
-    .cw-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
-    .cw.sheet-open .cw-scrim{opacity:1;pointer-events:auto;}
-    .cw-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);padding:4px 0 12px;}
-    .cw.sheet-open .cw-sheet{transform:translateY(0);}
-    .cw-sheet__head{display:flex;align-items:center;justify-content:center;position:relative;padding:14px;border-bottom:1px solid var(--line);}
-    .cw-sheet__x{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:none;color:var(--ink2);cursor:pointer;display:grid;place-items:center;}
-    .cw-sheet__x svg{width:17px;height:17px;}
-    .cw-row{display:flex;align-items:center;gap:12px;padding:13px 18px;width:100%;text-align:left;color:var(--ink);cursor:pointer;text-decoration:none;font:inherit;font-size:.9rem;background:none;border:0;}
-    .cw-row:hover{background:var(--surface);}
-    .cw-row svg.ico{width:19px;height:19px;color:var(--ink2);flex-shrink:0;}
-    .cw-row .sp{margin-left:auto;}
-    .cw-theme{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px;}
-    .cw-theme button{border:0;background:none;border-radius:6px;padding:4px 11px;font:600 .78rem var(--wa-font);color:var(--ink2);cursor:pointer;}
-    .cw-theme button.on{background:var(--bg);color:var(--ink);}
-    .cw-sheet__foot{text-align:center;font-size:.72rem;color:var(--ink2);padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:4px;}
-    .cw-sheet__foot a{color:var(--ink2);text-decoration:none;}
-    @keyframes wa-spin{to{transform:rotate(360deg)}}
-    @media (prefers-reduced-motion:reduce){
-      .cw.has-hero .cw-hero h2{animation:none;}
-      .cw-typing .dot{animation:cwblink-rm 1.4s infinite ease-in-out;transform:none;}
-    }
-    @media (max-width:860px){
-      .wg-openchat{display:inline-flex;}
-      .cw-holder{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);display:none;}
-      .cw-holder.is-open{display:block;}
-      .cw-holder .cw{width:100%;height:100%;max-height:none;border-radius:0;border:0;}
-      .cw-holder .cw-ico{width:44px;height:44px;}
-    }
+    /* ===== Vista previa (wp:start): dos tarjetas solo para mirar (Computadora y Celular). Imitan la forma de w.js, sin interacción ni red. ===== */
+    .wp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .wp-card{margin:0;min-width:0;}
+    .wp-card__t{margin:0 0 8px;font-size:.8125rem;font-weight:500;color:var(--text-2);}
+    .wp-stage{position:relative;height:360px;border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;}
+    .wp-note{margin:8px 0 0;font-size:.8125rem;color:var(--text-2);}
+    /* Computadora: página con el chat flotando abajo a la derecha y la burbuja debajo (la página se sigue viendo) */
+    .wp-site{position:absolute;inset:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden;}
+    .wp-site__bar{display:block;height:16px;border-bottom:1px solid var(--border);}
+    .wp-site__ln{display:block;width:60%;height:6px;margin:10px 10px 0;border-radius:3px;background:var(--border);}
+    .wp-site__ln + .wp-site__ln{width:40%;}
+    .wp-site .wp-chat{position:absolute;right:8px;bottom:44px;width:72%;height:64%;border-radius:10px;}
+    .wp-fab{position:absolute;right:8px;bottom:8px;width:28px;height:28px;border-radius:9px;background:#111;color:#fff;display:grid;place-items:center;overflow:hidden;font-size:11px;font-weight:500;}
+    /* Celular: teléfono con el chat a pantalla completa */
+    .wp-phone{position:absolute;top:12px;left:50%;transform:translateX(-50%);height:calc(100% - 24px);aspect-ratio:9/18.5;max-width:calc(100% - 24px);
+      border:1px solid var(--border);border-radius:20px;background:var(--bg);overflow:hidden;padding:5px;}
+    .wp-phone .wp-chat{height:100%;border:0;border-radius:15px;}
+    /* El chat en miniatura: mismos colores de tema que w.js (Claro / Oscuro), sin azul ni sombras */
+    .wp-chat{--bg:#0e0f12;--surface:#1b1c20;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);--ubub:#2a2b31;--uink:#f4f5f7;
+      --ava-bg:#f4f5f7;--ava-ink:#0e0f12;--send-bg:#f4f5f7;--send-ink:#0e0f12;
+      display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid var(--line);overflow:hidden;font-size:10px;line-height:1.4;}
+    .wp-chat[data-theme="light"]{--bg:#fff;--surface:#f6f6f7;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;--ubub:#ededee;--uink:#0a0a0a;
+      --ava-bg:#0a0a0a;--ava-ink:#fff;--send-bg:#0a0a0a;--send-ink:#fff;}
+    .wp-head{display:flex;align-items:center;gap:6px;padding:8px 8px 4px;flex-shrink:0;}
+    .wp-ava{width:18px;height:18px;border-radius:50%;background:var(--ava-bg);color:var(--ava-ink);display:grid;place-items:center;flex-shrink:0;overflow:hidden;font-size:9px;font-weight:500;}
+    .wp-ava svg,.wp-fab svg{width:60%;height:60%;}
+    .wp-ava img,.wp-fab img{width:100%;height:100%;object-fit:cover;display:block;}
+    .wp-ava.is-lt,.wp-fab.is-lt{border:1px solid rgba(0,0,0,.16);}
+    .wp-name{flex:1;min-width:0;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .wp-x{display:grid;width:12px;height:12px;color:var(--ink2);flex-shrink:0;}
+    .wp-msgs{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:6px 10px;}
+    .wp-msgs p{margin:0;overflow-wrap:anywhere;}
+    .wp-in{align-self:flex-start;max-width:94%;}
+    .wp-out{align-self:flex-end;max-width:85%;background:var(--ubub);color:var(--uink);border-radius:12px;padding:5px 8px;}
+    .wp-bar{display:flex;align-items:center;gap:6px;margin:4px 8px 8px;padding:4px 4px 4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink2);flex-shrink:0;}
+    .wp-bar span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .wp-send{width:18px;height:18px;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;opacity:.35;flex-shrink:0;}
+    .wp-send svg{width:10px;height:10px;}
+    @media (max-width:768px){ .wp-cards{grid-template-columns:1fr;} }
+    /* wp:end */
 
     /* ===== Onboarding de instalación ===== */
     .ob{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;}
@@ -1273,79 +1164,13 @@
 
             </div>
 
-            <aside class="wg-preview">
-              <div class="cfg-eyebrow">Vista previa del chat</div>
-              <button class="wa-btn wa-btn-primary wg-openchat" id="wgOpenChat" type="button">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:7px"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>
-                Ver chat de prueba
-              </button>
-              <div class="cw-holder" id="cwHolder">
-                <div class="cw has-hero" id="wgCw" data-theme="dark" role="dialog" aria-label="Vista previa del chat">
-                  <div class="cw-head">
-                    <button class="cw-ico" id="cwMenu" type="button" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
-                    <div class="cw-ava" id="cwAvaSm">A</div>
-                    <div class="cw-name" id="cwName">Asistente</div>
-                    <span class="sp"></span>
-                    <button class="cw-ico" id="cwNew" type="button" title="Nuevo chat" aria-label="Nuevo chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
-                    <button class="cw-ico" id="cwHist" type="button" title="Historial del chat" aria-label="Historial del chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
-                    <button class="cw-ico" id="cwClose" type="button" title="Cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-                  </div>
-                  <div class="cw-body" id="cwBody">
-                    <div class="cw-hero" id="cwHero"><h2 id="cwHeroTitle">Preguntá lo que quieras</h2></div>
-                    <div class="cw-msgs" id="cwMsgs">
-                      <div class="cw-msg cw-in welcome"><div class="tx" id="cwWelcome">¡Hola! ¿En qué te puedo ayudar?</div></div>
-                    </div>
-                    <div class="cw-typing" id="cwTyping" role="status" aria-live="polite" hidden><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="cw-sr">Escribiendo…</span></div>
-                  </div>
-                  <div class="cw-wrap">
-                    <div class="cw-composer">
-                      <div class="cw-thumbs" id="cwThumbs" hidden></div>
-                      <textarea class="cw-ta" id="cwInput" rows="1" placeholder="Escribí tu mensaje…" aria-label="Escribí tu mensaje"></textarea>
-                      <button class="cw-plus" id="cwPlus" type="button" aria-label="Agregar fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-                      <button class="cw-send" id="cwSend" type="button" aria-label="Enviar" disabled><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span class="sqr" aria-hidden="true"></span></button>
-                      <input class="cw-fileinp" id="cwFile" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
-                    </div>
-                    <div class="cw-atterr" id="cwAttErr" role="alert" hidden></div>
-                    <div class="cw-foot">
-                      <p class="disc">Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p>
-                    </div>
-                  </div>
-                  <div class="cw-scrim" id="cwScrim"></div>
-                  <div class="cw-sheet" id="cwSheet">
-                    <div class="cw-sheet__head"><b>Ajustes</b><button class="cw-sheet__x" id="cwSheetX" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
-                    <a class="cw-row" id="cwMail" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Escribir por correo</a>
-                    <div class="cw-row">Tema<span class="sp"></span><span class="cw-theme" id="cwThemeSeg"><button data-theme="light" type="button">Claro</button><button data-theme="dark" type="button" class="on">Oscuro</button></span></div>
-                    <div class="cw-sheet__foot">© 2026 · <a id="cwPriv" href="#" target="_blank" rel="noopener">Privacidad</a></div>
-                  </div>
-                  <div class="cw-history" id="cwHistory" role="dialog" aria-label="Historial del chat" hidden>
-                    <div class="cw-hhead"><button class="cw-ico" id="cwHBack" type="button" aria-label="Volver al chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><span class="cw-htitle">Historial del chat</span></div>
-                    <div class="cw-hsearch"><svg class="cw-hsearch__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input class="cw-hsearch__inp" id="cwHSearch" type="text" placeholder="Buscar chats" aria-label="Buscar chats" autocomplete="off" /><button class="cw-hsearch__clear" id="cwHClear" type="button" aria-label="Limpiar búsqueda" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
-                    <button class="cw-hnew" id="cwHNew" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Nuevo chat</button>
-                    <div class="cw-hlist" id="cwHList" role="list"></div>
-                    <div class="cw-hempty" id="cwHEmpty" hidden>Todavía no tenés chats guardados<span>Los chats se guardan solo en este dispositivo.</span></div>
-                    <div class="cw-hclear-wrap" id="cwHClearWrap" hidden><button class="cw-hclear" id="cwHClearBtn" type="button">Borrar historial</button></div>
-                  </div>
-                  <div class="cw-confirm" id="cwConfirm" role="alertdialog" aria-modal="true" aria-labelledby="cwCfT" aria-describedby="cwCfD" hidden>
-                    <div class="cw-confirm__scrim" id="cwCfScrim"></div>
-                    <div class="cw-confirm__box">
-                      <h3 id="cwCfT"></h3>
-                      <p id="cwCfD"></p>
-                      <div class="cw-confirm__btns">
-                        <button class="cw-btn-sec" id="cwCfCancel" type="button">Cancelar</button>
-                        <button class="cw-btn-pri" id="cwCfOk" type="button">Listo</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cw-viewer" id="cwViewer" role="dialog" aria-modal="true" aria-label="Imagen adjunta" hidden>
-                    <div class="cw-viewer__scrim" id="cwVwScrim"></div>
-                    <button class="cw-viewer__x" id="cwVwX" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-                    <button class="cw-viewer__nav cw-viewer__prev" id="cwVwPrev" type="button" aria-label="Imagen anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-                    <img id="cwVwImg" alt="">
-                    <button class="cw-viewer__nav cw-viewer__next" id="cwVwNext" type="button" aria-label="Imagen siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
-                  </div>
-                  <div class="cw-copylive cw-sr" id="cwCopyLive" role="status" aria-live="polite"></div>
-                </div>
+            <aside class="wg-preview" aria-labelledby="wpTitle">
+              <div class="cfg-eyebrow" id="wpTitle">Vista previa del chat</div>
+              <div class="wp-cards">
+                <figure class="wp-card"><figcaption class="wp-card__t">Computadora</figcaption><div class="wp-stage" id="wpDesk" role="img" aria-label="El chat abierto en una computadora, sobre la página y con la burbuja abajo a la derecha."></div></figure>
+                <figure class="wp-card"><figcaption class="wp-card__t">Celular</figcaption><div class="wp-stage" id="wpPhone" role="img" aria-label="El chat abierto en un celular, a pantalla completa."></div></figure>
               </div>
+              <p class="wp-note">Mensajes de ejemplo para ver el diseño.</p>
             </aside>
           </div>
         </section>
@@ -2753,9 +2578,10 @@
       w5: '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M10.5 20c2.4-6.4 4.7-6.4 7.1 0s4.7 6.4 7.1 0 4.7-6.4 7.1 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     };
     var WG_INPUT_PH = { es: 'Escribí tu mensaje…', en: 'Type your message…', pt: 'Escreva sua mensagem…' };
-    // Mismos títulos del estado vacío que w.js (rotan solos, al azar sin repetir).
-    var WG_EMPTY_TITLES = ['Preguntá lo que quieras','Obtener ayuda de nuestro equipo IA','¿En qué podemos ayudarte hoy?','Escribí tu consulta','¿Tenés alguna duda?','Estamos para ayudarte'];
-    var WG_PENDING_REPLY = '¡Gracias por tu mensaje! El asistente estará disponible muy pronto.';
+    // Vista previa: una pregunta y una respuesta de ejemplo, fijas (no se llama a la función chat).
+    var WG_SAMPLE = { es: ['¿Cuál es el horario de atención?', 'Atendemos de lunes a viernes, de 9 a 18 h.'],
+      en: ['What are your opening hours?', 'We are open Monday to Friday, 9 am to 6 pm.'],
+      pt: ['Qual é o horário de atendimento?', 'Atendemos de segunda a sexta, das 9h às 18h.'] };
     var WG_DEF_WELCOME = { es: '¡Hola! ¿En qué te puedo ayudar?', en: 'Hi! How can I help you?', pt: 'Olá! Como posso ajudar?' };
     var wgEditing = false, wgDraft = null;
     function wgClone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -2805,38 +2631,51 @@
       if (wgId('wgPrivacy')) wgDraft.privacyUrl = wgId('wgPrivacy').value;
     }
 
+    // Foto del asistente (seguridad): solo un logo incluido (WG_AVATARS) o una imagen https://, y la foto recién subida en este
+    // navegador (data:image en base64, para verla antes de Guardar). Cualquier otro valor se ignora y se ve la inicial.
+    function wgAvatarSrc(v){
+      if (typeof v !== 'string' || WG_AVATARS[v]) return null;
+      if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+\/=]+$/i.test(v)) return v;
+      try { var u = new URL(v); return u.protocol === 'https:' ? u.href : null; } catch(e){ return null; }
+    }
+    // Dibuja la foto en `el` con nodos: el <img> con createElement y src por propiedad, nunca HTML armado con el valor.
+    // El color del logo va solo sobre un logo incluido. `auto` = [fondo, tinta] fijos para Automático (sin él, los del tema).
+    function wgPaintAva(el, c, auto, hidden){
+      var a = wgNormAccent(c.accent), src = wgAvatarSrc(c.avatar), logo = WG_AVATARS[c.avatar];
+      el.textContent = ''; el.classList.remove('is-lt');
+      el.style.background = auto ? auto[0] : ''; el.style.color = auto ? auto[1] : '';
+      if (hidden || (!src && !logo)){ el.textContent = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase(); return; }
+      if (src){ var im = document.createElement('img'); im.alt = ''; im.src = src; el.appendChild(im); el.style.background = ''; return; }
+      el.innerHTML = logo.replace(/#fff/g, 'currentColor');   // SVG fijo del panel, no viene del usuario
+      if (a !== 'auto'){ el.style.background = a; el.style.color = wgAccentInk(a); if (a === '#FFFFFF') el.classList.add('is-lt'); }
+    }
+    // ===== Vista previa (wp): Computadora y Celular, solo para mirar. Sin campo, sin respuestas y sin red. =====
+    var WP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    var WP_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+    function wpEl(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function wpChat(c){
+      var lang = WG_SAMPLE[c.language] ? c.language : 'es', chat = wpEl('div', 'wp-chat'), head = wpEl('div', 'wp-head'), ava = wpEl('span', 'wp-ava'),
+          msgs = wpEl('div', 'wp-msgs'), bar = wpEl('div', 'wp-bar'), x = wpEl('span', 'wp-x'), send = wpEl('span', 'wp-send');
+      chat.setAttribute('data-theme', c.theme === 'light' ? 'light' : 'dark');
+      wgPaintAva(ava, c, null, c.avatarHidden); x.innerHTML = WP_X; send.innerHTML = WP_SEND;
+      head.appendChild(ava); head.appendChild(wpEl('span', 'wp-name', c.name || 'Asistente')); head.appendChild(x);
+      msgs.appendChild(wpEl('p', 'wp-in', String(c.welcome || '').trim() || WG_DEF_WELCOME[lang]));   // la bienvenida guardada (o la del idioma)
+      msgs.appendChild(wpEl('p', 'wp-out', WG_SAMPLE[lang][0])); msgs.appendChild(wpEl('p', 'wp-in', WG_SAMPLE[lang][1]));
+      bar.appendChild(wpEl('span', '', WG_INPUT_PH[lang])); bar.appendChild(send);   // barra de escribir deshabilitada (no es un campo)
+      chat.appendChild(head); chat.appendChild(msgs); chat.appendChild(bar); return chat;
+    }
     function renderWidgetPreview(){
-      var c = wgCfg();
-      var accent = wgNormAccent(c.accent);
-      var isImg = (typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar]);
-      var initial = ((c.name || 'A').trim().charAt(0) || 'A').toUpperCase();
-      var root = wgId('wgCw');
-      if (root) root.setAttribute('data-theme', (c.theme === 'light' ? 'light' : 'dark'));
-      Array.prototype.slice.call(document.querySelectorAll('#cwThemeSeg button')).forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-theme') === (c.theme === 'light' ? 'light' : 'dark')); });
-      // El color del logo solo se aplica al ÍCONO (no a la foto). Automático = blanco y negro del tema.
-      function setAva(el){
-        if (!el) return;
-        el.style.background = ''; el.style.color = ''; el.classList.remove('cw-ava--accent-lt');
-        if (c.avatarHidden){ el.textContent = initial; return; }
-        if (isImg){ el.innerHTML = '<img src="' + c.avatar + '" alt="">'; return; }
-        el.innerHTML = (WG_AVATARS[c.avatar] || WG_AVATARS.w1).replace(/#fff/g, 'currentColor');
-        if (accent !== 'auto'){ el.style.background = accent; el.style.color = wgAccentInk(accent); if (accent === '#FFFFFF') el.classList.add('cw-ava--accent-lt'); }
+      var c = wgCfg(), desk = wgId('wpDesk'), phone = wgId('wpPhone');
+      if (desk){
+        var site = wpEl('div', 'wp-site'), fab = wpEl('span', 'wp-fab');
+        site.appendChild(wpEl('span', 'wp-site__bar')); site.appendChild(wpEl('span', 'wp-site__ln')); site.appendChild(wpEl('span', 'wp-site__ln'));
+        wgPaintAva(fab, c, null, c.avatarHidden); site.appendChild(wpChat(c)); site.appendChild(fab);
+        desk.textContent = ''; desk.appendChild(site);
       }
-      setAva(wgId('cwAvaSm'));
+      if (phone){ var ph = wpEl('div', 'wp-phone'); ph.appendChild(wpChat(c)); phone.textContent = ''; phone.appendChild(ph); }
       // El círculo de "Elegir logo" muestra en vivo cómo se vería el logo con el color elegido.
-      var chipBg = (accent === 'auto') ? '#111' : accent;
-      var chipInk = (accent === 'auto') ? '#fff' : wgAccentInk(accent);
       var cur = wgId('wgAvCur');
-      if (cur){
-        cur.innerHTML = isImg ? '<img src="' + c.avatar + '" alt="">' : (WG_AVATARS[c.avatar] || WG_AVATARS.w1).replace(/#fff/g, 'currentColor');
-        cur.style.background = isImg ? '' : chipBg; cur.style.color = chipInk;
-        cur.style.borderColor = (!isImg && accent === '#FFFFFF') ? 'rgba(0,0,0,.18)' : 'transparent';
-      }
-      if (wgId('cwName')) wgId('cwName').textContent = c.name || 'Asistente';
-      if (wgId('cwWelcome')) wgId('cwWelcome').textContent = c.welcome || '';
-      if (wgId('cwInput')) wgId('cwInput').setAttribute('placeholder', WG_INPUT_PH[c.language] || WG_INPUT_PH.es);
-      var mail = wgId('cwMail'); if (mail) mail.setAttribute('href', c.contactEmail ? ('mailto:' + c.contactEmail) : '#');
-      var priv = wgId('cwPriv'); if (priv) priv.setAttribute('href', c.privacyUrl || '#');
+      if (cur){ wgPaintAva(cur, c, ['#111', '#fff'], false); cur.style.borderColor = cur.classList.contains('is-lt') ? 'rgba(0,0,0,.18)' : 'transparent'; }
     }
 
     function renderWidget(){
@@ -2870,8 +2709,8 @@
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button')).forEach(function(b){ b.classList.toggle('is-active', (b.getAttribute('data-av') === 'hide') === !!c.avatarHidden); });
       var picker = wgId('wgAvatars'); if (picker) picker.style.display = c.avatarHidden ? 'none' : '';
       Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var on = !c.avatarHidden && c.avatar === b.getAttribute('data-av'); b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-      var avImg = wgId('wgAvImg'), hasImg = !c.avatarHidden && typeof c.avatar === 'string' && !!c.avatar && !WG_AVATARS[c.avatar];
-      if (avImg){ avImg.hidden = !hasImg; avImg.innerHTML = hasImg ? '<img src="' + c.avatar + '" alt="">' : ''; }
+      var avImg = wgId('wgAvImg'), hasImg = !c.avatarHidden && !!wgAvatarSrc(c.avatar);
+      if (avImg){ avImg.hidden = !hasImg; avImg.textContent = ''; if (hasImg) wgPaintAva(avImg, c); }
       Array.prototype.slice.call(document.querySelectorAll('#wgAvMode button, #wgAvatars button')).forEach(function(b){ b.disabled = dis; });
 
       var act = wgId('wgActions');
@@ -3105,407 +2944,6 @@
       if (tone) tone.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.tone = b.getAttribute('data-t'); renderWidget(); });
       var themeSeg = wgId('wgTheme');
       if (themeSeg) themeSeg.addEventListener('click', function(e){ if (!wgEditing) return; var b = e.target.closest('button'); if (!b) return; wgReadInputs(); wgDraft.theme = b.getAttribute('data-th'); renderWidget(); });
-      // Abrir/cerrar el chat de prueba (overlay en móvil)
-      var holder = wgId('cwHolder');
-      var openChat = wgId('wgOpenChat');
-      if (openChat && holder) openChat.addEventListener('click', function(){ holder.classList.add('is-open'); if (cwUserMsgs === 0) cwPickNewTitle(); setTimeout(function(){ if (typeof cwAutogrow === 'function') cwAutogrow(); cwFocus(); }, 0); });
-      var cwClose = wgId('cwClose'); if (cwClose && holder) cwClose.addEventListener('click', function(){ holder.classList.remove('is-open'); });
-
-      // Menú 3 puntos -> hoja de ajustes
-      var cw = wgId('wgCw');
-      var cwMenu = wgId('cwMenu'); if (cwMenu && cw) cwMenu.addEventListener('click', function(){ cw.classList.add('sheet-open'); });
-      var cwSheetX = wgId('cwSheetX'); if (cwSheetX && cw) cwSheetX.addEventListener('click', function(){ cw.classList.remove('sheet-open'); });
-      var cwScrim = wgId('cwScrim'); if (cwScrim && cw) cwScrim.addEventListener('click', function(){ cw.classList.remove('sheet-open'); });
-      var cwThemeSeg = wgId('cwThemeSeg');
-      if (cwThemeSeg && cw) cwThemeSeg.addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; cw.setAttribute('data-theme', b.getAttribute('data-theme')); this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); }); });
-
-      // Enviar en el preview: mismo diseño y estados que w.js (reposo/pensando/respondiendo).
-      var cwInput = wgId('cwInput'), cwSend = wgId('cwSend'), cwMsgs = wgId('cwMsgs'), cwBody = wgId('cwBody');
-      var cwReduce = false; try { cwReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
-      var cwState = 'idle', cwTimer = null, cwCtrl = null, cwUserMsgs = 0, cwLastTitle = -1, cwTitleTimer = null;
-      // Fotos en la vista previa (solo local, sin red). Mismos límites que w.js.
-      var CW_ATT_MAX = 4, CW_ATT_MB = 5, CW_ATT_PX = 1600, CW_ATT_Q = 0.8;
-      var CW_ATT_TYPES = { 'image/jpeg':1, 'image/png':1, 'image/webp':1 };
-      var cwAtts = [];
-      // Teclado: en táctil nunca enfocar el textarea (evita abrir el teclado solo).
-      var cwIsTouch = false; try { cwIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches; } catch(e){}
-      function cwFocus(){ if (cwIsTouch){ var cw2 = wgId('wgCw'); if (cw2){ cw2.setAttribute('tabindex','-1'); try{ cw2.focus(); }catch(e){} } } else if (cwInput){ try{ cwInput.focus(); }catch(e){} } }
-      // Historial de la vista previa: namespace propio "preview" (sin datos de ejemplo).
-      var CW_LOG_KEY = 'wu_log_preview', CW_HMAX_CHATS = 30, CW_HMAX_MSGS = 100, CW_HTTL = 30*24*60*60*1000;
-      var cwHist = [];
-      function cwNewId(){ return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
-      var cwCurId = cwNewId();
-      var cwLsOk = (function(){ try{ localStorage.setItem('wu_t','1'); localStorage.removeItem('wu_t'); return true; }catch(e){ return false; } })();
-
-      // Título del estado vacío: ESTÁTICO. Se elige uno al azar solo al mostrar el chat
-      // vacío o al empezar uno nuevo; no se repite el último (localStorage).
-      var CW_TITLE_KEY = 'wu_title_preview';
-      function cwPickNewTitle(){
-        var last=-1; try{ var v=parseInt(localStorage.getItem(CW_TITLE_KEY),10); if(!isNaN(v)) last=v; }catch(e){}
-        var n=0; if (WG_EMPTY_TITLES.length>1){ do{ n=Math.floor(Math.random()*WG_EMPTY_TITLES.length); }while(n===last); }
-        try{ localStorage.setItem(CW_TITLE_KEY, String(n)); }catch(e){}
-        var h=wgId('cwHeroTitle'); if (h) h.textContent=WG_EMPTY_TITLES[n];
-      }
-      function cwSyncHero(){ var cw = wgId('wgCw'); if (!cw) return; cw.classList.toggle('has-hero', cwUserMsgs === 0); }
-
-      function cwAutogrow(){ if (!cwInput) return; cwInput.style.height = 'auto'; var h = Math.min(cwInput.scrollHeight, 140); cwInput.style.height = h + 'px'; cwInput.style.overflowY = (cwInput.scrollHeight > 140) ? 'auto' : 'hidden'; }
-      function cwCanSend(){ return (!!cwInput && cwInput.value.trim().length > 0) || cwAtts.length > 0; }
-      function cwSyncSend(){ if (cwState === 'idle' && cwSend) cwSend.disabled = !cwCanSend(); }
-      function cwSetState(s){
-        cwState = s; var busy = (s !== 'idle');
-        if (cwSend){ cwSend.classList.toggle('busy', busy); cwSend.setAttribute('aria-label', busy ? 'Detener' : 'Enviar'); if (busy) cwSend.disabled = false; else cwSyncSend(); }
-        var ty = wgId('cwTyping'); if (ty) ty.hidden = (s !== 'thinking');
-        if (s === 'thinking' && cwBody) cwBody.scrollTop = cwBody.scrollHeight;
-      }
-      // Íconos de acciones (mismos que w.js)
-      var CWICO_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>';
-      var CWICO_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 6.5"/></svg>';
-      var CWICO_REGEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3v5h-5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 21v-5h5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>';
-      var CWICO_EDIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-      var CWICO_IMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg>';
-      var cwPanel = wgId('wgCw'), cwCopyLive = wgId('cwCopyLive'), cwLive = [];
-      function cwAnnounceCopied(){ if (!cwCopyLive) return; cwCopyLive.textContent=''; setTimeout(function(){ cwCopyLive.textContent='Copiado'; }, 30); }
-      function cwCopyText(text, cb){
-        function fb(){ try{ var t=document.createElement('textarea'); t.value=text||''; t.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;'; document.body.appendChild(t); t.focus(); t.select(); var ok=document.execCommand('copy'); document.body.removeChild(t); cb(ok); }catch(e){ cb(false); } }
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text||'').then(function(){ cb(true); }, fb); else fb();
-      }
-      function cwCopyAndFlash(text, btn){
-        cwCopyText(text, function(ok){ if (!ok) return; cwAnnounceCopied();
-          if (btn){ var prev=btn.innerHTML; btn.innerHTML=CWICO_CHECK; btn.classList.add('ok'); btn.setAttribute('aria-label','Copiado'); setTimeout(function(){ btn.innerHTML=prev; btn.classList.remove('ok'); btn.setAttribute('aria-label','Copiar'); }, 1500); }
-        });
-      }
-      function cwAttImg(list, i){
-        var im=document.createElement('img'); im.src=list[i]; im.alt='Imagen adjunta '+(i+1)+' de '+list.length;
-        im.setAttribute('role','button'); im.setAttribute('tabindex','0');
-        im.onerror=function(){ var ph=document.createElement('div'); ph.className='cw-att-fail'; ph.setAttribute('role','img'); ph.setAttribute('aria-label','Imagen no disponible'); ph.innerHTML=CWICO_IMG; if (im.parentNode) im.parentNode.replaceChild(ph, im); };
-        im.addEventListener('click', function(){ cwOpenViewer(list, i, im); });
-        im.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); cwOpenViewer(list, i, im); } });
-        return im;
-      }
-      function cwAttRow(list){ var g=document.createElement('div'); g.className='cw-atts'; for (var i=0;i<list.length;i++) g.appendChild(cwAttImg(list, i)); return g; }
-      function cwActionBtn(icon, label, cls){ var b=document.createElement('button'); b.type='button'; b.className='cw-msg-act'+(cls?' '+cls:''); b.setAttribute('aria-label', label); b.innerHTML=icon; return b; }
-      function cwAiActions(idx){
-        var row=document.createElement('div'); row.className='cw-msg-actions';
-        var copyB=cwActionBtn(CWICO_COPY, 'Copiar'); copyB.addEventListener('click', function(){ cwCopyAndFlash(cwHist[idx]?cwHist[idx].x:'', copyB); });
-        var regen=cwActionBtn(CWICO_REGEN, 'Generar otra respuesta', 'cw-msg-regen'); regen.hidden=true; regen.addEventListener('click', function(){ cwRegenerateLast(); });
-        row.appendChild(copyB); row.appendChild(regen); return row;
-      }
-      function cwBubble(text, out, atts, hadImg, opts){
-        opts=opts||{};
-        var el=document.createElement('div'); el.className='cw-msg '+(out?'cw-out':'cw-in')+(opts.welcome?' welcome':'');
-        if (typeof opts.idx==='number') el.setAttribute('data-idx', opts.idx);
-        if (atts && atts.length) el.appendChild(cwAttRow(atts));
-        else if (hadImg){ var nn=document.createElement('div'); nn.className='cw-noimg'; nn.textContent='Imagen no guardada'; el.appendChild(nn); }
-        if (text){
-          var tx=document.createElement('div'); tx.className='tx'; tx.textContent=text;
-          if (out){ var bub=document.createElement('div'); bub.className='bubble'; bub.appendChild(tx); el.appendChild(bub); if (typeof opts.idx==='number') cwWireUserMenu(bub, opts.idx); }
-          else el.appendChild(tx);
-        }
-        if (!out && !opts.welcome && typeof opts.idx==='number') el.appendChild(cwAiActions(opts.idx));
-        return el;
-      }
-      function cwRefreshActions(){
-        var busy=(cwState==='thinking'||cwState==='responding');
-        Array.prototype.forEach.call(cwMsgs.querySelectorAll('.cw-msg-actions'), function(a){ a.style.display=busy?'none':''; });
-        var ins=cwMsgs.querySelectorAll('.cw-msg.cw-in:not(.welcome)'); var lastAi=ins.length?ins[ins.length-1]:null;
-        Array.prototype.forEach.call(cwMsgs.querySelectorAll('.cw-msg-regen'), function(r){ r.hidden=busy||!(lastAi&&lastAi.contains(r)); });
-      }
-      // ---- Menú de mensaje del usuario (mantener presionado / clic derecho / teclado) ----
-      var cwMenuEl=null, cwMenuReturn=null;
-      function cwCloseMsgMenu(){ if (!cwMenuEl) return; var ret=cwMenuReturn; if (cwMenuEl.parentNode) cwMenuEl.parentNode.removeChild(cwMenuEl); cwMenuEl=null; cwMenuReturn=null; document.removeEventListener('click', cwOnMenuOutside, true); document.removeEventListener('keydown', cwOnMenuEsc, true); try{ if (ret&&ret.focus) ret.focus(); }catch(e){} }
-      function cwOnMenuOutside(e){ if (cwMenuEl && !cwMenuEl.contains(e.target)) cwCloseMsgMenu(); }
-      function cwOnMenuEsc(e){ if (cwMenuEl && (e.key==='Escape'||e.key==='Esc')){ e.stopPropagation(); cwCloseMsgMenu(); } }
-      function cwOpenMsgMenu(anchor, idx){
-        cwCloseMsgMenu();
-        var menu=document.createElement('div'); menu.className='cw-msgmenu'; menu.setAttribute('role','menu');
-        var copyB=document.createElement('button'); copyB.type='button'; copyB.className='cw-msgmenu-item'; copyB.setAttribute('role','menuitem'); copyB.innerHTML=CWICO_COPY+'<span>Copiar</span>';
-        var editB=document.createElement('button'); editB.type='button'; editB.className='cw-msgmenu-item'; editB.setAttribute('role','menuitem'); editB.innerHTML=CWICO_EDIT+'<span>Editar</span>';
-        menu.appendChild(copyB); menu.appendChild(editB); cwPanel.appendChild(menu);
-        var pr=cwPanel.getBoundingClientRect(), ar=anchor.getBoundingClientRect();
-        var top=Math.min(ar.bottom-pr.top+6, pr.height-menu.offsetHeight-10);
-        menu.style.top=Math.max(8, top)+'px'; menu.style.right=Math.max(8, pr.right-ar.right)+'px';
-        cwMenuEl=menu; cwMenuReturn=anchor;
-        copyB.addEventListener('click', function(){ var t=cwHist[idx]?cwHist[idx].x:''; cwCloseMsgMenu(); cwCopyAndFlash(t, null); });
-        editB.addEventListener('click', function(){ cwCloseMsgMenu(); cwEnterEdit(idx); });
-        setTimeout(function(){ try{ copyB.focus(); }catch(e){} }, 0);
-        setTimeout(function(){ document.addEventListener('click', cwOnMenuOutside, true); document.addEventListener('keydown', cwOnMenuEsc, true); }, 0);
-      }
-      function cwWireUserMenu(bub, idx){
-        bub.setAttribute('tabindex','0'); bub.setAttribute('role','button'); bub.setAttribute('aria-haspopup','menu'); bub.setAttribute('aria-label','Mensaje enviado. Mantené presionado para opciones.');
-        var pressT=null, sx=0, sy=0;
-        function clr(){ if (pressT){ clearTimeout(pressT); pressT=null; } }
-        bub.addEventListener('pointerdown', function(e){ if (e.button&&e.button!==0) return; sx=e.clientX; sy=e.clientY; clr(); pressT=setTimeout(function(){ pressT=null; cwOpenMsgMenu(bub, idx); }, 450); });
-        bub.addEventListener('pointermove', function(e){ if (!pressT) return; if (Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8) clr(); });
-        bub.addEventListener('pointerup', clr); bub.addEventListener('pointercancel', clr); bub.addEventListener('pointerleave', clr);
-        bub.addEventListener('contextmenu', function(e){ e.preventDefault(); cwOpenMsgMenu(bub, idx); });
-        bub.addEventListener('keydown', function(e){ if (e.key==='Enter'||(e.shiftKey&&e.key==='F10')){ e.preventDefault(); cwOpenMsgMenu(bub, idx); } });
-      }
-      // ---- Editar un mensaje del usuario en el lugar ----
-      function cwEnterEdit(idx){
-        if (cwState!=='idle') return; var m=cwHist[idx]; if (!m||!m.o) return;
-        var msgEl=cwMsgs.querySelector('.cw-msg[data-idx="'+idx+'"]'); if (!msgEl) return;
-        msgEl.classList.add('editing'); msgEl.innerHTML='';
-        var box=document.createElement('div'); box.className='cw-editbox';
-        var tarea=document.createElement('textarea'); tarea.className='cw-editta'; tarea.value=m.x||''; tarea.setAttribute('aria-label','Editar mensaje');
-        var btns=document.createElement('div'); btns.className='cw-editbtns';
-        var cancel=document.createElement('button'); cancel.type='button'; cancel.className='cw-editbtn sec'; cancel.textContent='Cancelar';
-        var save=document.createElement('button'); save.type='button'; save.className='cw-editbtn pri'; save.textContent='Enviar';
-        btns.appendChild(cancel); btns.appendChild(save); box.appendChild(tarea); box.appendChild(btns); msgEl.appendChild(box);
-        function grow(){ tarea.style.height='auto'; tarea.style.height=Math.min(tarea.scrollHeight,160)+'px'; }
-        tarea.addEventListener('input', grow);
-        tarea.addEventListener('keydown', function(e){ if (e.key==='Escape'){ e.preventDefault(); cwRenderMsgs(); } });
-        cancel.addEventListener('click', function(){ cwRenderMsgs(); });
-        save.addEventListener('click', function(){ var nv=tarea.value.trim(); if (!nv){ tarea.focus(); return; } cwSubmitEdit(idx, nv); });
-        setTimeout(function(){ try{ tarea.focus(); grow(); var L=tarea.value.length; tarea.setSelectionRange(L, L); }catch(e){} }, 0);
-        if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
-      }
-      function cwSubmitEdit(idx, newText){
-        var old=cwHist[idx]; var keep=(old&&old._atts&&old._atts.length)?old._atts.slice():null;
-        cwHist=cwHist.slice(0, idx); cwHist.push({ x:newText, o:1, g:keep?1:0, _atts:keep });
-        cwLogUpsert(); cwRenderMsgs(); cwSyncHero(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
-        cwGenerate({ regenerate:false });
-      }
-      // ---- Generar / regenerar (una sola función; Fase 8 conecta la IA real) ----
-      function cwGenerate(opts){
-        opts=opts||{}; var regenerate=!!opts.regenerate;
-        cwSetState('thinking'); try{ cwCtrl=new AbortController(); }catch(e){ cwCtrl=null; }
-        // TODO Fase 8: en vez del setTimeout, llamar a la función `chat` con { regenerate, signal:cwCtrl&&cwCtrl.signal }.
-        cwTimer=setTimeout(function(){
-          cwSetState('responding');
-          cwHist.push({ x:WG_PENDING_REPLY, o:0, g:0 });
-          cwMsgs.appendChild(cwBubble(WG_PENDING_REPLY, false, null, false, { idx:cwHist.length-1 }));
-          cwLogUpsert(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
-          cwSetState('idle'); cwRefreshActions(); cwFocus();
-        }, 1200);
-      }
-      function cwRegenerateLast(){
-        if (cwState!=='idle') return; if (!cwHist.length||cwHist[cwHist.length-1].o) return;
-        cwHist.pop(); cwLogUpsert(); cwRenderMsgs(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
-        cwGenerate({ regenerate:true });
-      }
-      function cwDoSend(){
-        if (!cwCanSend()) return;
-        var v = cwInput.value.trim();
-        var atts = cwAtts.map(function(a){ return a.url; });
-        var hadImg = atts.length > 0;
-        if (hadImg) atts.forEach(function(u){ cwLive.push(u); });
-        cwHist.push({ x:v, o:1, g:hadImg?1:0, _atts:hadImg?atts:null }); cwUserMsgs++;
-        cwMsgs.appendChild(cwBubble(v, true, hadImg?atts:null, false, { idx:cwHist.length-1 }));
-        cwLogUpsert();
-        // TODO Fase 8: onSendAttachments(cwAtts) -> subir/enviar al backend (hoy NO hay red)
-        cwDetachAtts();
-        cwInput.value=''; cwAutogrow(); cwSyncHero();
-        if (cwBody) cwBody.scrollTop = cwBody.scrollHeight;
-        cwGenerate({ regenerate:false });
-      }
-      function cwStop(){
-        if (cwTimer){ clearTimeout(cwTimer); cwTimer = null; }
-        try{ if (cwCtrl) cwCtrl.abort(); }catch(e){} cwCtrl=null;
-        var last = cwMsgs.querySelector('.cw-msg.cw-in:last-child .tx');
-        if (cwState === 'responding' && last && last.textContent){ var tag=document.createElement('span'); tag.className='cw-stopped'; tag.textContent=' (detenido)'; last.appendChild(tag); }
-        cwSetState('idle'); cwRefreshActions(); cwFocus();
-      }
-      if (cwSend) cwSend.addEventListener('click', function(){ if (cwState === 'idle') cwDoSend(); else cwStop(); });
-      if (cwInput){
-        cwInput.addEventListener('input', function(){ cwAutogrow(); cwSyncSend(); });
-        cwInput.addEventListener('keydown', function(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if (cwState==='idle') cwDoSend(); } });
-        // El realce de la tarjeta solo reacciona al textarea, no a los botones + / enviar.
-        var cwComposerEl=document.querySelector('.cw-composer');
-        if (cwComposerEl){ cwInput.addEventListener('focus', function(){ cwComposerEl.classList.add('focus'); }); cwInput.addEventListener('blur', function(){ cwComposerEl.classList.remove('focus'); }); }
-      }
-
-      // ---- Fotos (+) en la vista previa ----
-      var cwThumbs = wgId('cwThumbs'), cwFile = wgId('cwFile'), cwPlus = wgId('cwPlus'), cwAttErr = wgId('cwAttErr');
-      function cwShowErr(m){ if (!cwAttErr) return; cwAttErr.textContent=m; cwAttErr.hidden=false; setTimeout(function(){ cwAttErr.hidden=true; }, 3500); }
-      function cwRenderThumbs(){
-        if (!cwThumbs) return; cwThumbs.innerHTML='';
-        cwAtts.forEach(function(a, idx){
-          var t=document.createElement('div'); t.className='cw-thumb';
-          var im=document.createElement('img'); im.src=a.url; im.alt='';
-          var x=document.createElement('button'); x.type='button'; x.className='cw-thumbx'; x.setAttribute('aria-label','Quitar imagen '+(idx+1));
-          x.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-          x.addEventListener('click', function(){ cwRemoveAtt(idx); });
-          t.appendChild(im); t.appendChild(x); cwThumbs.appendChild(t);
-        });
-        cwThumbs.hidden = cwAtts.length === 0; cwSyncSend();
-      }
-      function cwRemoveAtt(i){ var a=cwAtts[i]; if (!a) return; try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} cwAtts.splice(i,1); cwRenderThumbs(); }
-      // Vacía el compositor revocando las fotos NO enviadas.
-      function cwClearAtts(){ cwAtts.forEach(function(a){ try { if (a.url && a.url.indexOf('blob:')===0) URL.revokeObjectURL(a.url); } catch(e){} }); cwAtts=[]; cwRenderThumbs(); }
-      // Vacía el compositor SIN revocar (las fotos pasaron a un mensaje y siguen vivas).
-      function cwDetachAtts(){ cwAtts=[]; cwRenderThumbs(); }
-      // Libera las fotos enviadas (al empezar un chat nuevo o al descargar la página).
-      function cwRevokeLive(){ cwLive.forEach(function(u){ try { if (u && u.indexOf('blob:')===0) URL.revokeObjectURL(u); } catch(e){} }); cwLive=[]; }
-      // ¿Es una imagen que aceptamos? No dependemos solo del type (hay galerías que lo mandan vacío);
-      // si no sirve, se deduce por la extensión y, sin extensión, decide el decodificador.
-      function cwIsImageFile(f){
-        if (CW_ATT_TYPES[f.type]) return true;
-        var m=/\.([a-z0-9]+)$/i.exec(f.name||''); var ext=m?m[1].toLowerCase():'';
-        if (ext) return ext==='jpg'||ext==='jpeg'||ext==='png'||ext==='webp';
-        return !f.type || f.type.indexOf('image/')===0;
-      }
-      // Igual que w.js: data URL (incrustada), con reintentos de lectura (más espera cada vez),
-      // watchdog si createImageBitmap se cuelga, y guarda para no entregar dos resultados.
-      // Solo devuelve null tras agotar los reintentos. Nota Fase 8: `blob` null.
-      function cwDownscale(file, cb){
-        var tries=0, MAX_TRIES=3, done=false;
-        function finish(a){ if (done) return; done=true; cb(a); }
-        function toCanvas(src, w, h, onFail){
-          try {
-            var s=Math.min(1, CW_ATT_PX/Math.max(w,h));
-            var cw2=Math.max(1,Math.round(w*s)), ch=Math.max(1,Math.round(h*s));
-            var cv=document.createElement('canvas'); cv.width=cw2; cv.height=ch; cv.getContext('2d').drawImage(src,0,0,cw2,ch);
-            var durl=cv.toDataURL('image/jpeg', CW_ATT_Q);
-            if (durl && durl.indexOf('data:image')===0) finish({ url:durl, blob:null });
-            else onFail();
-          } catch(e){ onFail(); }
-        }
-        function readThenDraw(){
-          if (done) return;
-          var reader=new FileReader();
-          reader.onload=function(){ if (done) return; var img=new Image(); img.onload=function(){ toCanvas(img, img.width, img.height, function(){ finish({ url:reader.result, blob:null }); }); }; img.onerror=function(){ finish({ url:reader.result, blob:null }); }; img.src=reader.result; };
-          reader.onerror=retry;
-          try { reader.readAsDataURL(file); } catch(e){ retry(); }
-        }
-        function retry(){ if (done) return; tries++; if (tries>=MAX_TRIES){ finish(null); return; } setTimeout(readThenDraw, 120*tries); }
-        if (window.createImageBitmap){
-          var p; try { p=createImageBitmap(file, { imageOrientation:'from-image' }); } catch(e){ p=null; }
-          if (p && p.then){
-            var wd=setTimeout(readThenDraw, 800);
-            p.then(function(bmp){ clearTimeout(wd); toCanvas(bmp, bmp.width, bmp.height, readThenDraw); try { bmp.close(); } catch(e){} }, function(){ clearTimeout(wd); readThenDraw(); });
-          } else readThenDraw();
-        } else readThenDraw();
-      }
-      if (cwPlus && cwFile){
-        cwPlus.addEventListener('click', function(){ cwFile.click(); });
-        cwFile.addEventListener('change', function(){
-          var files=Array.prototype.slice.call(cwFile.files||[]); cwFile.value='';
-          files.forEach(function(f){
-            if (cwAtts.length >= CW_ATT_MAX){ cwShowErr('Hasta '+CW_ATT_MAX+' fotos.'); return; }
-            if (!cwIsImageFile(f)){ cwShowErr('Solo JPG, PNG o WEBP.'); return; }
-            if (f.size > CW_ATT_MB*1024*1024){ cwShowErr('Cada foto hasta '+CW_ATT_MB+' MB.'); return; }
-            cwDownscale(f, function(a){ if (!a){ cwShowErr('Esta imagen no se pudo procesar, intentá de nuevo.'); return; } if (cwAtts.length >= CW_ATT_MAX){ try { URL.revokeObjectURL(a.url); } catch(e){} return; } cwAtts.push(a); cwRenderThumbs(); });
-          });
-        });
-      }
-
-      // ---- Foco atrapado + visor de imágenes ----
-      function cwFocusables(el){ return Array.prototype.slice.call(el.querySelectorAll('button,[href],input,textarea,[tabindex]:not([tabindex="-1"])')).filter(function(n){ return !n.disabled && !n.hidden && n.getClientRects().length; }); }
-      function cwTrap(el, e){ if (e.key!=='Tab') return; var f=cwFocusables(el); if (!f.length) return; var first=f[0], last=f[f.length-1], cur=document.activeElement; if (e.shiftKey && cur===first){ e.preventDefault(); last.focus(); } else if (!e.shiftKey && cur===last){ e.preventDefault(); first.focus(); } }
-      var cwViewer=wgId('cwViewer'), cwVwImg=wgId('cwVwImg'), cwVwPrev=wgId('cwVwPrev'), cwVwNext=wgId('cwVwNext');
-      var cwVwList=[], cwVwIdx=0, cwVwReturn=null;
-      function cwVwShow(){ cwVwImg.src=cwVwList[cwVwIdx]; cwVwImg.alt='Imagen adjunta '+(cwVwIdx+1)+' de '+cwVwList.length; var m=cwVwList.length>1; cwVwPrev.hidden=!m; cwVwNext.hidden=!m; }
-      function cwOpenViewer(list, idx, ret){ cwVwList=list.slice(); cwVwIdx=idx||0; cwVwReturn=ret||null; cwVwShow(); cwViewer.hidden=false; setTimeout(function(){ wgId('cwVwX').focus(); },0); }
-      function cwCloseViewer(){ cwViewer.hidden=true; try { if (cwVwReturn && cwVwReturn.focus) cwVwReturn.focus(); } catch(e){} }
-      function cwVwStep(d){ if (cwVwList.length<2) return; cwVwIdx=(cwVwIdx+d+cwVwList.length)%cwVwList.length; cwVwShow(); }
-      if (cwViewer){
-        wgId('cwVwX').addEventListener('click', cwCloseViewer);
-        wgId('cwVwScrim').addEventListener('click', cwCloseViewer);
-        cwVwPrev.addEventListener('click', function(){ cwVwStep(-1); });
-        cwVwNext.addEventListener('click', function(){ cwVwStep(1); });
-        cwViewer.addEventListener('keydown', function(e){ if (e.key==='Escape'){ cwCloseViewer(); } else if (e.key==='ArrowLeft'){ e.preventDefault(); cwVwStep(-1); } else if (e.key==='ArrowRight'){ e.preventDefault(); cwVwStep(1); } else cwTrap(cwViewer, e); });
-      }
-
-      // ---- Confirmación genérica ----
-      var cwConfirm=wgId('cwConfirm'), cwCfCancel=wgId('cwCfCancel'), cwCfOk=wgId('cwCfOk'), cwCfReturn=null, cwCfOnOk=null;
-      function cwAsk(title, desc, onOk){
-        if (!cwConfirm) return;
-        wgId('cwCfT').textContent=title; var d=wgId('cwCfD'); d.textContent=desc||''; d.style.display=desc?'':'none';
-        cwCfOnOk=onOk; cwCfReturn=document.activeElement; cwConfirm.hidden=false; setTimeout(function(){ cwCfCancel.focus(); },0);
-      }
-      function cwCancelConfirm(){ if (!cwConfirm) return; cwConfirm.hidden=true; try { if (cwCfReturn && cwCfReturn.focus) cwCfReturn.focus(); } catch(e){} }
-      if (cwConfirm){
-        cwCfCancel.addEventListener('click', cwCancelConfirm);
-        wgId('cwCfScrim').addEventListener('click', cwCancelConfirm);
-        cwCfOk.addEventListener('click', function(){ cwConfirm.hidden=true; var fn=cwCfOnOk; cwCfOnOk=null; if (fn) fn(); });
-        cwConfirm.addEventListener('keydown', function(e){ if (e.key==='Escape'){ cwCancelConfirm(); } else cwTrap(cwConfirm, e); });
-      }
-
-      // ---- Historial (vista previa, namespace propio) ----
-      var cwHistoryEl=wgId('cwHistory'), cwHList=wgId('cwHList'), cwHEmpty=wgId('cwHEmpty'), cwHSearch=wgId('cwHSearch'), cwHClear=wgId('cwHClear'), cwHistBtn=wgId('cwHist');
-      var cwHClearWrap=wgId('cwHClearWrap'), cwHClearBtn=wgId('cwHClearBtn');
-      if (!cwLsOk && cwHistBtn) cwHistBtn.style.display='none';
-      function cwLoadLog(){ if (!cwLsOk) return []; var l=[]; try{ l=JSON.parse(localStorage.getItem(CW_LOG_KEY))||[]; }catch(e){ l=[]; } var cut=Date.now()-CW_HTTL; l=l.filter(function(c){ return c&&c.ts&&c.ts>=cut&&c.msgs&&c.msgs.length; }); if (l.length>CW_HMAX_CHATS) l=l.slice(0,CW_HMAX_CHATS); return l; }
-      function cwSaveLog(l){ if (!cwLsOk) return; try{ localStorage.setItem(CW_LOG_KEY, JSON.stringify(l)); }catch(e){} }
-      function cwHasUserMsg(){ for (var i=0;i<cwHist.length;i++){ if (cwHist[i].o) return true; } return false; }
-      function cwChatTitle(c){ for (var i=0;i<c.msgs.length;i++){ if (c.msgs[i].o&&c.msgs[i].x) return c.msgs[i].x; } return (c.msgs[0]&&c.msgs[0].x)||'Chat'; }
-      function cwLogUpsert(){ if (!cwLsOk||!cwHasUserMsg()) return; var l=cwLoadLog().filter(function(c){ return c.id!==cwCurId; }); var m=cwHist.slice(-CW_HMAX_MSGS).map(function(x){ return {x:x.x,o:x.o,g:x.g?1:0}; }); l.unshift({id:cwCurId,ts:Date.now(),msgs:m}); if (l.length>CW_HMAX_CHATS) l=l.slice(0,CW_HMAX_CHATS); cwSaveLog(l); }
-      function cwDayGroup(ts,n){ var d=new Date(n); d.setHours(0,0,0,0); var t=d.getTime(), day=86400000; if (ts>=t) return 'Hoy'; if (ts>=t-day) return 'Ayer'; if (ts>=t-7*day) return 'Últimos 7 días'; return 'Más antiguos'; }
-      function cwFmtTime(ts,n){ var d=new Date(n); d.setHours(0,0,0,0); var t=d.getTime(), x=new Date(ts); if (ts>=t) return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2); return x.getDate()+'/'+(x.getMonth()+1); }
-      function cwCloseRowMenus(except){ Array.prototype.forEach.call(cwHList.querySelectorAll('.cw-hrow__menu'), function(m){ if (m!==except) m.hidden=true; }); }
-      function cwRenderHist(q){
-        var full=cwLoadLog(), total=full.length, l=full; q=(q||'').trim().toLowerCase();
-        if (q){ l=full.filter(function(c){ if (cwChatTitle(c).toLowerCase().indexOf(q)!==-1) return true; for (var i=0;i<c.msgs.length;i++){ if (c.msgs[i].x&&c.msgs[i].x.toLowerCase().indexOf(q)!==-1) return true; } return false; }); }
-        cwHList.innerHTML=''; cwHEmpty.hidden=total>0; if (cwHClearWrap) cwHClearWrap.hidden=total===0; if (!l.length) return;
-        var nowT=Date.now(), lastG=null;
-        l.forEach(function(c){
-          var grp=cwDayGroup(c.ts,nowT);
-          if (grp!==lastG){ lastG=grp; var gh=document.createElement('div'); gh.className='cw-hgroup'; gh.textContent=grp; cwHList.appendChild(gh); }
-          var row=document.createElement('div'); row.className='cw-hrow'+(c.id===cwCurId?' is-current':''); row.setAttribute('role','listitem');
-          var main=document.createElement('button'); main.type='button'; main.className='cw-hrow__main';
-          main.innerHTML='<span class="cw-hrow__title"></span><span class="cw-hrow__time"></span>';
-          main.querySelector('.cw-hrow__title').textContent=cwChatTitle(c);
-          main.querySelector('.cw-hrow__time').textContent=cwFmtTime(c.ts,nowT);
-          if (c.id===cwCurId) main.setAttribute('aria-current','true');
-          main.addEventListener('click', function(){ cwOpenFromLog(c.id); });
-          var kebab=document.createElement('button'); kebab.type='button'; kebab.className='cw-hrow__kebab'; kebab.setAttribute('aria-label','Opciones del chat');
-          kebab.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
-          var menu=document.createElement('div'); menu.className='cw-hrow__menu'; menu.hidden=true;
-          var del=document.createElement('button'); del.type='button'; del.className='cw-hrow__del'; del.textContent='Eliminar este chat'; menu.appendChild(del);
-          kebab.addEventListener('click', function(e){ e.stopPropagation(); cwCloseRowMenus(menu); menu.hidden=!menu.hidden; });
-          del.addEventListener('click', function(e){ e.stopPropagation(); menu.hidden=true; cwAsk('¿Eliminar este chat?','Esta acción no se puede deshacer.', function(){ cwDeleteChat(c.id); setTimeout(function(){ cwHSearch.focus(); },0); }); });
-          row.appendChild(main); row.appendChild(kebab); row.appendChild(menu); cwHList.appendChild(row);
-        });
-      }
-      function cwOpenHistory(){ if (!cwLsOk) return; cwHSearch.value=''; cwHClear.hidden=true; cwRenderHist(''); cwHistoryEl.hidden=false; setTimeout(function(){ wgId('cwHBack').focus(); },0); }
-      function cwCloseHistory(){ cwHistoryEl.hidden=true; try{ cwHistBtn.focus(); }catch(e){} }
-      function cwRenderMsgs(){
-        cwCloseMsgMenu();
-        var w=(wgCfg().welcome||'¡Hola! ¿En qué te puedo ayudar?');
-        cwMsgs.innerHTML='';
-        var wel=cwBubble(w, false, null, false, { welcome:true });
-        var wtx=wel.querySelector('.tx'); if (wtx) wtx.id='cwWelcome';
-        cwMsgs.appendChild(wel);
-        cwUserMsgs=0;
-        cwHist.forEach(function(m, idx){ cwMsgs.appendChild(cwBubble(m.x, !!m.o, m._atts||null, !!m.g, { idx:idx })); if (m.o) cwUserMsgs++; });
-        cwRefreshActions();
-      }
-      function cwOpenFromLog(id){
-        cwLogUpsert();
-        var l=cwLoadLog(), c=null; for (var i=0;i<l.length;i++){ if (l[i].id===id){ c=l[i]; break; } }
-        if (!c){ cwCloseHistory(); return; }
-        cwCurId=id; cwHist=c.msgs.map(function(m){ return {x:m.x,o:m.o,g:m.g?1:0}; });
-        cwClearAtts(); cwSetState('idle'); cwRenderMsgs();
-        cwCloseHistory(); cwSyncHero(); if (cwBody) cwBody.scrollTop=cwBody.scrollHeight;
-      }
-      function cwDeleteChat(id){ cwSaveLog(cwLoadLog().filter(function(c){ return c.id!==id; })); if (id===cwCurId) cwFreshChat(); cwRenderHist(cwHSearch.value); }
-      function cwClearHistory(){ cwSaveLog([]); cwRenderHist(cwHSearch.value); }
-      function cwFreshChat(){
-        if (cwTimer){ clearTimeout(cwTimer); cwTimer=null; } try{ if (cwCtrl) cwCtrl.abort(); }catch(e){} cwCtrl=null; cwSetState('idle');
-        cwCurId=cwNewId(); cwHist=[]; cwClearAtts(); cwRevokeLive(); cwRenderMsgs();
-        cwPickNewTitle();
-        cwSyncHero(); if (cwBody) cwBody.scrollTop=0; if (cwInput){ cwInput.value=''; cwAutogrow(); cwSyncSend(); }
-      }
-      function cwDoNewChat(){ cwLogUpsert(); cwFreshChat(); }
-
-      var cwNew = wgId('cwNew');
-      if (cwNew) cwNew.addEventListener('click', function(){
-        if (!cwHasUserMsg()){ cwFreshChat(); return; }
-        cwAsk('¿Crear un chat nuevo?', cwLsOk ? 'El chat actual quedará en el historial.' : 'La conversación actual se borrará.', function(){ cwDoNewChat(); cwFocus(); });
-      });
-      if (cwHistBtn) cwHistBtn.addEventListener('click', cwOpenHistory);
-      if (wgId('cwHBack')) wgId('cwHBack').addEventListener('click', cwCloseHistory);
-      if (wgId('cwHNew')) wgId('cwHNew').addEventListener('click', function(){ cwDoNewChat(); cwCloseHistory(); cwFocus(); });
-      if (cwHSearch) cwHSearch.addEventListener('input', function(){ cwHClear.hidden=!cwHSearch.value; cwRenderHist(cwHSearch.value); });
-      if (cwHClear) cwHClear.addEventListener('click', function(){ cwHSearch.value=''; cwHClear.hidden=true; cwRenderHist(''); cwHSearch.focus(); });
-      if (cwHistoryEl){
-        cwHistoryEl.addEventListener('click', function(e){ if (!e.target.closest('.cw-hrow__kebab') && !e.target.closest('.cw-hrow__menu')) cwCloseRowMenus(null); });
-        cwHistoryEl.addEventListener('keydown', function(e){ if (e.key==='Escape'){ e.stopPropagation(); cwCloseHistory(); } else cwTrap(cwHistoryEl, e); });
-      }
-      if (cwHClearBtn) cwHClearBtn.addEventListener('click', function(){ cwAsk('¿Borrar todo el historial?','Se eliminarán todos los chats guardados en este dispositivo.', function(){ cwClearHistory(); setTimeout(function(){ try{ wgId('cwHBack').focus(); }catch(e){} },0); }); });
-
-      cwPickNewTitle(); cwSyncHero(); cwAutogrow();
-
       // pintar los avatares preset una vez
       Array.prototype.slice.call(document.querySelectorAll('#wgAvatars .wg-av[data-av]')).forEach(function(b){ var id = b.getAttribute('data-av'); if (WG_AVATARS[id]) b.innerHTML = WG_AVATARS[id].replace(/#fff/g, 'currentColor'); });
       var avMode = wgId('wgAvMode');
@@ -4153,7 +3591,7 @@
       meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
     }
 
-    // Fuentes: páginas leídas (máx. 50), últimas 5 lecturas y 5 Memorias, y Memorias de las últimas 24 h. Solo lectura.
+    // Fuentes: páginas leídas (máx. 50), últimas 5 lecturas y 5 Memorias, y Memorias terminadas (status done) de las últimas 24 h. Solo lectura.
     // Los errores nunca se muestran crudos: openai_429 → "sin crédito o límite de la IA"; el resto, "error".
     var MM_PST = { done: ['Leída', 'ok'], error: ['Con error', 'err'], blocked: ['Bloqueada', 'lock'] };
     function mmSrcLoad(){
@@ -4162,7 +3600,7 @@
         SB.from('site_pages').select('url,status,fetched_at,flags,error,text_chars').order('fetched_at', { ascending: false, nullsFirst: false }).limit(50),
         SB.from('site_import_jobs').select('status,pages_found,pages_new,pages_changed,pages_same,created_at,finished_at').order('created_at', { ascending: false }).limit(5),
         SB.from('memory_runs').select('status,mode,chars,error,started_at').order('started_at', { ascending: false }).limit(5),
-        SB.from('memory_runs').select('started_at', { count: 'exact', head: true }).gte('started_at', since)
+        SB.from('memory_runs').select('started_at', { count: 'exact', head: true }).eq('status', 'done').gte('started_at', since)   // solo las terminadas gastan el cupo
       ]).then(function(rs){
         mmSrc = rs.slice(0, 3).some(function(r){ return !r || r.error; }) ? { err: true } : { pages: rs[0].data || [], jobs: rs[1].data || [], runs: rs[2].data || [], runs24: rs[3] && !rs[3].error && rs[3].count != null ? rs[3].count : null };
         mmSrcRender(); rdRender();
