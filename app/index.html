@@ -323,7 +323,7 @@
     /* Widget */
     .wg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
     .wg-actions{display:flex;gap:8px;flex-shrink:0;}
-    .wg-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,44%,432px);gap:16px;align-items:start;margin-top:24px;}
+    .wg-grid{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,452px);gap:16px;align-items:start;margin-top:24px;}
     .wg-form{display:flex;flex-direction:column;gap:16px;min-width:0;}
     .wg-field{padding:16px 0;border-top:1px solid var(--border);}
     .cfg-card__title + .wg-field{border-top:0;padding-top:12px;}
@@ -513,45 +513,22 @@
       [data-view="resumen"] .wa-stat__value{font-size:1.75rem;}
       .rs-q__m{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
     }
-    /* ===== Vista previa (wp:start): dos tarjetas solo para mirar (Computadora y Celular). Imitan la forma de w.js, sin interacción ni red. ===== */
-    .wp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .wp-card{margin:0;min-width:0;}
-    .wp-card__t{margin:0 0 8px;font-size:.8125rem;font-weight:500;color:var(--text-2);}
-    .wp-stage{position:relative;height:360px;border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;}
+    /* ===== Vista previa (wp:start): el widget real abierto, en tamaño real, solo para mirar. El interior (Shadow DOM) copia a w.js. ===== */
+    @media (max-width:1041px){ .wg-grid{grid-template-columns:minmax(0,1fr);} .wg-preview{position:static;} }
+    .wg-preview{min-width:0;}
+    .wp-seg{display:inline-flex;margin-bottom:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+    .wp-seg button{min-height:40px;padding:0 16px;border:0;background:var(--bg);color:var(--text-2);font:400 .875rem var(--font);cursor:pointer;}
+    .wp-seg button + button{border-left:1px solid var(--border);}
+    .wp-seg button:hover{color:var(--text);}
+    .wp-seg button[aria-checked="true"]{background:var(--surface);color:var(--text);font-weight:500;}
+    .wp-seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+    .wp-box{overflow:hidden;}
+    .wp-box,.wp-box *{cursor:default !important;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;}
+    .wp-fit{position:relative;margin:0 auto;overflow:hidden;}
+    .wp-frame{position:absolute;top:0;left:0;box-sizing:content-box;transform-origin:0 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
+    .wp-frame.is-mob{border-radius:28px;}
     .wp-note{margin:8px 0 0;font-size:.8125rem;color:var(--text-2);}
-    /* Computadora: página con el chat flotando abajo a la derecha y la burbuja debajo (la página se sigue viendo) */
-    .wp-site{position:absolute;inset:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden;}
-    .wp-site__bar{display:block;height:16px;border-bottom:1px solid var(--border);}
-    .wp-site__ln{display:block;width:60%;height:6px;margin:10px 10px 0;border-radius:3px;background:var(--border);}
-    .wp-site__ln + .wp-site__ln{width:40%;}
-    .wp-site .wp-chat{position:absolute;right:8px;bottom:44px;width:72%;height:64%;border-radius:10px;}
-    .wp-fab{position:absolute;right:8px;bottom:8px;width:28px;height:28px;border-radius:9px;background:#111;color:#fff;display:grid;place-items:center;overflow:hidden;font-size:11px;font-weight:500;}
-    /* Celular: teléfono con el chat a pantalla completa */
-    .wp-phone{position:absolute;top:12px;left:50%;transform:translateX(-50%);height:calc(100% - 24px);aspect-ratio:9/18.5;max-width:calc(100% - 24px);
-      border:1px solid var(--border);border-radius:20px;background:var(--bg);overflow:hidden;padding:5px;}
-    .wp-phone .wp-chat{height:100%;border:0;border-radius:15px;}
-    /* El chat en miniatura: mismos colores de tema que w.js (Claro / Oscuro), sin azul ni sombras */
-    .wp-chat{--bg:#0e0f12;--surface:#1b1c20;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);--ubub:#2a2b31;--uink:#f4f5f7;
-      --ava-bg:#f4f5f7;--ava-ink:#0e0f12;--send-bg:#f4f5f7;--send-ink:#0e0f12;
-      display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid var(--line);overflow:hidden;font-size:10px;line-height:1.4;}
-    .wp-chat[data-theme="light"]{--bg:#fff;--surface:#f6f6f7;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;--ubub:#ededee;--uink:#0a0a0a;
-      --ava-bg:#0a0a0a;--ava-ink:#fff;--send-bg:#0a0a0a;--send-ink:#fff;}
-    .wp-head{display:flex;align-items:center;gap:6px;padding:8px 8px 4px;flex-shrink:0;}
-    .wp-ava{width:18px;height:18px;border-radius:50%;background:var(--ava-bg);color:var(--ava-ink);display:grid;place-items:center;flex-shrink:0;overflow:hidden;font-size:9px;font-weight:500;}
-    .wp-ava svg,.wp-fab svg{width:60%;height:60%;}
-    .wp-ava img,.wp-fab img{width:100%;height:100%;object-fit:cover;display:block;}
-    .wp-ava.is-lt,.wp-fab.is-lt{border:1px solid rgba(0,0,0,.16);}
-    .wp-name{flex:1;min-width:0;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .wp-x{display:grid;width:12px;height:12px;color:var(--ink2);flex-shrink:0;}
-    .wp-msgs{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:6px 10px;}
-    .wp-msgs p{margin:0;overflow-wrap:anywhere;}
-    .wp-in{align-self:flex-start;max-width:94%;}
-    .wp-out{align-self:flex-end;max-width:85%;background:var(--ubub);color:var(--uink);border-radius:12px;padding:5px 8px;}
-    .wp-bar{display:flex;align-items:center;gap:6px;margin:4px 8px 8px;padding:4px 4px 4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink2);flex-shrink:0;}
-    .wp-bar span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .wp-send{width:18px;height:18px;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;opacity:.35;flex-shrink:0;}
-    .wp-send svg{width:10px;height:10px;}
-    @media (max-width:768px){ .wp-cards{grid-template-columns:1fr;} }
+    @media (max-width:768px){ .wp-seg button{min-height:44px;} }
     /* wp:end */
 
     /* ===== Onboarding de instalación ===== */
@@ -1164,11 +1141,13 @@
 
             </div>
 
-            <aside class="wg-preview" aria-labelledby="wpTitle">
-              <div class="cfg-eyebrow" id="wpTitle">Vista previa del chat</div>
-              <div class="wp-cards">
-                <figure class="wp-card"><figcaption class="wp-card__t">Computadora</figcaption><div class="wp-stage" id="wpDesk" role="img" aria-label="El chat abierto en una computadora, sobre la página y con la burbuja abajo a la derecha."></div></figure>
-                <figure class="wp-card"><figcaption class="wp-card__t">Celular</figcaption><div class="wp-stage" id="wpPhone" role="img" aria-label="El chat abierto en un celular, a pantalla completa."></div></figure>
+            <aside class="wg-preview">
+              <div class="wp-seg" id="wpSeg" role="radiogroup" aria-label="Ver la vista previa en">
+                <button type="button" role="radio" aria-checked="true" tabindex="0" data-wp="desk">Escritorio</button>
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-wp="mob">Móvil</button>
+              </div>
+              <div class="wp-box" id="wpBox" role="img" aria-label="Vista previa del chat en escritorio">
+                <div class="wp-fit" id="wpFit"><div class="wp-frame" id="wpFrame" inert></div></div>
               </div>
               <p class="wp-note">Mensajes de ejemplo para ver el diseño.</p>
             </aside>
@@ -2577,11 +2556,6 @@
       w4: '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="12.5" y="20" width="3.6" height="7.5" rx="1.8" fill="#fff"/><rect x="18.2" y="14.5" width="3.6" height="13" rx="1.8" fill="#fff"/><rect x="23.9" y="17.5" width="3.6" height="10" rx="1.8" fill="#fff"/></svg>',
       w5: '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M10.5 20c2.4-6.4 4.7-6.4 7.1 0s4.7 6.4 7.1 0 4.7-6.4 7.1 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     };
-    var WG_INPUT_PH = { es: 'Escribí tu mensaje…', en: 'Type your message…', pt: 'Escreva sua mensagem…' };
-    // Vista previa: una pregunta y una respuesta de ejemplo, fijas (no se llama a la función chat).
-    var WG_SAMPLE = { es: ['¿Cuál es el horario de atención?', 'Atendemos de lunes a viernes, de 9 a 18 h.'],
-      en: ['What are your opening hours?', 'We are open Monday to Friday, 9 am to 6 pm.'],
-      pt: ['Qual é o horário de atendimento?', 'Atendemos de segunda a sexta, das 9h às 18h.'] };
     var WG_DEF_WELCOME = { es: '¡Hola! ¿En qué te puedo ayudar?', en: 'Hi! How can I help you?', pt: 'Olá! Como posso ajudar?' };
     var wgEditing = false, wgDraft = null;
     function wgClone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -2649,34 +2623,130 @@
       el.innerHTML = logo.replace(/#fff/g, 'currentColor');   // SVG fijo del panel, no viene del usuario
       if (a !== 'auto'){ el.style.background = a; el.style.color = wgAccentInk(a); if (a === '#FFFFFF') el.classList.add('is-lt'); }
     }
-    // ===== Vista previa (wp): Computadora y Celular, solo para mirar. Sin campo, sin respuestas y sin red. =====
-    var WP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-    var WP_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
-    function wpEl(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-    function wpChat(c){
-      var lang = WG_SAMPLE[c.language] ? c.language : 'es', chat = wpEl('div', 'wp-chat'), head = wpEl('div', 'wp-head'), ava = wpEl('span', 'wp-ava'),
-          msgs = wpEl('div', 'wp-msgs'), bar = wpEl('div', 'wp-bar'), x = wpEl('span', 'wp-x'), send = wpEl('span', 'wp-send');
-      chat.setAttribute('data-theme', c.theme === 'light' ? 'light' : 'dark');
-      wgPaintAva(ava, c, null, c.avatarHidden); x.innerHTML = WP_X; send.innerHTML = WP_SEND;
-      head.appendChild(ava); head.appendChild(wpEl('span', 'wp-name', c.name || 'Asistente')); head.appendChild(x);
-      msgs.appendChild(wpEl('p', 'wp-in', String(c.welcome || '').trim() || WG_DEF_WELCOME[lang]));   // la bienvenida guardada (o la del idioma)
-      msgs.appendChild(wpEl('p', 'wp-out', WG_SAMPLE[lang][0])); msgs.appendChild(wpEl('p', 'wp-in', WG_SAMPLE[lang][1]));
-      bar.appendChild(wpEl('span', '', WG_INPUT_PH[lang])); bar.appendChild(send);   // barra de escribir deshabilitada (no es un campo)
-      chat.appendChild(head); chat.appendChild(msgs); chat.appendChild(bar); return chat;
+    // ===== Vista previa (wp): el widget real (w.js) abierto, en tamaño real, solo para mirar =====
+    // Estructura, íconos, medidas, fuentes, colores, sombra y textos copiados de w.js (los textos en español, como los ve el
+    // visitante). Va en un Shadow DOM dentro de un marco con `inert`: sin foco, sin clics, sin selección y sin red.
+    // Escritorio: página de 450x800 con el panel de 420px a 16px de los bordes. Móvil: teléfono de 390x844 con la hoja al 92%.
+    var WP_SIZE = { desk: [450, 800], mob: [390, 844] }, wpMode = 'desk';
+    var WP_SPARK = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg>';
+    var WP_CSS =
+      '.pg{all:initial;display:block;position:absolute;inset:0;overflow:hidden;background:var(--bg,#fff);}' +
+      '.pg-top{position:absolute;left:0;right:0;top:0;height:56px;border-bottom:1px solid var(--border,#e5e7ea);}' +
+      '.pg-ln{position:absolute;left:24px;height:12px;border-radius:6px;background:var(--border,#e5e7ea);}' +
+      '*{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}' +
+      '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);--ubub:#2a2b31;--uink:#f4f5f7;' +
+        '--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--send-bg:#f4f5f7;--send-ink:#0e0f12;' +
+        'position:absolute;right:16px;top:16px;bottom:16px;width:420px;background:var(--bg);color:var(--ink);' +
+        'border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.32);}' +
+      '.panel[data-theme=light]{--bg:#fff;--surface:#f6f6f7;--surface2:#ececed;--ink:#0a0a0a;--ink2:#6b7280;--line:#ececec;--ubub:#ededee;--uink:#0a0a0a;' +
+        '--ava-bg:#0a0a0a;--ava-ink:#fff;--send-bg:#0a0a0a;--send-ink:#fff;}' +
+      '.grip{display:none;}' +
+      '.head{display:flex;align-items:center;gap:6px;padding:10px 8px 6px;flex-shrink:0;}' +
+      '.ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;overflow:hidden;background:var(--ava-bg);color:var(--ava-ink);margin:0 2px;padding:0;}' +
+      '.ava img{width:100%;height:100%;object-fit:cover;display:block;} .ava svg{width:60%;height:60%;}' +
+      '.ava.wu-accent-lt{border:1px solid rgba(0,0,0,.16);}' +
+      '.nm{font-weight:650;font-size:.95rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sp{margin-left:auto;}' +
+      '.ico{width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--ink);display:grid;place-items:center;flex-shrink:0;} .ico svg{width:20px;height:20px;}' +
+      '.body{flex:1;overflow:hidden;padding:10px 16px 4px;display:flex;flex-direction:column;}' +
+      '.msgs{display:flex;flex-direction:column;gap:14px;padding:6px 0;}' +
+      '.msg{max-width:85%;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;} .msg .tx{white-space:pre-wrap;}' +
+      '.in{align-self:flex-start;color:var(--ink);max-width:100%;}' +
+      '.out{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}' +
+      '.out .bubble{background:var(--ubub);color:var(--uink);border-radius:20px;padding:10px 14px;}' +
+      '.msg-actions{display:flex;gap:2px;margin-top:2px;margin-left:-11px;align-self:flex-start;}' +
+      '.msg-act{width:40px;height:40px;border:0;border-radius:9px;background:none;color:var(--ink2);display:grid;place-items:center;} .msg-act svg{width:18px;height:18px;}' +
+      '.composer-wrap{padding:6px 14px 8px;flex-shrink:0;}' +
+      '.composer{display:grid;gap:0 8px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:7px 8px 7px 12px;' +
+        'grid-template-columns:auto 1fr auto;grid-template-areas:"thumbs thumbs thumbs" "plus text send";}' +
+      '.ta{grid-area:text;min-width:0;color:var(--ink2);font-size:16px;line-height:1.4;padding:10px 2px;min-height:44px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}' +
+      '.plus{grid-area:plus;align-self:end;width:44px;height:44px;border-radius:50%;border:0;background:none;color:var(--ink2);display:grid;place-items:center;} .plus svg{width:24px;height:24px;}' +
+      '.send{grid-area:send;align-self:end;width:44px;height:44px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;opacity:.35;} .send svg{width:18px;height:18px;}' +
+      '.foot{text-align:center;padding:9px 6px 2px;} .foot .disc{margin:0;font-size:.68rem;line-height:1.45;color:var(--ink2);}' +
+      // Móvil (en w.js es @media(max-width:640px)): hoja desde abajo con asa.
+      '.mob .panel{left:0;right:0;top:auto;bottom:0;width:auto;height:92%;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;}' +
+      '.mob .grip{display:block;position:relative;width:100%;height:22px;margin:0;flex-shrink:0;}' +
+      '.mob .grip::before{content:"";position:absolute;left:50%;top:9px;width:36px;height:4px;margin-left:-18px;border-radius:999px;background:var(--ink2);opacity:.4;}' +
+      '.mob .head{padding-top:6px;} .mob .ico{width:44px;height:44px;}' +
+      // Estático de verdad: sin selección, sin arrastre y sin cursor de texto ni de mano.
+      '*,*::before,*::after{cursor:default!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;}' +
+      '::selection{background:transparent;color:inherit;}';
+    var WP_HTML = '<div class="pg"><i class="pg-top"></i><i class="pg-ln" style="top:88px;width:55%"></i><i class="pg-ln" style="top:116px;width:35%"></i>' +
+      '<i class="pg-ln" style="top:164px;width:60%"></i><i class="pg-ln" style="top:192px;width:45%"></i>' +
+      '<div class="panel" data-theme="dark"><div class="grip"></div>' +
+        '<div class="head"><span class="ico menu"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span>' +
+          '<span class="ava"></span><span class="nm"></span><span class="sp"></span>' +
+          '<span class="ico newchat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></span>' +
+          '<span class="ico history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>' +
+          '<span class="ico close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></span></div>' +
+        '<div class="body"><div class="msgs"><div class="msg in welcome"><div class="tx"></div></div>' +
+          '<div class="msg out"><div class="bubble"><div class="tx">¿Cuál es el horario de atención?</div></div></div>' +
+          '<div class="msg in"><div class="tx">Atendemos de lunes a viernes de 9:00 a 17:00.</div><div class="msg-actions">' +
+            '<span class="msg-act copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></span>' +
+            '<span class="msg-act msg-regen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3v5h-5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 21v-5h5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></span>' +
+          '</div></div></div></div>' +
+        '<div class="composer-wrap"><div class="composer"><div class="ta">Escribí tu mensaje…</div>' +
+          '<span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>' +
+          '<span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span></div>' +
+          '<div class="foot"><p class="disc">Las respuestas pueden no ser siempre exactas. Al usar este chat aceptás la recopilación de datos según la política del sitio.</p></div></div>' +
+      '</div></div>';
+    function wpRoot(){
+      var f = wgId('wpFrame'); if (!f || !f.attachShadow) return null;
+      if (!f.shadowRoot){ var r = f.attachShadow({ mode: 'open' }); r.innerHTML = '<style>' + WP_CSS + '</style>' + WP_HTML; }   // todo fijo: ningún dato del usuario va como HTML
+      return f.shadowRoot;
+    }
+    // Avatar como en w.js: una foto (https:// o la recién subida) o la estrella; los logos w1-w5 y "Ocultar" no cambian nada en
+    // el widget real. El color del logo va solo sobre la estrella. La foto se arma con createElement y src por propiedad.
+    function wpPaintAva(el, c){
+      var src = wgAvatarSrc(c.avatar), a = wgNormAccent(c.accent);
+      el.textContent = ''; el.className = 'ava'; el.style.background = ''; el.style.color = '';
+      if (src){ var im = document.createElement('img'); im.alt = ''; im.src = src; el.appendChild(im); return; }
+      el.innerHTML = WP_SPARK;
+      if (a !== 'auto'){ el.style.background = a; el.style.color = wgAccentInk(a); if (a === '#FFFFFF') el.classList.add('wu-accent-lt'); }
+    }
+    // Escala: 1 si entra; si no, pareja con transform. El contenedor reserva el tamaño ya escalado (sin scroll horizontal).
+    function wpFit(){
+      var box = wgId('wpBox'), fit = wgId('wpFit'), f = wgId('wpFrame'); if (!box || !fit || !f) return;
+      var sz = WP_SIZE[wpMode], W = sz[0] + 2, H = sz[1] + 2, avail = box.clientWidth;
+      var s = avail ? Math.max(0.76, Math.min(1, avail / W)) : 1;
+      f.style.width = sz[0] + 'px'; f.style.height = sz[1] + 'px'; f.style.transform = s < 1 ? 'scale(' + s + ')' : '';
+      fit.style.width = Math.min(W * s, avail || W) + 'px'; fit.style.height = (H * s) + 'px';
+      box.setAttribute('data-scale', s.toFixed(3));
+    }
+    function wpLayout(){
+      var r = wpRoot(), f = wgId('wpFrame'), box = wgId('wpBox'), mob = wpMode === 'mob'; if (!r) return;
+      r.querySelector('.pg').classList.toggle('mob', mob); f.classList.toggle('is-mob', mob);
+      box.setAttribute('aria-label', 'Vista previa del chat en ' + (mob ? 'móvil' : 'escritorio'));
+      wpFit();
     }
     function renderWidgetPreview(){
-      var c = wgCfg(), desk = wgId('wpDesk'), phone = wgId('wpPhone');
-      if (desk){
-        var site = wpEl('div', 'wp-site'), fab = wpEl('span', 'wp-fab');
-        site.appendChild(wpEl('span', 'wp-site__bar')); site.appendChild(wpEl('span', 'wp-site__ln')); site.appendChild(wpEl('span', 'wp-site__ln'));
-        wgPaintAva(fab, c, null, c.avatarHidden); site.appendChild(wpChat(c)); site.appendChild(fab);
-        desk.textContent = ''; desk.appendChild(site);
+      var c = wgCfg(), r = wpRoot();
+      if (r){
+        r.querySelector('.panel').setAttribute('data-theme', c.theme === 'light' ? 'light' : 'dark');
+        r.querySelector('.nm').textContent = c.name || 'Asistente';
+        r.querySelector('.welcome .tx').textContent = c.welcome || '¡Hola! ¿En qué te puedo ayudar?';   // igual que w.js
+        wpPaintAva(r.querySelector('.ava'), c);
       }
-      if (phone){ var ph = wpEl('div', 'wp-phone'); ph.appendChild(wpChat(c)); phone.textContent = ''; phone.appendChild(ph); }
       // El círculo de "Elegir logo" muestra en vivo cómo se vería el logo con el color elegido.
       var cur = wgId('wgAvCur');
       if (cur){ wgPaintAva(cur, c, ['#111', '#fff'], false); cur.style.borderColor = cur.classList.contains('is-lt') ? 'rgba(0,0,0,.18)' : 'transparent'; }
     }
+    (function(){
+      var seg = wgId('wpSeg'), box = wgId('wpBox'); if (!seg || !box) return;
+      function set(m, focus){
+        wpMode = m;
+        Array.prototype.forEach.call(seg.querySelectorAll('[role=radio]'), function(b){ var on = b.getAttribute('data-wp') === m; b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+        wpLayout();
+      }
+      seg.addEventListener('click', function(e){ var b = e.target.closest('[role=radio]'); if (b) set(b.getAttribute('data-wp')); });
+      seg.addEventListener('keydown', function(e){
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) < 0) return;
+        e.preventDefault(); set(wpMode === 'desk' ? 'mob' : 'desk', true);
+      });
+      box.addEventListener('contextmenu', function(e){ e.preventDefault(); });   // sin menú contextual dentro
+      box.addEventListener('dragstart', function(e){ e.preventDefault(); });
+      if (window.ResizeObserver) new ResizeObserver(wpFit).observe(box); else window.addEventListener('resize', wpFit);
+      wpLayout();
+    })();
 
     function renderWidget(){
       var c = wgCfg();
