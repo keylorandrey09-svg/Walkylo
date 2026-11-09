@@ -5,23 +5,63 @@ Este directorio es un RESPALDO de lo que vive en Supabase. La fuente de verdad s
 si algo cambia allá, hay que actualizar esta carpeta (y al revés).
 
 ## Contenido
-- `migrations/` — las 31 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
+- `migrations/` — las 33 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
   Cada archivo es el SQL guardado en `supabase_migrations.schema_migrations` más un salto de línea final.
   Comprobación: `md5(array_to_string(statements, E';\n'))` coincide con el md5 del archivo sin ese último salto.
-- `functions/chat/index.ts` — Edge Function del chat, v14 (verify_jwt = false: la usan visitantes anónimos).
+- `functions/chat/` — Edge Function del chat, v15 (verify_jwt = false: la usan visitantes anónimos):
+  `index.ts` (conexión a la base y a OpenAI), `handler.ts` (lógica del pedido), `core.ts` (partes puras),
+  más su prueba `chat_test.ts`.
 - `functions/delete-account/index.ts` — borrado de cuenta (verify_jwt = true).
-- `functions/import-site/` — lectura y resumen del sitio, v5 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
-  `summarize.ts`, `sections.ts`, más sus pruebas (`sections_test.ts`, `flow_sections_test.ts`) y `fixtures/`.
+- `functions/import-site/` — lectura del sitio y Memoria, v7 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
+  `summarize.ts`, `sections.ts`, `memory.ts`, más sus pruebas (`sections_test.ts`, `flow_sections_test.ts`,
+  `memory_test.ts`) y `fixtures/`.
 - `functions/verify-site/` — verificación del sitio, v1 (verify_jwt = true): `index.ts`, `verify.ts`, `lib.ts`.
 - `manual/cron_purge_old_notifications.sql` — tarea programada creada a mano (no es migración).
 
-## import-site v5: secciones
-Además del texto de cada página, v5 la divide en secciones con estructura (`sections.ts`) y las guarda en la tabla
-`sections` (una fila por sección: título, tipo, si está oculta, texto). Si guardar las secciones falla, la página igual
-queda leída.
+Las huellas (sha256) de los archivos se calculan con saltos de línea LF, que es como los guarda git. En Windows, con
+`core.autocrlf=true`, la copia de trabajo puede tener CRLF y dar otra huella: comparar con `git show HEAD:<ruta> | sha256sum`.
 
-Pruebas (Deno; no tocan Supabase ni sitios reales: usan servidores locales y un almacén en memoria. La primera vez
-Deno descarga `node-html-parser` desde npm):
+## chat v15: secciones y modo prueba
+- **Secciones solo si el widget tiene `use_sections = true`** (columna nueva, por defecto `false`; migración
+  `chat_v15_sections_test`). Con el interruptor apagado, el chat funciona como v14: responde con todo el texto de
+  `widgets.knowledge` (hasta 20.000 caracteres) y las Notas. Con el interruptor prendido, en cada pregunta busca hasta
+  8 secciones con la función SQL `search_sections` (solo la puede llamar `service_role`) y arma el contexto con, en
+  este orden de prioridad: Notas del dueño, Secciones encontradas y Memoria (`knowledge`, hasta 8.000 caracteres).
+  Si la búsqueda falla, sigue sin secciones. Si no hay Notas, Memoria ni secciones, responde el aviso de "no sé"
+  sin llamar a la IA.
+- **Modo prueba del dueño**: el pedido trae `test: true` y la sesión del dueño en `Authorization`. Si el token no es del
+  dueño de ese widget, responde 403 `test_no_autorizado`. Las conversaciones de prueba se guardan con
+  `conversations.is_test = true`, no cuentan para el uso del mes ni crean eventos, tienen su propio tope diario
+  (`OWNER_TEST_PER_DAY`, 200) y la respuesta incluye `sources` (título y tipo de las secciones usadas).
+- Ante un 429 de OpenAI reintenta una vez (salvo `insufficient_quota`), esperando lo que indique `retry-after`
+  (entre 0,5 y 4 s).
+- Sin `OPENAI_API_KEY` sigue en modo simulado.
+
+## import-site v7: secciones y Memoria
+Además del texto de cada página, la lectura la divide en secciones con estructura (`sections.ts`) y las guarda en la
+tabla `sections` (una fila por sección: título, tipo, si está oculta, texto). Si guardar las secciones falla, la página
+igual queda leída.
+
+v7 **genera la Memoria** (`memory.ts`, acción `memory_generate`): toma las secciones leídas, las resume por lotes
+(sitio, app, legales) y une esas notas en un texto de hasta 8.000 caracteres que guarda en `widgets.knowledge`.
+- Si las secciones no cambiaron desde la última Memoria (huella en `memory_sources_hash`), responde `sin_cambios`
+  sin llamar a la IA; `force: true` la regenera igual.
+- Si el dueño había editado la Memoria a mano, la nueva NO pisa su texto: queda como borrador en `memory_draft`.
+  `memory_accept` lo pasa a `knowledge` y `memory_discard` lo borra.
+- Cada intento queda registrado en la tabla `memory_runs` (migración `memory_draft_and_runs`). Límites
+  provisionales por día: 10 Memorias creadas y 30 intentos en total.
+
+## Cómo correr las pruebas
+Hace falta [Deno](https://deno.com/). Las pruebas no tocan Supabase, OpenAI ni sitios reales: usan servidores locales,
+un almacén en memoria y una IA falsa. La primera vez Deno descarga dependencias desde npm.
+
+chat (`chat_test.ts`, 21 pruebas):
+```
+cd supabase/functions/chat
+deno test -A
+```
+
+import-site (`sections_test.ts`, `flow_sections_test.ts` y `memory_test.ts`, 30 pruebas):
 ```
 cd supabase/functions/import-site
 deno test -A
