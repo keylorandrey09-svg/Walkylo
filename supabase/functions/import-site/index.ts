@@ -2,6 +2,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { type Job, type PageRef, puerta, startJob, stepJob, summary } from "./flow.ts";
 import { type PageForSummary, type Store2, summarize, type WidgetFull } from "./summarize.ts";
+import {
+  acceptMemoryDraft, discardMemoryDraft, generateMemory, type MemSection, type MemStore, type Run, type WidgetMem,
+} from "./memory.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -23,7 +26,7 @@ function must<T>(r: { data: T; error: any }): T {
   return r.data;
 }
 
-const store: Store2 = {
+const store: Store2 & MemStore = {
   async recentJobs(widgetId, since) {
     return (must(await sb.from("site_import_jobs").select("*").eq("widget_id", widgetId)
       .gte("created_at", since).order("created_at", { ascending: false })) ?? []) as Job[];
@@ -107,6 +110,44 @@ const store: Store2 = {
     if (res.some((r) => r.error)) throw new Error("db_marcar_paginas");
     must(await sb.from("site_import_jobs").update({ summarized_at: now }).eq("id", a.jobId));
   },
+  // ---------- Memoria ----------
+  async widgetMem(userId) {
+    return must(await sb.from("widgets").select("id,site_url,knowledge,knowledge_ai_at,memory_draft,memory_sources_hash")
+      .eq("user_id", userId).maybeSingle()) as WidgetMem | null;
+  },
+  async memorySections(widgetId) {
+    return (must(await sb.from("sections").select("position,kind,is_hidden,heading_path,text,anchor,document_url,content_hash")
+      .eq("widget_id", widgetId).order("document_url").order("position").limit(1000)) ?? []) as MemSection[];
+  },
+  async recentRuns(widgetId, since) {
+    return (must(await sb.from("memory_runs").select("id,status,started_at").eq("widget_id", widgetId)
+      .gte("started_at", since).order("started_at", { ascending: false })) ?? []) as Run[];
+  },
+  async createRun(row) {
+    return (must(await sb.from("memory_runs").insert(row).select("id").single()) as { id: string }).id;
+  },
+  async finishRun(id, patch) {
+    must(await sb.from("memory_runs").update(patch).eq("id", id));
+  },
+  async saveMemory(a) {
+    const now = new Date().toISOString();
+    const patch = a.mode === "replace"
+      ? { knowledge: a.text, knowledge_ai_at: now, memory_draft: null, memory_draft_at: null, memory_sources_hash: a.sourcesHash }
+      : { memory_draft: a.text, memory_draft_at: now, memory_sources_hash: a.sourcesHash };
+    must(await sb.from("widgets").update(patch).eq("id", a.widgetId).eq("user_id", a.userId));
+  },
+  async acceptDraft(widgetId, userId) {
+    const w = must(await sb.from("widgets").select("memory_draft").eq("id", widgetId).eq("user_id", userId)
+      .maybeSingle()) as { memory_draft: string | null } | null;
+    if (!w?.memory_draft) return false;
+    must(await sb.from("widgets").update({
+      knowledge: w.memory_draft, knowledge_ai_at: new Date().toISOString(), memory_draft: null, memory_draft_at: null,
+    }).eq("id", widgetId).eq("user_id", userId));
+    return true;
+  },
+  async discardDraft(widgetId, userId) {
+    must(await sb.from("widgets").update({ memory_draft: null, memory_draft_at: null }).eq("id", widgetId).eq("user_id", userId));
+  },
   async addUsage(userId, tIn, tOut) {
     const month = new Date().toISOString().slice(0, 7) + "-01";
     const u = must(await sb.from("usage_monthly").select("*").eq("user_id", userId).eq("month", month).maybeSingle());
@@ -127,7 +168,7 @@ Deno.serve(async (req) => {
     if (ue || !ud?.user) return json({ error: "token_invalido" }, 401);
     const uid = ud.user.id;
 
-    let b: { action?: string; job_id?: string; mode?: string } = {};
+    let b: { action?: string; job_id?: string; mode?: string; force?: boolean } = {};
     try { b = await req.json(); } catch { /* cuerpo vacío */ }
     const action = String(b.action ?? "");
     const jobId = typeof b.job_id === "string" ? b.job_id : "";
@@ -149,6 +190,19 @@ Deno.serve(async (req) => {
     if (action === "summarize") {
       { const g = puerta(w); if (g) return json(g.body, g.status); }
       const r = await summarize(store, uid, w, { mode: typeof b.mode === "string" ? b.mode : undefined });
+      return json(r.body, r.status);
+    }
+    if (action === "memory_generate") {
+      { const g = puerta(w); if (g) return json(g.body, g.status); }
+      const r = await generateMemory(store, uid, w, { force: b.force === true });
+      return json(r.body, r.status);
+    }
+    if (action === "memory_accept") {
+      const r = await acceptMemoryDraft(store, uid, w);
+      return json(r.body, r.status);
+    }
+    if (action === "memory_discard") {
+      const r = await discardMemoryDraft(store, uid, w);
       return json(r.body, r.status);
     }
     if (action === "status") {
