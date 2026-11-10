@@ -323,7 +323,7 @@
     /* Widget */
     .wg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
     .wg-actions{display:flex;gap:8px;flex-shrink:0;}
-    .wg-grid{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,452px);gap:16px;align-items:start;margin-top:24px;}
+    .wg-grid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;align-items:start;margin-top:24px;}
     .wg-form{display:flex;flex-direction:column;gap:16px;min-width:0;}
     .wg-field{padding:16px 0;border-top:1px solid var(--border);}
     .cfg-card__title + .wg-field{border-top:0;padding-top:12px;}
@@ -513,11 +513,13 @@
       [data-view="resumen"] .wa-stat__value{font-size:1.75rem;}
       .rs-q__m{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
     }
-    /* ===== Vista previa (wp:start): el widget real abierto, en proporción real, solo para mirar. El interior (Shadow DOM) copia a w.js. ===== */
-    @media (max-width:1041px){ .wg-grid{grid-template-columns:minmax(0,1fr);} }
+    /* ===== Vista previa (wp:start): SOLO el chat de w.js abierto, sin fondo, solo para mirar. El interior (Shadow DOM) copia a w.js. ===== */
+    /* Dos columnas desde 1072px (así la izquierda queda en 400px o más): derecha de 336px fijos y 32px de separación. */
+    @media (max-width:1071px){ .wg-grid{grid-template-columns:minmax(0,1fr);} }
+    @media (min-width:1072px){ .wg-grid{column-gap:32px;} }
     .wg-preview{min-width:0;position:static;display:flex;flex-direction:column;}
     /* Dos columnas: la vista previa ocupa el alto de la fila sin agrandarla (contain:size); el JS le pone arriba el aire de la primera opción. */
-    @media (min-width:1042px){ .wg-preview{align-self:stretch;contain:size;} .wp-box{flex:1 1 0;min-height:0;} }
+    @media (min-width:1072px){ .wg-preview{align-self:stretch;contain:size;} .wp-box{flex:1 1 0;min-height:0;} }
     .wp-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:12px;}
     .wp-seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
     .wp-seg button{min-height:40px;padding:0 16px;border:0;background:var(--bg);color:var(--text-2);font:400 .875rem var(--font);cursor:pointer;}
@@ -525,13 +527,11 @@
     .wp-seg button:hover{color:var(--text);}
     .wp-seg button[aria-checked="true"]{background:var(--surface);color:var(--text);font-weight:500;}
     .wp-seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
-    /* La tarjeta: la misma para Escritorio y Móvil; el marco va centrado con 16px de aire y escalado por ajuste. */
-    .wp-box{position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:16px;
-      border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;}
+    /* La caja del chat: la misma para Escritorio y Móvil, sin fondo ni borde; el chat va arriba y centrado. */
+    .wp-box{position:relative;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;}
     .wp-box,.wp-box *{cursor:default !important;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;}
     .wp-fit{position:relative;flex:none;}
     .wp-frame{position:absolute;top:0;left:0;box-sizing:content-box;transform-origin:0 0;}
-    .wp-frame.is-mob{border:1px solid var(--border);border-radius:28px;overflow:hidden;background:var(--bg);}
     .wp-note{margin:0;font-size:.8125rem;color:var(--text-2);}
     @media (max-width:768px){ .wp-seg button{min-height:44px;} }
     /* wp:end */
@@ -2633,15 +2633,12 @@
     // ===== Vista previa (wp): el widget real (w.js) abierto, en tamaño real, solo para mirar =====
     // Estructura, íconos, medidas, fuentes, colores, sombra y textos copiados de w.js (los textos en español, como los ve el
     // visitante). Va en un Shadow DOM dentro de un marco con `inert`: sin foco, sin clics, sin selección y sin red.
-    // Escritorio: el panel de 420x768 sobre la tarjeta (la página neutra). Móvil: teléfono de 390x844 (+1px de borde) con la hoja al 92%.
-    var WP_SIZE = { desk: [420, 768], mob: [392, 846] }, wpMode = 'desk';   // tamaño real del marco, con su borde
+    // SOLO el chat, sin página ni teléfono: Escritorio = el panel (420 de ancho), Móvil = la hoja con su asa (390 de ancho).
+    // Escala fija (336px de ancho en los dos); el alto sale de la columna de opciones, como en w.js sale de la pantalla.
+    var WP_W = { desk: 420, mob: 390 }, WP_S = { desk: 0.8, mob: 0.86 }, WP_MAXH = { desk: 768, mob: 776.5 }, WP_MINH = 480, wpMode = 'desk';
     var WP_SPARK = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.9 5.6a3 3 0 0 0 1.9 1.9L21 12l-5.2 1.5a3 3 0 0 0-1.9 1.9L12 21l-1.9-5.6a3 3 0 0 0-1.9-1.9L3 12l5.2-1.5a3 3 0 0 0 1.9-1.9z"/></svg>';
     var WP_CSS =
       '.pg{all:initial;display:block;position:absolute;inset:0;}' +
-      '.pg.mob{overflow:hidden;background:var(--bg,#fff);}' +
-      '.pg-top{display:none;position:absolute;left:0;right:0;top:0;height:56px;border-bottom:1px solid var(--border,#e5e7ea);}' +
-      '.pg-ln{display:none;position:absolute;left:24px;height:12px;border-radius:6px;background:var(--border,#e5e7ea);}' +
-      '.mob .pg-top,.mob .pg-ln{display:block;}' +
       '*{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}' +
       '.panel{--bg:#0e0f12;--surface:#1b1c20;--surface2:#26272c;--ink:#f4f5f7;--ink2:#9aa0a8;--line:rgba(255,255,255,.1);--ubub:#2a2b31;--uink:#f4f5f7;' +
         '--ava-bg:#f4f5f7;--ava-ink:#0e0f12;--send-bg:#f4f5f7;--send-ink:#0e0f12;' +
@@ -2672,15 +2669,14 @@
       '.send{grid-area:send;align-self:end;width:44px;height:44px;flex-shrink:0;border:0;border-radius:50%;background:var(--send-bg);color:var(--send-ink);display:grid;place-items:center;opacity:.35;} .send svg{width:18px;height:18px;}' +
       '.foot{text-align:center;padding:9px 6px 2px;} .foot .disc{margin:0;font-size:.68rem;line-height:1.45;color:var(--ink2);}' +
       // Móvil (en w.js es @media(max-width:640px)): hoja desde abajo con asa.
-      '.mob .panel{left:0;right:0;top:auto;bottom:0;width:auto;height:92%;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;}' +
+      '.mob .panel{left:0;right:0;top:0;bottom:0;width:auto;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;}' +
       '.mob .grip{display:block;position:relative;width:100%;height:22px;margin:0;flex-shrink:0;}' +
       '.mob .grip::before{content:"";position:absolute;left:50%;top:9px;width:36px;height:4px;margin-left:-18px;border-radius:999px;background:var(--ink2);opacity:.4;}' +
       '.mob .head{padding-top:6px;} .mob .ico{width:44px;height:44px;}' +
       // Estático de verdad: sin selección, sin arrastre y sin cursor de texto ni de mano.
       '*,*::before,*::after{cursor:default!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;}' +
       '::selection{background:transparent;color:inherit;}';
-    var WP_HTML = '<div class="pg"><i class="pg-top"></i><i class="pg-ln" style="top:88px;width:55%"></i><i class="pg-ln" style="top:116px;width:35%"></i>' +
-      '<i class="pg-ln" style="top:164px;width:60%"></i><i class="pg-ln" style="top:192px;width:45%"></i>' +
+    var WP_HTML = '<div class="pg">' +
       '<div class="panel" data-theme="dark"><div class="grip"></div>' +
         '<div class="head"><span class="ico menu"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span>' +
           '<span class="ava"></span><span class="nm"></span><span class="sp"></span>' +
@@ -2712,31 +2708,30 @@
       el.innerHTML = WP_SPARK;
       if (a !== 'auto'){ el.style.background = a; el.style.color = wgAccentInk(a); if (a === '#FFFFFF') el.classList.add('wu-accent-lt'); }
     }
-    // Escala por ajuste: el marco entra en la tarjeta con 16px de aire, escala = min(ancho, alto disponibles / tamaño real),
-    // con tope 1 y mínimo 0.4, aplicada con transform; `.wp-fit` reserva el tamaño ya escalado. Con dos columnas (>1041px) la
-    // tarjeta va de la primera a la última opción; apilada, su alto sale del ancho y es el mismo en Escritorio y Móvil.
+    // Tamaño. Dos columnas (≥1072px): escala fija (0.8 Escritorio, 0.86 Móvil) y alto base = alto disponible / escala, entre 480 y
+    // 768 (776,5 en Móvil): el chat termina con la última opción; si llega al máximo, queda arriba y termina antes. Apilada:
+    // escala por ancho (tope 1), alto máximo y la misma caja para las dos vistas. `.wp-fit` reserva el tamaño ya escalado.
     function wpFit(){
       var box = wgId('wpBox'), fit = wgId('wpFit'), f = wgId('wpFrame'), form = document.querySelector('#wgGrid .wg-form'); if (!box || !fit || !f || !form) return;
-      var pv = box.parentNode, cw = box.clientWidth - 32, sz = WP_SIZE[wpMode], b = wpMode === 'mob' ? 2 : 0, ch;
-      function cl(s){ return Math.max(0.4, Math.min(1, s)); }
+      var pv = box.parentNode, cw = box.clientWidth, W = WP_W[wpMode], s, H;
       if (cw <= 0) return;   // oculta (otra pestaña): se reajusta al volver
-      if (window.matchMedia('(min-width:1042px)').matches){
+      if (window.matchMedia('(min-width:1072px)').matches){
         var p = form.querySelector('.wg-panel:not([hidden])'), f0 = p && p.querySelector('.wg-field');
         pv.style.paddingTop = f0 ? Math.round(f0.getBoundingClientRect().top - form.getBoundingClientRect().top) + 'px' : '';
-        box.style.height = ''; ch = box.clientHeight - 32;
+        box.style.height = ''; s = WP_S[wpMode];
+        H = Math.max(WP_MINH, Math.min(WP_MAXH[wpMode], box.clientHeight / s));
       } else {
         pv.style.paddingTop = '';
-        ch = Math.max(WP_SIZE.desk[1] * cl(cw / WP_SIZE.desk[0]), WP_SIZE.mob[1] * cl(cw / WP_SIZE.mob[0]));
-        box.style.height = Math.ceil(ch + 34) + 'px';
+        box.style.height = Math.ceil(Math.max(WP_MAXH.desk * Math.min(1, cw / WP_W.desk), WP_MAXH.mob * Math.min(1, cw / WP_W.mob))) + 'px';
+        s = Math.min(1, cw / W); H = WP_MAXH[wpMode];
       }
-      var s = cl(Math.min(cw / sz[0], ch / sz[1]));
-      f.style.width = (sz[0] - b) + 'px'; f.style.height = (sz[1] - b) + 'px'; f.style.transform = 'scale(' + s + ')';
-      fit.style.width = (sz[0] * s) + 'px'; fit.style.height = (sz[1] * s) + 'px';
-      box.setAttribute('data-scale', s.toFixed(3));
+      f.style.width = W + 'px'; f.style.height = H + 'px'; f.style.transform = 'scale(' + s + ')';
+      fit.style.width = (W * s) + 'px'; fit.style.height = (H * s) + 'px';
+      box.setAttribute('data-scale', +s.toFixed(3)); box.setAttribute('data-base-h', +H.toFixed(1));
     }
     function wpLayout(){
       var r = wpRoot(), f = wgId('wpFrame'), box = wgId('wpBox'), mob = wpMode === 'mob'; if (!r) return;
-      r.querySelector('.pg').classList.toggle('mob', mob); f.classList.toggle('is-mob', mob);
+      r.querySelector('.pg').classList.toggle('mob', mob);
       box.setAttribute('aria-label', 'Vista previa del chat en ' + (mob ? 'móvil' : 'escritorio'));
       wpFit();
     }
