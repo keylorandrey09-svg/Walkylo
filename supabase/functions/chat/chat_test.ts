@@ -1,6 +1,6 @@
 // supabase/functions/chat/chat_test.ts   Ejecutar: deno test -A chat_test.ts
 // Sin red ni claves: almacén en memoria e IA falsa.
-import { buildQuery, detectNoAnswer, formatSections, instructions, LIMITS, NO_ANSWER, type SectionHit, type Widget } from "./core.ts";
+import { buildQuery, detectNoAnswer, formatSections, instructions, LIMITS, NO_ANSWER, REPLY_NOTE, sectionLink, type SectionHit, type Widget } from "./core.ts";
 import { handle, type Store } from "./handler.ts";
 import type { AiArgs, AiRaw } from "./core.ts";
 
@@ -62,7 +62,14 @@ class Mem implements Store {
   }
   insertMessage(row: Record<string, unknown>) { this.msgs.push({ ...(row as Msg), at: this.clock() }); return Promise.resolve(); }
   insertEvents(rows: Record<string, unknown>[]) { this.events.push(...rows); return Promise.resolve(); }
-  upsertUsage(row: Record<string, unknown>) { this.usage = row; this.usageWrites++; return Promise.resolve(); }
+  bumps: { conversations: number; messages: number; tokens_in: number; tokens_out: number }[] = [];
+  failBump = false;
+  bumpUsage(r: { conversations: number; messages: number; tokens_in: number; tokens_out: number }) {
+    if (this.failBump) return Promise.reject(new Error("db_usage:fallo"));
+    const u = (this.usage ?? {}) as Record<string, number>;
+    this.usage = { conversations: (u.conversations ?? 0) + r.conversations, messages: (u.messages ?? 0) + r.messages, tokens_in: (u.tokens_in ?? 0) + r.tokens_in, tokens_out: (u.tokens_out ?? 0) + r.tokens_out };
+    this.bumps.push(r); this.usageWrites++; return Promise.resolve();
+  }
   searchSections(_w: string, q: string) { this.searches.push(q); return Promise.resolve(this.hits); }
 }
 
@@ -102,7 +109,7 @@ Deno.test("núcleo: modo secciones ordena notas, memoria y secciones (lo fijo pr
   ok(iN > 0 && iM > iN && iS > iM, `orden notas<memoria<secciones: ${iN} ${iM} ${iS}`);
   ok(s.includes("Prioridad si algo se contradice: NOTAS DEL DUEÑO, después SECCIONES, después MEMORIA"), "prioridad explícita");
   ok(s.includes("contraseña de la cuenta del sitio no es la contraseña de otra plataforma"), "regla de no aplicar datos de otra cosa");
-  ok(s.includes("idioma del último mensaje del visitante"), "regla de idioma");
+  ok(s.includes("idioma en que está escrito el ÚLTIMO mensaje del visitante"), "regla de idioma");
 });
 
 Deno.test("núcleo: las pantallas ocultas no llevan enlace; las visibles sí, con ancla", () => {
@@ -280,4 +287,156 @@ Deno.test("si la búsqueda falla, responde igual con notas y memoria (no se cae)
   const r = await s.send({ message: "¿precios?" });
   eq(r.status, 200, "200");
   ok(s.logs.some(([t]) => t === "sections_search_error"), "registra el error");
+});
+
+Deno.test("v16: un fallo de la IA NO gasta el cupo mensual; una respuesta buena sí", async () => {
+  const s = setup(baseWidget(), [
+    { status: 429, retryAfterMs: null, json: { error: { code: "rate_limit_exceeded" } } },
+    { status: 429, retryAfterMs: null, json: { error: { code: "rate_limit_exceeded" } } },
+    { status: 200, retryAfterMs: null, json: okJson("Pro cuesta 19.99.") },
+  ]);
+  await s.send({ message: "¿precios?" });
+  eq(s.store.usage?.messages, 0, "el mensaje fallido no cuenta");
+  await s.send({ message: "¿precios otra vez?" });
+  eq(s.store.usage?.messages, 1, "el mensaje respondido sí cuenta");
+});
+
+Deno.test("v16: el motivo del rechazo de OpenAI queda en el registro, sin el mensaje del visitante", async () => {
+  const s = setup(baseWidget(), [
+    { status: 429, retryAfterMs: null, headers: { "x-ratelimit-remaining-requests": "0", "x-ratelimit-reset-requests": "6h" }, json: { error: { code: "rate_limit_exceeded", message: "Rate limit reached for requests per day (RPD): Limit 3, Used 3." } } },
+    { status: 429, retryAfterMs: null, headers: { "x-ratelimit-remaining-requests": "0" }, json: { error: { code: "rate_limit_exceeded", message: "Rate limit reached for requests per day (RPD): Limit 3, Used 3." } } },
+  ]);
+  await s.send({ message: "mi correo privado es secreto@ejemplo.com ¿precios?" });
+  const l = s.logs.find(([t]) => t === "openai_error")!;
+  const detail = String(l[1].detail);
+  ok(detail.includes("requests per day"), "el motivo del límite: " + detail);
+  ok(detail.includes("x-ratelimit-remaining-requests=0"), "encabezados de límites: " + detail);
+  ok(!JSON.stringify(s.logs).includes("secreto@ejemplo.com"), "el mensaje del visitante no se registra");
+});
+
+Deno.test("v17: si OpenAI pide esperar mucho (límite diario) NO reintenta y avisa 'más tarde'", async () => {
+  const s = setup(baseWidget(), [
+    { status: 429, retryAfterMs: 1_728_000, json: { error: { code: "rate_limit_exceeded", message: "requests per day (RPD): Limit 50, Used 50" } } },
+  ]);
+  const r = await s.send({ message: "¿precios?" });
+  eq(s.ai.calls.length, 1, "una sola llamada a OpenAI (sin reintento)");
+  eq(s.sleeps.length, 0, "sin espera");
+  eq(r.body.answer, "Ahora mismo no puedo responder. Probá de nuevo más tarde.", "mensaje de 'más tarde'");
+  eq(r.body.no_answer, false, "no es un 'no sé'");
+  const l = s.logs.find(([t]) => t === "openai_error")!;
+  eq(l[1].wait_ms, 1_728_000, "se registra cuánto hay que esperar");
+});
+
+Deno.test("v17: una espera corta sí se reintenta y se mantiene el mensaje de 'unos segundos'", async () => {
+  const s = setup(baseWidget(), [
+    { status: 429, retryAfterMs: 3000, json: { error: { code: "rate_limit_exceeded" } } },
+    { status: 429, retryAfterMs: 3000, json: { error: { code: "rate_limit_exceeded" } } },
+  ]);
+  const r = await s.send({ message: "¿precios?" });
+  eq(s.ai.calls.length, 2, "reintenta una vez");
+  eq(s.sleeps.join(","), "3000", "espera lo que pidió");
+  ok(String(r.body.answer).startsWith("Estoy atendiendo muchas consultas"), "mensaje de 'unos segundos'");
+});
+
+Deno.test("v17: el mensaje 'más tarde' sale en el idioma del widget", async () => {
+  for (const [lang, inicio] of [["en", "I can't answer right now"], ["pt", "No momento não consigo"]] as const) {
+    const s = setup(baseWidget({ language: lang }), [{ status: 429, retryAfterMs: 900_000, json: { error: { code: "rate_limit_exceeded" } } }]);
+    const r = await s.send({ message: "price?" });
+    ok(String(r.body.answer).startsWith(inicio), `${lang}: ${r.body.answer}`);
+  }
+});
+
+Deno.test("v18: la IA recibe el recordatorio de idioma en el último mensaje, pero lo guardado es el texto original", async () => {
+  const s = setup(baseWidget(), [{ status: 200, retryAfterMs: null, json: okJson("OK.") }]);
+  await s.send({ message: "How do I contact support?" });
+  const sent = s.ai.calls[0].input.at(-1)!;
+  ok(sent.content.startsWith("How do I contact support?"), "arranca con el mensaje original");
+  ok(sent.content.endsWith(REPLY_NOTE), "termina con el recordatorio");
+  const guardado = s.store.msgs.find((m) => m.from_role === "visitor")!;
+  eq(guardado.text, "How do I contact support?", "lo guardado NO lleva el recordatorio");
+  ok(!JSON.stringify(s.ai.calls[0].input.slice(0, -1)).includes("[Reply in the same language"), "el historial tampoco lo lleva");
+});
+
+Deno.test("v18: reglas de idioma, tratamiento y de no inventar el contenido de las pantallas", () => {
+  const txt = instructions(baseWidget());
+  ok(txt.includes("IDIOMA: respondé SIEMPRE"), "regla de idioma");
+  ok(txt.includes("TRATAMIENTO:") && txt.includes("(vos)"), "regla de tratamiento");
+  ok(txt.includes("no dice qué muestra ni qué se puede hacer ahí"), "regla de no inventar");
+  const sec = instructions(baseWidget({ use_sections: true }), { sections: "x" });
+  ok(sec.includes("IDIOMA: respondé SIEMPRE") && sec.includes("no dice qué muestra"), "también en modo secciones");
+});
+
+Deno.test("v18: un 'no sé' con el marcador en medio no repite la frase", () => {
+  const w = baseWidget();
+  const r = detectNoAnswer(`No tengo información sobre si WalkyChat tiene modo nocturno. ${NO_ANSWER} No tengo esa información. Podés escribir a a@b.com.`, w);
+  eq(r.noAnswer, true, "es un no sé");
+  eq(r.text, "No tengo esa información. Podés escribir a a@b.com.", "solo el aviso, sin repetir");
+  eq(detectNoAnswer(`${NO_ANSWER}`, w).text, "No tengo esa información. Pod\u00e9s escribir a " + (w.contact_email ?? "x") + ".", "marcador solo: usa el aviso del widget");
+});
+
+Deno.test("v19: las ventanas emergentes y los menús NUNCA llevan enlace, aunque no estén ocultos", () => {
+  const base = { is_hidden: false, heading_path: "Soporte", text: "x", anchor: "support-overlay", document_url: "https://ejemplo.com/", rank: 1 };
+  eq(sectionLink({ ...base, kind: "ui" }), null, "ventana emergente sin enlace");
+  eq(sectionLink({ ...base, kind: "menu", anchor: "nav" }), null, "menú sin enlace");
+  eq(sectionLink({ ...base, kind: "info", anchor: "precios" }), "https://ejemplo.com/#precios", "una página visible sí lleva enlace");
+  eq(sectionLink({ ...base, kind: "legal", anchor: "terminos" }), "https://ejemplo.com/#terminos", "un documento visible sí lleva enlace");
+  const f = formatSections([{ ...base, kind: "ui" }]);
+  ok(f.block.includes("sin enlace propio") && !f.block.includes("#support-overlay"), "el bloque para la IA no ofrece el enlace");
+});
+
+Deno.test("v19: regla de caminos completos (pantalla primero) y preferir la pantalla sobre un texto legal", () => {
+  const sec = instructions(baseWidget({ use_sections: true }), { sections: "x" });
+  ok(sec.includes("CAMINOS:") && sec.includes("empieza SIEMPRE por el nombre de la pantalla"), "regla de caminos");
+  ok(sec.includes("usá el camino de la pantalla"), "pantalla antes que texto legal");
+});
+
+Deno.test("v19: una falla pasajera al leer el widget se reintenta y el visitante recibe su respuesta (no un 404)", async () => {
+  const s = setup(baseWidget(), [{ status: 200, retryAfterMs: null, json: okJson("OK.") }]);
+  let intentos = 0;
+  const orig = s.store.getWidget.bind(s.store);
+  s.store.getWidget = (id: string) => { intentos++; return intentos === 1 ? Promise.reject(new Error("db_widget:fetch failed")) : orig(id); };
+  const r = await s.send({ message: "hola, ¿precios?" });
+  eq(r.status, 200, "responde normalmente tras el reintento");
+  eq(intentos, 2, "se reintentó una sola vez");
+  ok(s.logs.some(([t]) => t === "get_widget_retry"), "queda registrado el reintento");
+});
+
+Deno.test("v19: si la lectura del widget falla dos veces es un error del servidor (500), NUNCA un 404 'unavailable'", async () => {
+  const s = setup(baseWidget(), []);
+  s.store.getWidget = () => Promise.reject(new Error("db_widget:fetch failed"));
+  const r = await s.send({ message: "hola, ¿precios?" });
+  eq(r.status, 500, "500, no 404");
+  ok(s.logs.some(([t]) => t === "chat_error"), "queda registrado como error");
+});
+
+Deno.test("v19: un widget que de verdad no existe o está apagado sigue siendo 404", async () => {
+  const s = setup(baseWidget({ enabled: false }), []);
+  eq((await s.send({ message: "hola" })).status, 404, "apagado → 404");
+});
+
+Deno.test("v20: al uso del mes se le manda cuánto SUMAR, no un total leído antes (no depende de lo que lea)", async () => {
+  const s = setup(baseWidget(), [{ status: 200, retryAfterMs: null, json: okJson("OK.") }]);
+  s.store.getUsage = () => Promise.resolve({ conversations: 999, messages: 999, tokens_in: 999, tokens_out: 999 });
+  await s.send({ message: "hola, ¿precios?" });
+  eq(s.store.bumps.length, 1, "una sola suma");
+  eq(s.store.bumps[0].messages, 1, "suma 1 mensaje, no 1000");
+  eq(s.store.bumps[0].conversations, 1, "suma 1 conversación nueva, no 1000");
+  eq(s.store.bumps[0].tokens_in, 1500, "suma solo las fichas de esta respuesta (1500), no 999 + 1500");
+  eq(s.store.bumps[0].tokens_out, 40, "salida: solo las 40 de esta respuesta");
+});
+
+Deno.test("v20: 30 mensajes a la vez suman 30, sin perder ninguno", async () => {
+  const s = setup(baseWidget(), Array.from({ length: 30 }, () => ({ status: 200, retryAfterMs: null, json: okJson("OK.") })));
+  await Promise.all(Array.from({ length: 30 }, (_, i) => s.send({ message: "pregunta " + i, visitor_id: "visitante-" + i + "-abcdef" })));
+  eq(s.store.usage?.messages, 30, "30 mensajes contados");
+  eq(s.store.usage?.conversations, 30, "30 conversaciones contadas");
+});
+
+Deno.test("v20: si falla la contabilidad del uso, el visitante igual recibe su respuesta y queda un registro", async () => {
+  const s = setup(baseWidget(), [{ status: 200, retryAfterMs: null, json: okJson("OK.") }]);
+  s.store.failBump = true;
+  const r = await s.send({ message: "hola, ¿precios?" });
+  eq(r.status, 200, "responde igual");
+  ok(s.logs.some(([t]) => t === "usage_error"), "queda registrado");
+  ok(s.store.msgs.some((m) => m.from_role === "assistant"), "la respuesta quedó guardada");
 });

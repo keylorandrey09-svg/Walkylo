@@ -5,7 +5,7 @@ import { sha256 } from "./lib.ts";
 import { type AiArgs, aiCfg } from "./summarize.ts";
 import {
   acceptMemoryDraft, buildBatches, cleanMemory, discardMemoryDraft, generateMemory, groupOf, MAP_BATCH_CHARS,
-  MAX_MAP_CALLS, MEMORY_ATTEMPTS_DAILY, MEMORY_DAILY, MEMORY_MAX_CHARS, type MemSection, type MemStore, type Run, type WidgetMem,
+  MAX_MAP_CALLS, MEMORY_ATTEMPTS_DAILY, MEMORY_DAILY, MEMORY_VERSION, REDUCE_INSTRUCTIONS, MAP_INSTRUCTIONS, MEMORY_MAX_CHARS, type MemSection, type MemStore, type Run, type WidgetMem,
 } from "./memory.ts";
 
 function eq(a: unknown, b: unknown, msg: string) { if (a !== b) throw new Error(`${msg}: esperado ${JSON.stringify(b)}, salió ${JSON.stringify(a)}`); }
@@ -183,4 +183,27 @@ Deno.test("tope diario: los intentos fallidos NO gastan el cupo de Memorias crea
   st.runs = [...Array.from({ length: MEMORY_DAILY - 1 }, (_, i) => ({ id: "d" + i, status: "done", started_at: ahora })),
     ...Array.from({ length: 15 }, (_, i) => ({ id: "e" + i, status: "error", started_at: ahora }))];
   eq((await generateMemory(st, "u1", { id: "w1" }, { force: true })).status, 200, "9 creadas y 15 fallidas: todavía puede crear una");
+});
+
+Deno.test("m2: las Políticas van al final y con tope, los Enlaces antes, y se descartan las maquetas", () => {
+  const i = REDUCE_INSTRUCTIONS;
+  ok(i.indexOf("\nEnlaces\n") < i.indexOf("\nPolíticas\n"), "Enlaces antes que Políticas");
+  ok(i.indexOf("\nContacto\n") < i.indexOf("\nEnlaces\n"), "Contacto antes que Enlaces");
+  ok(i.includes('"Políticas": máximo 8 líneas'), "tope de Políticas");
+  ok(i.includes("nunca más de 6.500"), "tope de largo");
+  ok(i.includes("Descartá las maquetas"), "maquetas fuera");
+  ok(MAP_INSTRUCTIONS("app").includes("Ignorá las maquetas"), "también en los lotes");
+  eq(MEMORY_VERSION, "m2", "cambió la versión, así se regenera");
+});
+
+Deno.test("m2: cambiar de versión cambia la huella (la Memoria vieja se considera desactualizada)", async () => {
+  const st = new Mem(); st.secs = await realSections(); fakeAI();
+  await generateMemory(st, "u1", { id: "w1" });
+  const hashActual = st.w.memory_sources_hash;
+  st.w.memory_sources_hash = "huella-de-la-version-m1";
+  const calls = fakeAI();
+  const r = await generateMemory(st, "u1", { id: "w1" });
+  eq(r.body.status, "ok", "regenera porque la huella es distinta");
+  ok(calls.length > 0, "llamó a la IA");
+  eq(st.w.memory_sources_hash, hashActual, "vuelve a la huella de m2");
 });

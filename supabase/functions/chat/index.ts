@@ -18,9 +18,11 @@ const sb = createClient(
 
 const store: Store = {
   async getWidget(id) {
-    const { data } = await sb.from("widgets")
+    const { data, error } = await sb.from("widgets")
       .select("id,user_id,name,tone,language,fallback,knowledge,owner_notes,site_url,contact_email,privacy_url,enabled,use_sections")
       .eq("id", id).maybeSingle();
+    // un error de lectura NO es "el widget no existe": se avisa para que el pedido lo reintente o falle como error
+    if (error) throw new Error("db_widget:" + String(error.message ?? error).slice(0, 80));
     return (data ?? null) as Widget | null;
   },
   async userIdFromToken(token) {
@@ -62,7 +64,12 @@ const store: Store = {
   },
   async insertMessage(row) { await sb.from("messages").insert(row); },
   async insertEvents(rows) { await sb.from("events").insert(rows); },
-  async upsertUsage(row) { await sb.from("usage_monthly").upsert(row); },
+  async bumpUsage(r) {
+    const { error } = await sb.rpc("bump_usage", {
+      p_user: r.user_id, p_month: r.month, p_conv: r.conversations, p_msgs: r.messages, p_in: r.tokens_in, p_out: r.tokens_out,
+    });
+    if (error) throw new Error("db_usage:" + String(error.message ?? error).slice(0, 80));
+  },
   async searchSections(widgetId, query, k) {
     const { data, error } = await sb.rpc("search_sections", { p_widget: widgetId, p_query: query, p_k: k });
     if (error) throw new Error("db_busqueda");
@@ -93,10 +100,15 @@ async function openai(a: AiArgs): Promise<AiRaw> {
         model: MODEL, in: u?.input_tokens ?? 0, out: u?.output_tokens ?? 0,
         cached: u?.input_tokens_details?.cached_tokens ?? 0,
         reasoning: u?.output_tokens_details?.reasoning_tokens ?? 0, ms: Date.now() - t0,
+        // holgura que informa OpenAI en cada llamada buena (para ver cuánto margen queda antes de chocar con un límite)
+        lim_req: r.headers.get("x-ratelimit-limit-requests"), rem_req: r.headers.get("x-ratelimit-remaining-requests"),
+        lim_tok: r.headers.get("x-ratelimit-limit-tokens"), rem_tok: r.headers.get("x-ratelimit-remaining-tokens"),
       }));
     }
     // Nunca se registra el contenido del mensaje del visitante.
-    return { status: r.status, retryAfterMs: parseRetryAfter(r.headers), json: j };
+    const hs: Record<string, string> = {};
+    r.headers.forEach((v, k) => { if (/^(x-ratelimit-|retry-after)/.test(k) && Object.keys(hs).length < 12) hs[k] = v; });
+    return { status: r.status, retryAfterMs: parseRetryAfter(r.headers), json: j, headers: hs };
   } catch (e) {
     if ((e as Error).name === "AbortError") throw new Error("timeout");
     throw e;

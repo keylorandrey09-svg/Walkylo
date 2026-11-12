@@ -5,14 +5,14 @@ Este directorio es un RESPALDO de lo que vive en Supabase. La fuente de verdad s
 si algo cambia allá, hay que actualizar esta carpeta (y al revés).
 
 ## Contenido
-- `migrations/` — las 33 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
+- `migrations/` — las 34 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
   Cada archivo es el SQL guardado en `supabase_migrations.schema_migrations` más un salto de línea final.
   Comprobación: `md5(array_to_string(statements, E';\n'))` coincide con el md5 del archivo sin ese último salto.
-- `functions/chat/` — Edge Function del chat, v15 (verify_jwt = false: la usan visitantes anónimos):
+- `functions/chat/` — Edge Function del chat, v20 (verify_jwt = false: la usan visitantes anónimos):
   `index.ts` (conexión a la base y a OpenAI), `handler.ts` (lógica del pedido), `core.ts` (partes puras),
   más su prueba `chat_test.ts`.
 - `functions/delete-account/index.ts` — borrado de cuenta (verify_jwt = true).
-- `functions/import-site/` — lectura del sitio y Memoria, v7 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
+- `functions/import-site/` — lectura del sitio y Memoria, v8 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
   `summarize.ts`, `sections.ts`, `memory.ts`, más sus pruebas (`sections_test.ts`, `flow_sections_test.ts`,
   `memory_test.ts`) y `fixtures/`.
 - `functions/verify-site/` — verificación del sitio, v1 (verify_jwt = true): `index.ts`, `verify.ts`, `lib.ts`.
@@ -37,6 +37,23 @@ Las huellas (sha256) de los archivos se calculan con saltos de línea LF, que es
   (entre 0,5 y 4 s).
 - Sin `OPENAI_API_KEY` sigue en modo simulado.
 
+## chat v16 → v20: qué cambió
+- Si OpenAI rechaza un pedido, el registro `openai_error` guarda el motivo (su mensaje de error y los encabezados de
+  límites), nunca el texto del visitante.
+- No reintenta si OpenAI pide esperar más de 4 s; si la espera pasa de 60 s, el visitante ve "Probá de nuevo más tarde".
+- Las reglas piden responder en el idioma del último mensaje y con un solo tratamiento (vos por defecto, tú si el
+  visitante escribe de tú).
+- Al último mensaje se le suma un recordatorio de idioma (`REPLY_NOTE`) solo en lo que va a la IA: no se guarda ni se muestra.
+- Las ventanas emergentes y los menús (`ui`, `menu`) nunca llevan enlace.
+- Si falla la lectura del widget, reintenta una vez antes de dar error (solo "no existe" o "apagado" es 404).
+- El uso del mes se suma con la función SQL `bump_usage` (migración `bump_usage_atomic`): dos mensajes a la vez no se pisan.
+- En cada llamada buena, `openai_usage` registra la holgura de OpenAI (encabezados `x-ratelimit-*`).
+
+## import-site v8: Memoria m2
+`MEMORY_VERSION` pasa a `m2` (cambia la huella, así que la próxima lectura regenera la Memoria). Las instrucciones
+ignoran maquetas y ejemplos con cifras de muestra, ponen "Enlaces" (máx. 12) antes que "Políticas" (máx. 8 líneas)
+y apuntan a 4.000–6.000 letras, nunca más de 6.500.
+
 ## import-site v7: secciones y Memoria
 Además del texto de cada página, la lectura la divide en secciones con estructura (`sections.ts`) y las guarda en la
 tabla `sections` (una fila por sección: título, tipo, si está oculta, texto). Si guardar las secciones falla, la página
@@ -55,19 +72,29 @@ v7 **genera la Memoria** (`memory.ts`, acción `memory_generate`): toma las secc
 Hace falta [Deno](https://deno.com/). Las pruebas no tocan Supabase, OpenAI ni sitios reales: usan servidores locales,
 un almacén en memoria y una IA falsa. La primera vez Deno descarga dependencias desde npm.
 
-chat (`chat_test.ts`, 21 pruebas):
+chat (`chat_test.ts`, 37 pruebas):
 ```
 cd supabase/functions/chat
 deno test -A
 ```
 
-import-site (`sections_test.ts`, `flow_sections_test.ts` y `memory_test.ts`, 30 pruebas):
+import-site (`sections_test.ts`, `flow_sections_test.ts` y `memory_test.ts`, 32 pruebas):
 ```
 cd supabase/functions/import-site
 deno test -A
 ```
 `fixtures/walkychat-home.html` y `fixtures/walkylet-home.html` son copias del HTML público de 2 sitios
 (https://walkychat.app/ y https://walkylo.vercel.app/), bajadas tal cual el 2026-11-06. No hay que editarlas: las pruebas dependen de ellas.
+
+## Prueba de carga
+`tools/carga.mjs` (Node 18 o más nuevo) manda mensajes REALES a la función `chat` del widget de prueba:
+- `node tools/carga.mjs humo` — 40 mensajes, 4 a la vez.
+- `node tools/carga.mjs rafaga` — 80 mensajes, 16 a la vez.
+- `node tools/carga.mjs sostenida` — 250 mensajes, 5 a la vez.
+- `todo` corre las tres seguidas (370 mensajes). Cada etapa se corta sola a los 10 fallos.
+
+El widget tiene un tope de 500 mensajes por día (`PER_WIDGET_PER_DAY`): no correr `todo` dos veces el mismo día.
+Cada mensaje usa un visitante nuevo, así que deja conversaciones con `visitor_id` que empieza con `carga-`.
 
 ## `lib.ts` está duplicado
 `import-site/lib.ts` y `verify-site/lib.ts` son el mismo archivo (hoy idénticos byte a byte; los dos empiezan con el
