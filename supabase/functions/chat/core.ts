@@ -79,6 +79,12 @@ export const laterText = (w: Widget) => FALLBACKS[lang(w)].later;
 export const LONG_WAIT_MS = 60_000;
 export const errorText = (w: Widget) => FALLBACKS[lang(w)].error;
 
+// El correo configurado por el dueño es la ÚNICA fuente de contacto válida. Se valida porque entra al texto de las instrucciones.
+export const emailOf = (w: Widget): string | null => {
+  const e = String(w.contact_email ?? "").trim();
+  return e.length <= 120 && /^[^\s<>"'@,;]+@[^\s<>"'@,;]+\.[^\s<>"'@,;]+$/.test(e) ? e : null;
+};
+
 export const tag = (v: unknown, max = 24) => String(v ?? "").replace(/[^\p{L}\p{N} _-]/gu, "").slice(0, max);
 export const notesOf = (w: Widget) => String(w.owner_notes ?? "").trim().slice(0, LIMITS.MAX_NOTES_CHARS);
 export const memoryOf = (w: Widget) => String(w.knowledge ?? "").trim().slice(0, LIMITS.MAX_MEMORY_CHARS);
@@ -134,8 +140,11 @@ const COMMON_RULES = (w: Widget) => [
   "- IDIOMA: respondé SIEMPRE en el idioma en que está escrito el ÚLTIMO mensaje del visitante (si escribe en inglés, respondé en inglés), aunque la información esté en otro idioma. Traducí lo necesario, pero dejá tal cual los nombres de botones y pantallas.",
   `- TRATAMIENTO: si respondés en español, usá un solo tratamiento (${DEFAULT_ADDRESS}) en toda la respuesta, sin mezclar formas. Aunque la información del sitio esté escrita con otro tratamiento, reescribila con el tuyo. Si el visitante escribe de tú, respondé de tú.`,
   "- Si lo que figura no responde exactamente lo que se pregunta, decilo. No apliques un dato que habla de otra cosa (por ejemplo, la contraseña de la cuenta del sitio no es la contraseña de otra plataforma).",
+  "- Los nombres entre paréntesis en los títulos de los menús (por ejemplo «Menú (sidebar)») son identificadores internos del sitio: no los repitas. Decí «el menú» o el nombre de la pantalla.",
+  "- Si no tenés un dato, decilo UNA sola vez en la respuesta: no repitas «no figura» ni «no tengo esa información» en frases distintas.",
   "- Que una pantalla, botón o sección aparezca nombrado en un menú o en la MEMORIA no dice qué muestra ni qué se puede hacer ahí. Solo afirmá lo que contiene o permite una pantalla si figura en su propia sección; si no figura, decí que no figura.",
   "- Respondé en texto plano, sin formato Markdown: sin asteriscos para negrita, sin enlaces con corchetes y sin encabezados con #. Escribí cada enlace como dirección completa (por ejemplo https://ejemplo.com/ruta).",
+  ...(emailOf(w) ? [`- CONTACTO: el único correo de contacto válido es ${emailOf(w)}. Si piden contactar al equipo o a soporte, dá ese correo (y, si figura en la información, la ventana o el formulario de soporte de la app). No des ningún otro correo ni teléfono, aunque aparezca en la información del sitio.`] : []),
   `- Tono: ${tag(w.tone) || "cercano"}. Idioma preferido del sitio: ${tag(w.language, 8) || "es"}.`,
 ];
 
@@ -173,6 +182,7 @@ export function instructions(w: Widget, ctx: { sections?: string } = {}): string
     "- La MEMORIA es un resumen general para ubicarte; las SECCIONES traen el detalle encontrado para esta pregunta.",
     "- Para \"cómo hago X\": usá los pasos tal como figuran, en orden, sin agregar ni saltear pasos. Para \"dónde está X\": indicá el camino tal como figura (por ejemplo: Configuración › Apariencia › Tema). Escribí los nombres de botones y pantallas igual que en la información.",
     "- CAMINOS: si una pantalla de la app tiene un bloque o sección interna (por ejemplo un bloque \"Cuenta\" dentro de \"Configuración\"), el camino empieza SIEMPRE por el nombre de la pantalla: Pantalla › Bloque › Botón. Si un documento legal y una pantalla describen el mismo paso, usá el camino de la pantalla.",
+    "- ALTERNATIVAS: si la información muestra más de un punto de entrada para la misma acción (por ejemplo, un botón en la pantalla de inicio y otro en una lista), dá primero el más común y mencioná el otro en UNA línea breve. No preguntes qué tipo de usuario es.",
     "- Las pantallas de una app no tienen enlace propio: describí el camino. Solo usá enlaces que figuren en la información.",
     `- Si hay información relacionada con la pregunta, respondé con lo que sí figura y aclará brevemente lo que falte. ${noAns}`,
     ...COMMON_RULES(w),
@@ -215,6 +225,13 @@ export function cleanLinks(text: string, w: Widget, hits: SectionHit[] = []): st
   for (const u of src) if (u) ok.add(hostOf(u));
   ok.delete("");
   return text.replace(URL_RE, (u) => (ok.has(hostOf(u)) ? u : ""));
+}
+
+// Si hay un correo de contacto configurado, cualquier otro correo que la IA escriba se reemplaza por el configurado.
+export function cleanEmails(text: string, w: Widget): string {
+  const mine = emailOf(w);
+  if (!mine) return text;
+  return text.replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, (e) => (e.toLowerCase() === mine.toLowerCase() ? e : mine));
 }
 
 // ---------- IA con un reintento ante 429 ----------

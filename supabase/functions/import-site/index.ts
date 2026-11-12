@@ -112,7 +112,7 @@ const store: Store2 & MemStore = {
   },
   // ---------- Memoria ----------
   async widgetMem(userId) {
-    return must(await sb.from("widgets").select("id,site_url,knowledge,knowledge_ai_at,memory_draft,memory_sources_hash")
+    return must(await sb.from("widgets").select("id,site_url,knowledge,knowledge_ai_at,memory_draft,memory_sources_hash,contact_email")
       .eq("user_id", userId).maybeSingle()) as WidgetMem | null;
   },
   async memorySections(widgetId) {

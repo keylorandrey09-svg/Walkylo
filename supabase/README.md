@@ -8,11 +8,11 @@ si algo cambia allá, hay que actualizar esta carpeta (y al revés).
 - `migrations/` — las 34 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
   Cada archivo es el SQL guardado en `supabase_migrations.schema_migrations` más un salto de línea final.
   Comprobación: `md5(array_to_string(statements, E';\n'))` coincide con el md5 del archivo sin ese último salto.
-- `functions/chat/` — Edge Function del chat, v20 (verify_jwt = false: la usan visitantes anónimos):
+- `functions/chat/` — Edge Function del chat, v21 (verify_jwt = false: la usan visitantes anónimos):
   `index.ts` (conexión a la base y a OpenAI), `handler.ts` (lógica del pedido), `core.ts` (partes puras),
   más su prueba `chat_test.ts`.
 - `functions/delete-account/index.ts` — borrado de cuenta (verify_jwt = true).
-- `functions/import-site/` — lectura del sitio y Memoria, v8 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
+- `functions/import-site/` — lectura del sitio y Memoria, v11 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
   `summarize.ts`, `sections.ts`, `memory.ts`, más sus pruebas (`sections_test.ts`, `flow_sections_test.ts`,
   `memory_test.ts`) y `fixtures/`.
 - `functions/verify-site/` — verificación del sitio, v1 (verify_jwt = true): `index.ts`, `verify.ts`, `lib.ts`.
@@ -49,6 +49,19 @@ Las huellas (sha256) de los archivos se calculan con saltos de línea LF, que es
 - El uso del mes se suma con la función SQL `bump_usage` (migración `bump_usage_atomic`): dos mensajes a la vez no se pisan.
 - En cada llamada buena, `openai_usage` registra la holgura de OpenAI (encabezados `x-ratelimit-*`).
 
+## chat v21: qué cambió
+- Si hay más de un punto de entrada para la misma acción, da primero el camino principal y menciona la alternativa en una línea.
+- No repite los identificadores internos de los menús (los nombres entre paréntesis en sus títulos).
+- Si falta un dato, dice "no figura" una sola vez por respuesta.
+- El correo del campo del widget (`contact_email`) es el único contacto válido: la IA no da otro correo ni teléfono, y
+  `cleanEmails` reemplaza cualquier otro correo de la respuesta por el configurado.
+
+## import-site v11: Memoria m5
+`MEMORY_VERSION` pasa a `m5` (cambia la huella: la próxima lectura regenera la Memoria).
+- La sección "Contacto" la arma el código desde el correo del campo del widget; la IA ya no la escribe.
+- A la IA le llegan todas las secciones legales (cada una hasta 1.200 caracteres, hasta 30.000 en total), para que
+  ningún documento quede afuera.
+
 ## import-site v8: Memoria m2
 `MEMORY_VERSION` pasa a `m2` (cambia la huella, así que la próxima lectura regenera la Memoria). Las instrucciones
 ignoran maquetas y ejemplos con cifras de muestra, ponen "Enlaces" (máx. 12) antes que "Políticas" (máx. 8 líneas)
@@ -72,13 +85,13 @@ v7 **genera la Memoria** (`memory.ts`, acción `memory_generate`): toma las secc
 Hace falta [Deno](https://deno.com/). Las pruebas no tocan Supabase, OpenAI ni sitios reales: usan servidores locales,
 un almacén en memoria y una IA falsa. La primera vez Deno descarga dependencias desde npm.
 
-chat (`chat_test.ts`, 37 pruebas):
+chat (`chat_test.ts`, 41 pruebas):
 ```
 cd supabase/functions/chat
 deno test -A
 ```
 
-import-site (`sections_test.ts`, `flow_sections_test.ts` y `memory_test.ts`, 32 pruebas):
+import-site (`sections_test.ts`, `flow_sections_test.ts` y `memory_test.ts`, 43 pruebas: 13 + 7 + 23):
 ```
 cd supabase/functions/import-site
 deno test -A
@@ -95,6 +108,13 @@ deno test -A
 
 El widget tiene un tope de 500 mensajes por día (`PER_WIDGET_PER_DAY`): no correr `todo` dos veces el mismo día.
 Cada mensaje usa un visitante nuevo, así que deja conversaciones con `visitor_id` que empieza con `carga-`.
+
+## Calificación de respuestas
+`tools/calificada.ps1` (PowerShell) manda 23 preguntas REALES a la función `chat` del widget de prueba (21 sueltas y
+2 seguidas en la misma conversación) y califica cada respuesta con lo que "debe decir" y lo que "no debe decir"
+(además: texto interno filtrado, correos que no son el configurado, mezcla de vos y tú).
+- `$MAIL`, en la primera línea, tiene que ir a la par del correo configurado en el widget (escrito como expresión regular).
+- Deja conversaciones reales en el widget, con `visitor_id` que empieza con `chk-`.
 
 ## `lib.ts` está duplicado
 `import-site/lib.ts` y `verify-site/lib.ts` son el mismo archivo (hoy idénticos byte a byte; los dos empiezan con el

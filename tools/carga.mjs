@@ -4,7 +4,7 @@
 //                              node carga.mjs sostenida (250 mensajes, 5 a la vez)
 //                              node carga.mjs todo      (las tres, con pausas)
 // Cada mensaje usa un visitante nuevo. Quedan conversaciones de prueba en el widget (visitor_id que empieza con "carga-").
-// Total de "todo": 370 mensajes. El tope diario del widget es 500, y ya hay unos 70 en las últimas 24 h: no la corras dos veces el mismo día.
+// Total de "todo": 370 mensajes. El tope diario del widget es 500: revisá cuántos mensajes hay en las últimas 24 h antes de correrla, y no la corras dos veces el mismo día.
 
 const URL = "https://ejbtgkvlrkecnslpapyd.supabase.co/functions/v1/chat";
 const WIDGET = "2075b5e2-207f-40ab-a621-0d70620e9ec3";
