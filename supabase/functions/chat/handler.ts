@@ -1,7 +1,7 @@
 // supabase/functions/chat/handler.ts
 // Lógica del pedido. La base y la IA se inyectan (en producción: index.ts; en pruebas: falsos).
 import {
-  type AiArgs, type AiRaw, askWithRetry, buildQuery, busyText, cleanLinks, detectNoAnswer, errorText,
+  type AiArgs, type AiRaw, askWithRetry, buildQuery, busyText, cleanEmails, cleanLinks, detectNoAnswer, errorText,
   fallbackText, formatSections, instructions, laterText, LIMITS, LONG_WAIT_MS, memoryOf, notesOf, REPLY_NOTE, type SectionHit, type Turn,
   URL_RE, useSections, type Widget,
 } from "./core.ts";
@@ -175,7 +175,7 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
         answer = r.kind === "rate_limited" ? ((r.waitMs ?? 0) > LONG_WAIT_MS ? laterText(w) : busyText(w)) : errorText(w);
       }
     }
-    answer = cleanLinks(answer, w, hits).trim().slice(0, 2000) || fallbackText(w);
+    answer = cleanEmails(cleanLinks(answer, w, hits), w).trim().slice(0, 2000) || fallbackText(w);
 
     await d.store.insertMessage({
       conversation_id: conv, from_role: "assistant", text: answer, status, model,
