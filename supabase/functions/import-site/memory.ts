@@ -6,7 +6,7 @@ import type { Out } from "./flow.ts";
 import { sha256 } from "./lib.ts";
 import { type AiResult, callAI } from "./summarize.ts";
 
-export const MEMORY_VERSION = "m1";          // si cambian las instrucciones, cambia la huella y se regenera
+export const MEMORY_VERSION = "m2";          // si cambian las instrucciones, cambia la huella y se regenera
 export const MEMORY_MAX_CHARS = 8000;        // el chat usa hasta 8.000
 export const MEMORY_MIN_CHARS = 300;
 export const MAP_BATCH_CHARS = 14_000;
@@ -110,7 +110,7 @@ export const MAP_INSTRUCTIONS = (g: Group) =>
 - Planes, precios, límites, plazos y números: exactos.
 - Políticas: una línea cada una con lo esencial (plazos y condiciones).
 - Contacto: correos y canales que figuren.
-- Omití lo decorativo y lo repetido.
+- Omití lo decorativo y lo repetido. Ignorá las maquetas o ejemplos ilustrativos con cifras de muestra (por ejemplo, un panel de demostración): no son datos reales ni pantallas de la app.
 ${DATA_RULES}
 - Máximo unas 1.500 letras.`;
 
@@ -120,11 +120,14 @@ Qué es
 Planes y límites
 Dónde está cada cosa
 Cómo se hace
-Políticas
 Contacto
 Enlaces
+Políticas
 Reglas:
-- Entre 3.000 y 6.000 letras en total. Una idea por línea, con guiones.
+- Meta: entre 4.000 y 6.000 letras en total, nunca más de 6.500. Una idea por línea, con guiones.
+- "Políticas": máximo 8 líneas, una por tema (qué datos se tratan, con quién se comparten, plazos, derechos, cancelaciones y reembolsos). El detalle legal no va: el asistente lo consulta aparte.
+- "Enlaces": máximo 12, los más útiles. Van antes que "Políticas".
+- Descartá las maquetas o ejemplos ilustrativos con cifras de muestra y los textos de relleno (por ejemplo, un "Paso 03" sin título).
 - "Dónde está cada cosa": una línea por pantalla o sección, con el camino exacto y lo que contiene.
 - "Cómo se hace": cada flujo con su nombre y los títulos de sus pasos en una línea, sin detalle.
 - Datos exactos: números y nombres de botones y pantallas tal cual.

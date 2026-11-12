@@ -2,7 +2,7 @@
 // Lógica del pedido. La base y la IA se inyectan (en producción: index.ts; en pruebas: falsos).
 import {
   type AiArgs, type AiRaw, askWithRetry, buildQuery, busyText, cleanLinks, detectNoAnswer, errorText,
-  fallbackText, formatSections, instructions, LIMITS, memoryOf, notesOf, type SectionHit, type Turn,
+  fallbackText, formatSections, instructions, laterText, LIMITS, LONG_WAIT_MS, memoryOf, notesOf, REPLY_NOTE, type SectionHit, type Turn,
   URL_RE, useSections, type Widget,
 } from "./core.ts";
 
@@ -20,7 +20,8 @@ export interface Store {
   countAssistantSince(convId: string, sinceISO: string): Promise<number>;
   insertMessage(row: Record<string, unknown>): Promise<void>;
   insertEvents(rows: Record<string, unknown>[]): Promise<void>;
-  upsertUsage(row: Record<string, unknown>): Promise<void>;
+  // suma estos valores al uso del mes (cuánto SUMAR, no el total): dos mensajes a la vez no se pisan
+  bumpUsage(row: { user_id: string; month: string; conversations: number; messages: number; tokens_in: number; tokens_out: number }): Promise<void>;
   searchSections(widgetId: string, query: string, k: number): Promise<SectionHit[]>;
 }
 
@@ -65,7 +66,13 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
       (convId && !UUID.test(convId))) return json({ error: "bad_request" }, 400);
     if (text.length > LIMITS.MAX_MSG_CHARS) return json({ error: "message_too_long" }, 413);
 
-    const w = await d.store.getWidget(widgetId);
+    // una falla pasajera al leer el widget se reintenta una vez; solo "no existe" o "apagado" es 404
+    let w: Widget | null;
+    try { w = await d.store.getWidget(widgetId); } catch (e) {
+      log("get_widget_retry", { m: String((e as Error).message ?? e).slice(0, 100) });
+      await d.sleep(150);
+      w = await d.store.getWidget(widgetId);
+    }
     if (!w || !w.enabled) return json({ error: "unavailable" }, 404);
 
     // Modo prueba: solo con la sesión del dueño de este widget.
@@ -155,7 +162,7 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
     } else {
       const input = [
         ...history.map((m) => ({ role: m.from_role === "visitor" ? "user" : "assistant", content: m.text })),
-        { role: "user", content: text },
+        { role: "user", content: text + REPLY_NOTE },
       ];
       const r = await askWithRetry(d.ai, { instructions: instructions(w, { sections: sectionsBlock }), input, maxOut: LIMITS.MAX_OUTPUT_TOKENS }, d.sleep);
       retried = r.retried;
@@ -163,9 +170,9 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
         const n = detectNoAnswer(r.text, w);
         answer = n.text; noAnswer = n.noAnswer; tIn = r.tIn; tOut = r.tOut;
       } else {
-        log("openai_error", { code: r.code, retried: r.retried });
+        log("openai_error", { code: r.code, retried: r.retried, wait_ms: r.waitMs ?? 0, detail: r.detail ?? "" });
         status = "error";
-        answer = r.kind === "rate_limited" ? busyText(w) : errorText(w);
+        answer = r.kind === "rate_limited" ? ((r.waitMs ?? 0) > LONG_WAIT_MS ? laterText(w) : busyText(w)) : errorText(w);
       }
     }
     answer = cleanLinks(answer, w, hits).trim().slice(0, 2000) || fallbackText(w);
@@ -180,12 +187,16 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
       await d.store.insertEvents(ev);
     }
     if (!isTest) {
-      await d.store.upsertUsage({
-        user_id: w.user_id, month,
-        conversations: (usage?.conversations ?? 0) + (isNew ? 1 : 0),
-        messages: (usage?.messages ?? 0) + (isRetry ? 0 : 1),
-        tokens_in: (usage?.tokens_in ?? 0) + tIn, tokens_out: (usage?.tokens_out ?? 0) + tOut,
-      });
+      // se le manda a la base CUÁNTO sumar (no el total leído antes). Si la contabilidad falla, la respuesta ya guardada no se pierde.
+      try {
+        await d.store.bumpUsage({
+          user_id: w.user_id, month,
+          conversations: isNew ? 1 : 0,
+          // un mensaje cuenta para el plan solo si se respondió; los fallos de la IA no gastan el cupo
+          messages: isRetry || status !== "complete" ? 0 : 1,
+          tokens_in: tIn, tokens_out: tOut,
+        });
+      } catch (e) { log("usage_error", { m: String((e as Error).message ?? e).slice(0, 100) }); }
     }
 
     log("chat_v15", {
