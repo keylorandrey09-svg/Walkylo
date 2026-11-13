@@ -695,7 +695,6 @@
     .mm-chip:disabled{opacity:.5;cursor:default;}
     .mm-chip:focus-visible,.mm-idx button:focus-visible,.mm-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
     .mm-how{margin:12px 0 0;padding-left:20px;line-height:1.8;}
-    .mm-search{margin-top:12px;}
     /* Línea de estado de la Memoria: una fila (estado a la izquierda, Regenerar a la derecha) */
     .mm-st--line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:56px;margin-bottom:12px;padding:7px 8px 7px 16px;}
     .mm-st--line > [role=status]{flex:1 1 240px;min-width:0;}
@@ -721,30 +720,10 @@
     .mm-src__st svg{width:16px;height:16px;flex-shrink:0;}
     .mm-src__st.is-ok{color:var(--text);} .mm-src__st.is-ok svg{color:var(--ok);}
     .mm-src__meta{margin:0;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
-    /* Secciones: grupos con caja y filas que se abren */
-    .mm-sg{margin-top:24px;}
-    .mm-sg:first-child{margin-top:0;}
-    .mm-sg__t{margin:0 0 8px;font-size:.875rem;font-weight:500;color:var(--text);}
-    .mm-sg__t span{margin-left:6px;font-weight:400;color:var(--text-2);font-variant-numeric:tabular-nums;}
-    /* Cada sección es una tarjeta (8px entre tarjetas); se abre dentro de su tarjeta. El hover solo cambia el borde. */
-    .mm-box{display:flex;flex-direction:column;gap:8px;}
-    .mm-card{border:1px solid var(--border);border-radius:10px;background:var(--bg);}
-    .mm-card:hover{border-color:var(--text-2);}
-    .mm-sr{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:12px 16px;border:0;border-radius:9px;background:none;font:inherit;color:var(--text);text-align:left;cursor:pointer;}
-    .mm-sr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
-    .mm-sr__t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .mm-sr__m{flex-shrink:0;font-size:.8125rem;color:var(--text-2);}
-    .mm-sr__chev{flex-shrink:0;width:16px;height:16px;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-    .mm-sr[aria-expanded="true"] .mm-sr__chev{transform:rotate(180deg);}
-    .mm-sr__x{padding:0 16px 14px;font-size:.875rem;line-height:1.6;color:var(--text-2);white-space:pre-line;overflow-wrap:anywhere;}
-    .mm-sr__x p{margin:0;max-width:68ch;}
-    .mm-sr__x a{display:inline-block;margin-top:4px;font-size:.8125rem;}
+    /* Caja de vacío (Secciones): alto mínimo y mensaje centrado */
     .mm-sbox{display:grid;place-items:center;min-height:280px;padding:24px 16px;border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-2);}
     .mm-sbox p{margin:0;}
-    .mm-more{margin-top:16px;}
     @media (max-width:768px){
-      .mm-sr{min-height:56px;}
-      .mm-sr__t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
       .mm-act .wa-btn{flex:1 1 auto;}
       .mm-link{min-height:44px;}
       .mm-chip,.mm-idx button{min-height:44px;}
@@ -752,6 +731,96 @@
       .mm-hact{margin:-8px 0 -8px auto;}
     }
     /* mm:end */
+
+    /* sc:start — Memoria › Secciones: barra de tarjetas, recuadros por sección (con su número del catálogo) y detalle en un modal */
+    .sc-bar{display:flex;flex-direction:column;gap:12px;}
+    .sc-t{margin:0;font-size:.875rem;color:var(--text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+    .sc-run{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;}
+    .sc-track{flex:1 1 160px;height:6px;border-radius:6px;background:var(--surface);overflow:hidden;}
+    :root[data-theme="dark"] .sc-track{background:var(--border);}
+    .sc-fill{display:block;width:0;height:100%;border-radius:6px;background:var(--text);}
+    .sc-n{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
+    .sc-msg{margin:0;font-size:.875rem;color:var(--text);overflow-wrap:anywhere;}
+    .sc-msg.is-err{color:var(--danger);}
+    .sc-msg .mm-link{min-height:0;}
+    .sc-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .sc-act:not(:has(> :not([hidden]))),.sc-run[hidden],.sc-msg[hidden],.sc-act [hidden]{display:none;}
+    #mmPanel-secciones > * + *{margin-top:16px;}
+    #scPage{margin-top:16px;}
+    #scPage[hidden]{display:none;}
+    /* Grupos: Pantallas y Flujos abiertos; Páginas y Legales plegables (<details>) */
+    .sc-g{margin-top:24px;}
+    .sc-g:first-child{margin-top:0;}
+    .sc-g__h{display:flex;align-items:center;gap:8px;min-height:44px;margin:0 0 4px;font-size:.9375rem;font-weight:500;color:var(--text);}
+    .sc-g__h span{font-weight:400;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    details.sc-g > summary{list-style:none;cursor:pointer;border-radius:6px;}
+    details.sc-g > summary::-webkit-details-marker{display:none;}
+    details.sc-g > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    .sc-chev{width:16px;height:16px;margin-left:auto;flex-shrink:0;fill:none;stroke:var(--text-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+    details.sc-g[open] > summary .sc-chev{transform:rotate(180deg);}
+    .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+    @media (max-width:420px){ .sc-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    /* Recuadro: ícono del tipo y número arriba, título (2 líneas) y una línea chica abajo. El hover solo cambia el borde. */
+    .sc-tile{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;min-height:104px;padding:12px;border:1px solid var(--border);border-radius:10px;
+      background:var(--bg);font:inherit;color:var(--text);text-align:left;cursor:pointer;touch-action:manipulation;}
+    .sc-tile:hover{border-color:var(--text-2);}
+    .sc-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    .sc-tile[aria-disabled="true"]{cursor:default;opacity:.6;}
+    .sc-tile__top{display:flex;align-items:center;gap:8px;}
+    .sc-tile__i{width:20px;height:20px;flex-shrink:0;}
+    .sc-tile__n{font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .sc-tile__t{font-size:.875rem;line-height:1.4;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .sc-tile__m{margin-top:auto;font-size:.75rem;color:var(--text-2);}
+    /* Selección: casilla cuadrada de 16px con radio 4px (como en Preguntas); la elegida con borde --text */
+    .sc-box{display:none;place-items:center;width:16px;height:16px;margin-left:auto;border:1px solid var(--text-2);border-radius:4px;}
+    .sc-box svg{width:12px;height:12px;visibility:hidden;}
+    .is-sel .sc-box{display:grid;}
+    .sc-tile[aria-pressed="true"]{border-color:var(--text);outline:1px solid var(--text);outline-offset:-2px;}
+    .sc-tile[aria-pressed="true"] .sc-box{background:var(--text);border-color:var(--text);color:var(--bg);}
+    .sc-tile[aria-pressed="true"] .sc-box svg{visibility:visible;}
+    /* Modal de una sección: fondo semitransparente y desenfocado; la tarjeta se desplaza y su cabecera queda fija arriba */
+    .sc-modal .wa-modal__scrim{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+    .sc-modal__card{max-width:720px;padding:0;overscroll-behavior:contain;}
+    .sc-modal__card:focus{outline:none;}
+    .sc-mh{position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;gap:8px;padding:16px 12px 12px 24px;background:var(--bg);border-bottom:1px solid var(--border);}
+    .sc-mh__b{flex:1;min-width:0;padding-top:4px;}
+    .sc-mk{margin:0 0 4px;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
+    .sc-mh .wa-modal__title{margin:0;overflow-wrap:anywhere;}
+    .sc-mh .wa-modal__title:focus{outline:none;}
+    .sc-x{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border:0;border-radius:6px;background:none;color:var(--text-2);cursor:pointer;}
+    .sc-x:hover{color:var(--text);}
+    .sc-x svg{width:20px;height:20px;}
+    .sc-x:focus-visible,.sc-back:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+    .sc-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px;padding:0;border:0;background:none;font:inherit;font-size:.875rem;color:var(--text-2);cursor:pointer;}
+    .sc-back:hover{color:var(--text);text-decoration:underline;}
+    .sc-back svg{width:16px;height:16px;}
+    .sc-back[hidden]{display:none;}
+    #scMBody{padding:20px 24px 24px;}
+    .sc-h3{margin:0 0 8px;font-size:.875rem;font-weight:500;color:var(--text);}
+    .sc-sec + .sc-sec{margin-top:24px;}
+    .sc-p{margin:0;max-width:68ch;line-height:1.6;overflow-wrap:anywhere;}
+    .sc-none{margin:0;color:var(--text-2);}
+    .sc-lines{margin:0;padding:8px 0;list-style:none;border:1px solid var(--border);border-radius:10px;font-size:.875rem;line-height:1.6;}
+    .sc-lines li{display:flex;gap:12px;padding:0 12px;}
+    .sc-lines li.is-ev{background:var(--surface);}
+    .sc-ln{flex-shrink:0;min-width:3ch;text-align:right;color:var(--text-2);font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none;}
+    .sc-lt{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;}
+    .sc-ev{margin:0 0 8px;font-size:.8125rem;color:var(--text-2);}
+    .sc-ev i{display:inline-block;width:10px;height:10px;margin-right:6px;border:1px solid var(--border);border-radius:2px;background:var(--surface);font-style:normal;vertical-align:-1px;}
+    /* Enlace dentro del texto: palabra en azul (es un enlace), abre la sección destino */
+    .sc-lk{display:inline;padding:0;border:0;background:none;font:inherit;line-height:inherit;color:var(--accent);text-align:inherit;cursor:pointer;}
+    .sc-lk:hover{text-decoration:underline;}
+    .sc-lk:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:2px;}
+    .sc-open{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;font-size:.875rem;color:var(--accent);}
+    @media (max-width:600px){
+      .sc-modal{align-items:flex-end;padding:0;}
+      .sc-modal__card{max-height:92vh;border-radius:10px 10px 0 0;border-bottom:0;}
+      .sc-mh{padding-left:16px;}
+      #scMBody{padding:16px 16px 24px;}
+      .sc-lines li{gap:8px;padding:0 8px;}
+    }
+    @media (max-width:768px){ .sc-act .wa-btn,.sc-run .wa-btn{flex:1 1 auto;} }
+    /* sc:end */
 </style>
   <script>window.WSB_URL="https://ejbtgkvlrkecnslpapyd.supabase.co";window.WSB_ANON="sb_publishable_igO0MoubT3Na_F0RPdA2hQ_2T-qkYMQ";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1202,15 +1271,37 @@
           <p class="wa-page-sub">Lo que sabe tu asistente sobre tu sitio y tu app.</p>
           <div class="wg-tabbar">
             <div class="wg-tabs" id="mmTabs" role="tablist" aria-label="Secciones de la Memoria">
-              <button class="wg-tab" id="mmTab-memoria" type="button" role="tab" aria-selected="true" aria-controls="mmPanel-memoria" data-tab="memoria">Memoria</button>
+              <button class="wg-tab" id="mmTab-general" type="button" role="tab" aria-selected="true" aria-controls="mmPanel-general" data-tab="general">General</button>
+              <button class="wg-tab" id="mmTab-info" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-info" data-tab="info" tabindex="-1">Información pública</button>
+              <button class="wg-tab" id="mmTab-secciones" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-secciones" data-tab="secciones" tabindex="-1">Secciones</button>
               <button class="wg-tab" id="mmTab-notas" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-notas" data-tab="notas" tabindex="-1">Notas</button>
               <button class="wg-tab" id="mmTab-fuentes" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-fuentes" data-tab="fuentes" tabindex="-1">Fuentes</button>
-              <button class="wg-tab" id="mmTab-secciones" type="button" role="tab" aria-selected="false" aria-controls="mmPanel-secciones" data-tab="secciones" tabindex="-1">Secciones</button>
             </div>
           </div>
           <div class="mm">
-            <!-- Memoria: texto en tarjetas (columna de hasta 860px) y, desde 1100px, "Qué cubre" e índice a la derecha -->
-            <div class="wg-panel" id="mmPanel-memoria" role="tabpanel" aria-labelledby="mmTab-memoria" tabindex="0">
+            <!-- General (mg:start): estado de las tarjetas y de la información pública, y qué hacer a continuación (patrón de Widget › General) -->
+            <div class="wg-panel mm-pane" id="mmPanel-general" role="tabpanel" aria-labelledby="mmTab-general" tabindex="0">
+              <p class="wg-panel__hint">Estado de lo que sabe tu asistente y lo que falta.</p>
+              <div class="wg-field wg-state">
+                <div>
+                  <span class="wg-field__label">Tarjetas de las secciones</span>
+                  <p class="wg-field__hint" id="mgCards">Revisando…</p>
+                </div>
+                <button class="wa-btn" type="button" data-mmtab="secciones">Ver secciones</button>
+              </div>
+              <div class="wg-field wg-state">
+                <div>
+                  <span class="wg-field__label">Información pública</span>
+                  <p class="wg-field__hint" id="mgInfo"></p>
+                </div>
+                <button class="wa-btn" type="button" data-mmtab="info">Ver información</button>
+              </div>
+              <div class="wg-field" id="mgTodo"></div>
+            </div>
+            <!-- mg:end -->
+
+            <!-- Información pública: texto en tarjetas (columna de hasta 860px) y, desde 1100px, "Qué cubre" e índice a la derecha -->
+            <div class="wg-panel" id="mmPanel-info" role="tabpanel" aria-labelledby="mmTab-info" tabindex="0" hidden>
               <div class="mm-cols">
                 <aside class="mm-side" id="mmSide" aria-label="Resumen de la Memoria" hidden>
                   <div class="cfg-card" id="mmCover" hidden><h2 class="cfg-card__title">Qué cubre</h2><div class="mm-chips" id="mmCoverChips"></div></div>
@@ -1294,17 +1385,28 @@
               <p class="mm-note" id="mmSrcNone" hidden>Cuando leas tu sitio, acá vas a ver sus páginas y la actividad.</p>
             </div>
 
-            <!-- Secciones (solo lectura) -->
-            <div class="wg-panel mm-pane" id="mmPanel-secciones" role="tabpanel" aria-labelledby="mmTab-secciones" tabindex="0" hidden>
-              <div class="cfg-card">
-                <p class="wg-panel__hint">Esto es lo que el asistente leyó de tu sitio.</p>
-                <label class="sr-only" for="mmSecQ">Buscar por título</label>
-                <input class="wg-input mm-search" id="mmSecQ" type="search" placeholder="Buscar por título" autocomplete="off" spellcheck="false" />
-                <div class="mm-chips" id="mmSecChips" role="group" aria-label="Filtrar por tipo"></div>
+            <!-- Secciones (sc:start): un recuadro por sección con su número del catálogo; tarjetas con IA (import-site cards_*) -->
+            <div class="wg-panel" id="mmPanel-secciones" role="tabpanel" aria-labelledby="mmTab-secciones" tabindex="0" hidden>
+              <div class="cfg-card sc-bar">
+                <div role="status" aria-live="polite"><p class="sc-t" id="scT"></p></div>
+                <div class="sc-run" id="scRun" hidden>
+                  <div class="sc-track" id="scTrack" role="progressbar" aria-label="Tarjetas generadas" aria-valuemin="0"><span class="sc-fill" id="scFill"></span></div>
+                  <span class="sc-n" id="scN"></span>
+                  <button class="wa-btn" id="scCancel" type="button">Cancelar</button>
+                </div>
+                <p class="sc-msg" id="scMsg" hidden></p>
+                <div class="sc-act" id="scAct">
+                  <button class="wa-btn" id="scGo" type="button" hidden></button>
+                  <button class="wa-btn" id="scAll" type="button" hidden>Regenerar todas</button>
+                  <button class="wa-btn" id="scSel" type="button" hidden>Seleccionar</button>
+                  <button class="wa-btn" id="scSelGo" type="button" hidden>Regenerar</button>
+                  <button class="wa-btn" id="scSelX" type="button" hidden>Cancelar selección</button>
+                </div>
               </div>
-              <div id="mmSecs"></div>
-              <button class="wa-btn mm-more" id="mmSecMore" type="button" hidden>Ver más</button>
+              <div class="mm-chips" id="scPage" hidden></div>
+              <div id="scGrid"></div>
             </div>
+            <!-- sc:end -->
           </div>
         </section>
         <!-- mm:end -->
@@ -1480,6 +1582,36 @@
       </div>
     </div>
   </div>
+
+  <!-- sc:start — Regenerar todas (confirmación) y detalle de una sección -->
+  <div class="wa-modal" id="scAllModal" role="dialog" aria-modal="true" aria-labelledby="scAllT" aria-describedby="scAllD">
+    <div class="wa-modal__scrim" data-scclose></div>
+    <div class="wa-modal__card" style="max-width:420px">
+      <div class="wa-modal__form">
+        <h2 class="wa-modal__title" id="scAllT">¿Regenerar todas las tarjetas?</h2>
+        <p class="wa-modal__desc" id="scAllD">Se rehacen con IA las tarjetas de todas las secciones. Puede tardar unos minutos. Si se cancela o falla, las tarjetas actuales quedan como están.</p>
+        <div class="wa-modal__actions">
+          <button class="wa-btn" type="button" data-scclose>Cancelar</button>
+          <button class="wa-btn wa-btn-primary" type="button" id="scAllGo">Regenerar todas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="wa-modal sc-modal" id="scModal" role="dialog" aria-modal="true" aria-labelledby="scMT">
+    <div class="wa-modal__scrim" data-scmclose></div>
+    <div class="wa-modal__card sc-modal__card" id="scMCard" tabindex="-1">
+      <div class="sc-mh">
+        <div class="sc-mh__b">
+          <button class="sc-back" id="scMBack" type="button" hidden></button>
+          <p class="sc-mk" id="scMK"></p>
+          <h2 class="wa-modal__title" id="scMT"></h2>
+        </div>
+        <button class="sc-x" type="button" data-scmclose aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div id="scMBody"></div>
+    </div>
+  </div>
+  <!-- sc:end -->
 
   <div class="wa-modal" id="delAccount" role="dialog" aria-modal="true" aria-labelledby="delAccountT">
     <div class="wa-modal__scrim" data-delclose></div>
@@ -3345,21 +3477,20 @@
     })();
     /* vf:end */
 
-    /* mm:start — Vista Memoria (pestañas Memoria · Notas · Fuentes · Secciones).
+    /* mm:start — Vista Memoria (pestañas General · Información pública · Secciones · Notas · Fuentes).
        Escribe SOLO widgets.knowledge (Memoria) y widgets.owner_notes (Notas). memory_draft es de solo lectura: se usa o se
        descarta con import-site (memory_accept / memory_discard). Lectura del sitio: import-site start → step (en bucle) →
        memory_generate. Nunca se llama a summarize. Todo texto del servidor o del sitio va con textContent. */
     appState.memory = { knowledge: '', aiAt: null, draft: '', draftAt: null, notes: '' };
-    var MM_MAX = 8000, MM_LINES = 6, MM_TABS = ['memoria', 'notas', 'fuentes', 'secciones'];
+    var MM_MAX = 8000, MM_LINES = 6, MM_TABS = ['general', 'info', 'secciones', 'notas', 'fuentes'];
     var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Flujos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
-    var MM_CHEV = '<svg class="mm-sr__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
     // edit / notes: null en lectura; el texto del borrador al editar (sobrevive al cambiar de vista).
-    var mm = { tab: 'memoria', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
+    var mm = { tab: 'general', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
     var rd = { gen: 0, timer: null, doneT: 0, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
-    var mmSecs = null, mmSecReq = null, mmSecShown = 20, mmSecOpen = {}, mmSecText = {};
-    // Filtro de Secciones (lo comparten las fichas de "Qué cubre", las de Secciones y las filas de "Páginas leídas").
-    var MM_G = [['screen', 'Pantallas', ['screen']], ['steps', 'Flujos', ['steps']], ['pages', 'Páginas', ['info', 'faq', 'menu', 'ui']], ['legal', 'Legales', ['legal']]];
-    var mmF = { g: 'all', q: '', page: '' }, mmSrc = null, mmWide = window.matchMedia('(min-width:1100px)');
+    var mmSecs = null, mmSecReq = null;
+    // Grupos de secciones (fichas de "Qué cubre" y recuadros de Secciones). El último valor: abierto al entrar.
+    var MM_G = [['screen', 'Pantallas', ['screen'], true], ['steps', 'Flujos', ['steps'], true], ['pages', 'Páginas', ['info', 'faq', 'menu', 'ui'], false], ['legal', 'Legales', ['legal'], false]];
+    var mmSrc = null, mmWide = window.matchMedia('(min-width:1100px)');
     function mmSetRow(r){
       var m = appState.memory;
       if ('knowledge' in r) m.knowledge = r.knowledge || '';
@@ -3395,10 +3526,12 @@
         if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
       });
       if (name === 'fuentes'){ mmSecLoad(); vfLoadUse(); mmSrcLoad(); }
-      if (name === 'secciones' || name === 'memoria') mmSecLoad();
+      else mmSecLoad();
+      if (name === 'secciones') scLoad();
       mmRender();
     }
-    function mmEnter(){ if (!mm) return; mmTabSet('memoria'); vfCount(rd, 0, rdRender); }
+    // Al entrar: siempre en General. El estado de las tarjetas se pide de nuevo (y retoma una corrida viva).
+    function mmEnter(){ if (!mm) return; mmTabSet('general'); vfCount(rd, 0, rdRender); scStatus(true); }
 
     // Bloques: una línea sin guion al inicio es un título; las líneas con guion van debajo.
     function mmParse(t){
@@ -3433,26 +3566,23 @@
       var ol = wgId('mmIdxL'); ol.textContent = '';
       box.querySelectorAll('.mm-blk__t').forEach(function(h){ var li = rsEl('li'), b = rsEl('button', '', h.textContent); b.type = 'button'; b.setAttribute('data-mmidx', h.id); li.appendChild(b); ol.appendChild(li); });
     }
-    // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a Secciones con ese filtro.
+    // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a ese grupo en Secciones.
     // Solo cuenta lo del dominio actual (site_url, sin "www."): lo leído antes de otro dominio no se lista ni suma.
     // Sin site_url no se filtra nada.
     function mmOwn(u){ var h = vfHost(vfW().siteUrl); return !h || vfHost(u) === h; }
     function mmRows(){ return mmSecs && !mmSecs.err ? mmSecs.rows.filter(function(x){ return mmOwn(x.document_url); }) : []; }
-    function mmChips(el, all){
+    function mmChips(el){
       el.textContent = ''; if (!mmSecs || mmSecs.err) return 0;
-      var rows = mmRows(), n = 0, list = (all ? [['all', 'Todas', null]] : []).concat(MM_G);
-      list.forEach(function(g){
-        var c = g[2] ? rows.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }).length : rows.length; if (!c) return;
+      var rows = mmRows(), n = 0;
+      MM_G.forEach(function(g){
+        var c = rows.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }).length; if (!c) return;
         var b = rsEl('button', 'mm-chip', g[1] + ' '); b.type = 'button'; b.setAttribute('data-mmf', g[0]); b.appendChild(rsEl('span', '', fmtN(c)));
-        if (all) b.setAttribute('aria-pressed', mmF.g === g[0] ? 'true' : 'false'); el.appendChild(b); n++;
+        el.appendChild(b); n++;
       });
-      if (all && mmF.page){ var x = rsEl('button', 'mm-chip', 'Página: ' + mmPath(mmF.page) + ' ✕'); x.type = 'button'; x.setAttribute('data-mmfp', ''); x.setAttribute('aria-label', 'Quitar el filtro de página ' + mmPath(mmF.page)); el.appendChild(x); }
       return n;
     }
-    function mmCover(){ wgId('mmCover').hidden = !mmChips(wgId('mmCoverChips'), false); }
+    function mmCover(){ wgId('mmCover').hidden = !mmChips(wgId('mmCoverChips')); }
     function mmPath(u){ try { var x = new URL(u); return x.pathname + x.search; } catch(e){ return String(u || ''); } }
-    function mmNorm(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
-    function mmFilter(f){ mmF = { g: f.g || 'all', q: f.q || '', page: f.page || '' }; wgId('mmSecQ').value = mmF.q; mmSecShown = 20; if (mm.tab !== 'secciones') mmTabSet('secciones', true); else mmSecRender(); }
     // Diferencias por línea (LCS): solo las distintas, con 2 de contexto. Sin color: prefijo y peso.
     function mmDiffRender(){
       var A = appState.memory.knowledge.split('\n').filter(function(l){ return l.trim(); }),
@@ -3499,8 +3629,8 @@
       if (!mm || !appState.memory) return;
       var m = appState.memory, has = !!m.knowledge.trim(), ok = vfVerified(), draft = !!m.draft.trim(), ed = mm.edit !== null,
           busy = mm.busy || rdBusy() || mm.run === 'run', r = mm.run;
-      // Cabecera (pestaña Memoria): Editar en lectura; Cancelar y Guardar al editar. Guardar solo con cambios.
-      var onM = mm.tab === 'memoria';
+      // Cabecera (pestaña Información pública): Editar en lectura; Cancelar y Guardar al editar. Guardar solo con cambios.
+      var onM = mm.tab === 'info';
       wgId('mmEdit').hidden = !onM || ed || !has;
       // Un solo negro: Guardar (editando) > Usar la nueva (hay versión nueva) > Editar.
       wgId('mmEdit').classList.toggle('wa-btn-primary', !draft);
@@ -3535,7 +3665,7 @@
         n.textContent = fmtN(len) + ' / ' + fmtN(MM_MAX); n.classList.toggle('is-max', len >= MM_MAX);
         wgId('mmOver').hidden = len <= MM_MAX; mmFit(ta);
       }
-      mmNotesRender(); rdRender();
+      mmNotesRender(); rdRender(); scRender(); mgRender();
     }
     function mmEditStart(){ mm.edit = appState.memory.knowledge; mmSay(''); mmRender(); if (mmFine()) wgId('mmTa').focus(); }
     function mmEditEnd(){ mm.edit = null; mm.blkKey = ''; mmRender(); wgId('mmEdit').focus(); }
@@ -3657,16 +3787,16 @@
       rd.timer = setTimeout(function(){ if (g === rd.gen) rdCall({ action: 'step', job_id: d.job_id }).then(rdJob, rdNone); }, 400);
     }
     function rdMem(){
-      mmSecs = null; mmSecText = {}; mmSecOpen = {};   // la lectura cambió las secciones: se vuelven a pedir
+      mmSecs = null; sc.text = {}; sc.data = null;   // la lectura cambió las secciones (y sus tarjetas): se vuelven a pedir
       rd.phase = 'writing'; rdRender();
       rdCall({ action: 'memory_generate' }).then(function(r){
         var st = (r.data || {}).status;
         rd.phase = r.ok ? 'done' : 'fail'; rd.failAt = r.ok ? '' : 'writing'; rd.err = !r.ok; rd.msg = mmGenText(r, true);
         if (!r.ok && r.status === 403) vfRefresh();
         if (r.ok) rd.doneT = setTimeout(function(){ if (rd.phase === 'done'){ rd.phase = 'idle'; rd.msg = ''; rdRender(); } }, 5000);   // vuelve al reposo
-        vfLoadUse(); mmSecLoad(); mmSrcLoad(); mmReload();
-        // Con una versión nueva, se lleva a la pestaña Memoria para revisarla.
-        if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('memoria'); }
+        vfLoadUse(); mmSecLoad(); mmSrcLoad(); mmReload(); scStatus(false);
+        // Con una versión nueva, se lleva a la pestaña Información pública para revisarla.
+        if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('info'); }
       }, rdNone);
     }
     function rdFail(r){
@@ -3752,70 +3882,23 @@
       wgId('mmSrcNone').hidden = !s || pages.length || acts.length;
     }
 
-    // Secciones (solo lectura): se piden al abrir la pestaña, SIN la columna text; el texto se pide al abrir cada fila.
+    // Secciones: se piden al abrir la vista, SIN la columna text (el texto se pide al abrir una sección).
+    // Paginadas de a 1000 (tope de PostgREST). Se numeran como el catálogo del servidor: document_url (localeCompare) y position.
     function mmKind(x){ return MM_KINDS.some(function(k){ return k[0] === x.kind; }) ? x.kind : 'info'; }
     function mmSecTitle(x){
       var t = String(x.heading_path || '').trim(); if (t) return t;
       try { var u = new URL(x.document_url); return u.hostname + (u.pathname === '/' ? '' : u.pathname); } catch(e){ return String(x.document_url || ''); }
     }
     function mmSecLoad(force){
-      if (mmSecs && !force){ mmSecRender(); return rdRender(); }
+      if (mmSecs && !force){ scRender(); return rdRender(); }
       if (mmSecReq) return;
-      if (force){ mmSecs = null; mmSecText = {}; mmSecOpen = {}; }
-      mmSecRender();
-      function set(v){ mmSecReq = null; mmSecs = v; mmSecShown = 20; mmSecRender(); mmRender(); }
-      mmSecReq = SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url').order('document_url').order('position').then(function(r){
-        set(!r || r.error ? { err: true, rows: [] } : { rows: r.data || [] });
-      }, function(){ set({ err: true, rows: [] }); });
+      if (force){ mmSecs = null; sc.text = {}; }
+      scRender();
+      function set(v){ mmSecReq = null; mmSecs = v; mmRender(); }
+      mmSecReq = scAll(function(a, b){ return SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url').order('document_url').order('position').order('id').range(a, b); })
+        .then(function(rows){ rows = scSort(rows); rows.forEach(function(x, i){ x.n = i + 1; }); set({ rows: rows }); }, function(){ set({ err: true, rows: [] }); });
     }
     function mmSBox(t){ var b = rsEl('div', 'mm-sbox'), i = rsEl('div'); i.appendChild(rsEl('p', '', t)); b.appendChild(i); return b; }
-    function mmSecRender(){
-      var box = wgId('mmSecs'), more = wgId('mmSecMore'), s = mmSecs; box.textContent = ''; more.hidden = true; mmChips(wgId('mmSecChips'), true);
-      if (!s){ box.appendChild(mmSBox('Cargando…')); return; }
-      var own = s.err ? [] : mmRows();
-      if (s.err || !own.length){
-        var b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : 'Tu sitio no tiene secciones leídas.'), l = null;
-        if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.setAttribute('data-mmretry', ''); }
-        else if (vfVerified()){ l = rsEl('button', 'mm-link', 'Ir a Fuentes'); l.setAttribute('data-mmtab', 'fuentes'); }
-        if (l){ l.type = 'button'; b.firstChild.appendChild(l); }
-        box.appendChild(b); return;
-      }
-      var G = MM_G.filter(function(g){ return g[0] === mmF.g; })[0], q = mmNorm(mmF.q).trim();
-      var all = own.filter(function(x){ return (!G || G[2].indexOf(mmKind(x)) >= 0) && (!mmF.page || x.document_url === mmF.page) && (!q || mmNorm(mmSecTitle(x)).indexOf(q) >= 0); });
-      if (!all.length){ box.appendChild(mmSBox('No hay secciones con este filtro.')); return; }
-      var left = mmSecShown;
-      MM_KINDS.forEach(function(k){
-        var rows = all.filter(function(x){ return mmKind(x) === k[0]; }); if (!rows.length || left <= 0) return;
-        var g = rsEl('div', 'mm-sg'), h = rsEl('h3', 'mm-sg__t', k[1]), bx = rsEl('div', 'mm-box');
-        h.appendChild(rsEl('span', '', fmtN(rows.length))); g.appendChild(h);
-        rows.slice(0, left).forEach(function(x){
-          var wrap = rsEl('div', 'mm-card'), b = rsEl('button', 'mm-sr'), d = rsEl('div', 'mm-sr__x'), open = !!mmSecOpen[x.id];
-          b.type = 'button'; b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.setAttribute('aria-controls', 'mmSx' + x.id); b.setAttribute('data-sec', x.id);
-          b.appendChild(rsEl('span', 'mm-sr__t', mmSecTitle(x))); b.appendChild(rsEl('span', 'mm-sr__m', x.is_hidden ? 'De la app' : 'Del sitio'));
-          b.insertAdjacentHTML('beforeend', MM_CHEV);
-          d.id = 'mmSx' + x.id; d.hidden = !open;
-          wrap.appendChild(b); wrap.appendChild(d); bx.appendChild(wrap);
-          if (open) mmSecFill(x, d);
-        });
-        left -= rows.length; g.appendChild(bx); box.appendChild(g);
-      });
-      more.hidden = mmSecShown >= all.length;
-    }
-    function mmSecFill(x, d){
-      d.textContent = '';
-      if (typeof mmSecText[x.id] === 'string'){
-        d.appendChild(rsEl('p', '', mmSecText[x.id]));
-        if (/^https?:\/\//i.test(x.document_url || '')){ var a = rsEl('a', '', 'Abrir la página'); a.href = x.document_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; d.appendChild(a); }
-        return;
-      }
-      d.appendChild(rsEl('p', '', 'Cargando…'));
-      if (mmSecText[x.id] === 1) return; mmSecText[x.id] = 1;
-      SB.from('sections').select('text').eq('id', x.id).maybeSingle().then(function(r){
-        var dd = wgId('mmSx' + x.id);
-        if (!r || r.error || !r.data){ delete mmSecText[x.id]; if (dd){ dd.textContent = ''; dd.appendChild(rsEl('p', '', 'No pudimos cargar el texto. Cerrá la fila y abrila de nuevo.')); } return; }
-        mmSecText[x.id] = String(r.data.text || ''); if (dd && !dd.hidden) mmSecFill(x, dd);
-      }, function(){ delete mmSecText[x.id]; });
-    }
 
     (function(){
       var bar = wgId('mmTabs');
@@ -3858,19 +3941,10 @@
       wgId('mmNotes').addEventListener('input', function(){ mm.notes = this.value; mmNotesRender(); });
       wgId('mmNotesVM').addEventListener('click', function(){ mm.notesOpen = !mm.notesOpen; mmNotesRender(); });
       wgId('rdGo').addEventListener('click', rdStart);
-      wgId('mmSecs').addEventListener('click', function(e){
-        var b = e.target.closest('[data-sec]'); if (!b) return;
-        var id = b.getAttribute('data-sec'), open = b.getAttribute('aria-expanded') !== 'true', d = wgId('mmSx' + id);
-        b.setAttribute('aria-expanded', open ? 'true' : 'false'); d.hidden = !open; mmSecOpen[id] = open;
-        if (open) mmSecFill(mmSecs.rows.filter(function(x){ return String(x.id) === id; })[0], d);
-      });
-      wgId('mmSecMore').addEventListener('click', function(){ mmSecShown += 20; mmSecRender(); });
-      wgId('mmSecQ').addEventListener('input', function(){ mmF.q = this.value; mmSecShown = 20; mmSecRender(); });
       document.querySelector('section[data-view="memoria"]').addEventListener('click', function(e){
-        var f = e.target.closest('[data-mmf]'), fp = e.target.closest('[data-mmfp]'), ix = e.target.closest('[data-mmidx]'), pg = e.target.closest('[data-mmpage]');
-        if (f) mmFilter({ g: f.getAttribute('data-mmf'), q: f.closest('#mmSecChips') ? mmF.q : '', page: f.closest('#mmSecChips') ? mmF.page : '' });
-        if (fp) mmFilter({ g: mmF.g, q: mmF.q });
-        if (pg) mmFilter({ page: pg.getAttribute('data-mmpage') });
+        var f = e.target.closest('[data-mmf]'), ix = e.target.closest('[data-mmidx]'), pg = e.target.closest('[data-mmpage]');
+        if (f) scGoGroup(f.getAttribute('data-mmf'));
+        if (pg) scGoPage(pg.getAttribute('data-mmpage'));
         if (ix){ var h = wgId(ix.getAttribute('data-mmidx')); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
       });
       wgId('mmNotesEx').addEventListener('click', function(e){
@@ -3885,6 +3959,453 @@
       window.addEventListener('resize', function(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(function(){ if (wuViewFromPath() === 'memoria') mmRender(); }); });
     })();
     /* mm:end */
+
+    /* sc:start — Memoria › Secciones y General. Un recuadro por sección con su número del catálogo (el mismo del servidor) y sus
+       tarjetas (para qué sirve cada sección y sus enlaces). Datos con la sesión (RLS), paginados de a 1000: section_cards y
+       section_links. Tarjetas con import-site (vfInvoke: siempre { ok, status, data }; red caída = status 0):
+       cards_status · cards_start · cards_step · cards_cancel. El servidor guarda lo nuevo aparte y lo aplica todo junto al
+       terminar: cancelar o un error no cambian nada. Una sola llamada en vuelo (los pasos van uno tras otro; Cancelar espera
+       al paso en curso). Un paso que falla por red se reintenta 3 veces con 2 s de espera; 30 pasos seguidos sin avance cortan
+       la corrida. Sin localStorage: todo sale de cards_status. Texto siempre con textContent. */
+    var SC_PAGE = 1000, SC_RETRY = 3, SC_RETRY_MS = 2000, SC_STUCK = 30, SC_SEL_MAX = 200;
+    var SC_ERR = {   // después de cualquier error el servidor no cambió nada: el mensaje lo dice
+      limite_diario: 'Se alcanzó el límite de generaciones de hoy. No se cambió nada. Se puede volver a intentar mañana.',
+      sitio_no_verificado: 'El sitio no está verificado. No se cambió nada.',
+      sin_secciones: 'No hay secciones leídas del sitio. No se cambió nada.',
+      sin_seleccion: 'Las secciones elegidas ya no existen. No se cambió nada.',
+      section_ids_invalido: 'La selección no es válida. No se cambió nada.',
+      ia_no_disponible: 'La IA no está disponible en este momento. No se cambió nada: las tarjetas quedaron como estaban.',
+      no_se_pudo_guardar: 'No se pudieron guardar las tarjetas nuevas. No se cambió nada.',
+      red: 'Se perdió la conexión con el servidor. No se cambió nada.',
+      otro: 'No se pudo terminar. No se cambió nada.'
+    };
+    var SC_ONE = { screen: 'Pantalla', steps: 'Flujo', menu: 'Menú', ui: 'Ventana', info: 'Página', faq: 'Preguntas', legal: 'Legal' };
+    var SC_I = '<svg class="sc-tile__i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    var SC_IC = {
+      screen: SC_I + '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+      steps: SC_I + '<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 8v8M11 6h9M11 18h9"/></svg>',
+      menu: SC_I + '<path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+      ui: SC_I + '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>',
+      info: SC_I + '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>',
+      faq: SC_I + '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>',
+      legal: SC_I + '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>'
+    };
+    var SC_CHEV = '<svg class="sc-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+    var SC_BOX = '<span class="sc-box" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.3 2.3 4.7-4.7"/></svg></span>';
+    // st: último cards_status · data: tarjetas y enlaces por sección · run: resumen de la corrida en curso · loop: hay bucle de pasos
+    // call: hay una llamada en vuelo · stop: se pidió cancelar · err: código del último error · msg: aviso (no error)
+    // sel: null o { id: true } (modo Seleccionar) · page: filtro de página (desde Fuentes) · open: grupos plegables abiertos
+    var sc = { st: null, stErr: '', data: null, req: null, again: false, text: {}, run: null, runId: null, loop: false, call: false, stop: false,
+      retry: 0, err: '', msg: '', gen: 0, timer: null, sel: null, page: '', open: { pages: false, legal: false }, gridKey: '', cur: null, back: [], mBack: null };
+    function scNum(n){ n = Number(n); return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
+    // Mismo orden que el catálogo del servidor (buildCatalog en import-site/cards.ts): document_url y después position.
+    // 'en-US' para comparar igual que el servidor (Deno), aunque el navegador esté en otro idioma.
+    function scSort(rows){ return rows.slice().sort(function(a, b){ return String(a.document_url || '').localeCompare(String(b.document_url || ''), 'en-US') || (Number(a.position) || 0) - (Number(b.position) || 0); }); }
+    // Trae todas las filas de a 1000 (PostgREST corta ahí): pide páginas hasta que una vuelve incompleta.
+    function scAll(make){
+      var out = [];
+      function page(a){ return make(a, a + SC_PAGE - 1).then(function(r){ if (!r || r.error) throw 0; var d = r.data || []; out = out.concat(d); return d.length < SC_PAGE ? out : page(a + SC_PAGE); }); }
+      return page(0);
+    }
+    function scById(id){ if (!mmSecs || mmSecs.err) return null; for (var i = 0; i < mmSecs.rows.length; i++) if (mmSecs.rows[i].id === id) return mmSecs.rows[i]; return null; }
+    function scCard(id){ return sc.data && !sc.data.err ? sc.data.cards[id] || null : null; }
+
+    // Tarjetas y enlaces (lectura). force: se vuelven a pedir (después de una corrida terminada).
+    function scLoad(force){
+      if (sc.data && !sc.data.err && !force) return scRender();
+      if (sc.req){ if (force) sc.again = true; return; }
+      sc.req = Promise.all([
+        scAll(function(a, b){ return SB.from('section_cards').select('section_id,purpose,evidence,updated_at,version,section_hash').order('section_id').range(a, b); }),
+        scAll(function(a, b){ return SB.from('section_links').select('from_section,to_section,kind,label,source,line').order('from_section').order('to_section').order('kind').order('label').range(a, b); })
+      ]).then(function(rs){
+        var cards = {}, links = {};
+        rs[0].forEach(function(c){ cards[c.section_id] = c; });
+        rs[1].forEach(function(l){ (links[l.from_section] = links[l.from_section] || []).push(l); });
+        sc.data = { cards: cards, links: links, n: rs[0].length };
+      }, function(){ sc.data = { err: true }; }).then(function(){
+        sc.req = null; sc.gridKey = '';
+        if (sc.again){ sc.again = false; return scLoad(true); }
+        scRender(); if (sc.cur) scFill();
+      });
+    }
+    // Estado de las tarjetas. resume: si hay una corrida viva, se retoma el bucle (al abrir el panel o la vista).
+    function scStatus(resume){
+      if (sc.loop || sc.call || !window.__wuUser) return;
+      sc.call = true; scRender();
+      vfInvoke('import-site', { action: 'cards_status' }).then(function(r){
+        sc.call = false;
+        if (!r.ok){ sc.st = null; sc.stErr = (r.data || {}).error || (r.status === 0 ? 'red' : 'otro'); return scRender(); }
+        sc.stErr = ''; sc.st = r.data || {};
+        var run = sc.st.run;
+        if (resume && run && run.status === 'running' && run.run_id){ sc.err = ''; sc.msg = ''; sc.run = run; return scLoop(run.run_id); }
+        scRender();
+      });
+    }
+    function scCode(r){ var d = r.data || {}; return d.error && SC_ERR[d.error] ? d.error : r.status === 0 ? 'red' : 'otro'; }
+    function scFail(code){ sc.loop = false; sc.stop = false; sc.retry = 0; sc.err = code; sc.msg = ''; scRender(); scStatus(false); }
+    // Generar / Actualizar (sin force), Regenerar todas (force) y Regenerar (n) (section_ids).
+    function scStart(o){
+      if (sc.loop || sc.call) return;
+      var body = { action: 'cards_start' };
+      if (o.force) body.force = true;
+      if (o.ids) body.section_ids = o.ids;
+      sc.err = ''; sc.msg = ''; sc.runId = null; sc.call = true; scRender();
+      vfInvoke('import-site', body).then(function(r){
+        sc.call = false;
+        if (!r.ok) return scFail(scCode(r));
+        var d = r.data || {};
+        if (d.status === 'running' && d.run_id){ sc.run = d; return scLoop(d.run_id); }
+        if (d.up_to_date || d.status === 'done'){ sc.msg = 'Las tarjetas ya estaban al día.'; return scStatus(false); }
+        scFail(scCode(r));
+      });
+    }
+    // Bucle de pasos: uno por vez, mientras la corrida esté en "running".
+    function scLoop(id){
+      if (sc.loop) return;
+      sc.loop = true; sc.stop = false; sc.retry = 0; sc.runId = id;
+      var g = ++sc.gen, still = 0, last = sc.run ? scNum(sc.run.done) : -1;
+      scRender();
+      function next(tries){
+        if (g !== sc.gen) return;
+        if (sc.stop) return scCancelNow(id);
+        sc.call = true; scRender();
+        vfInvoke('import-site', { action: 'cards_step', run_id: id }).then(function(r){
+          sc.call = false; if (g !== sc.gen) return;
+          var x = r.ok ? r.data || {} : null;
+          if (x && x.status === 'done') return scDone(x);
+          if (sc.stop) return scCancelNow(id);
+          if (!r.ok && r.status === 0 && tries < SC_RETRY){ sc.retry = tries + 1; scRender(); sc.timer = setTimeout(function(){ next(tries + 1); }, SC_RETRY_MS); return; }
+          sc.retry = 0;
+          if (!r.ok) return scFail(scCode(r));
+          sc.run = x;
+          if (x.status === 'running'){
+            var dn = scNum(x.done); still = dn > last ? 0 : still + 1; last = dn;
+            if (still >= SC_STUCK) return scCancelNow(id, 'otro');   // trabada: se corta en el servidor, sin dejar nada
+            scRender(); return next(0);
+          }
+          if (x.status === 'cancelled' || x.status === 'canceled'){ sc.loop = false; sc.run = null; sc.msg = 'Cancelado: todo quedó como estaba.'; return scStatus(false); }
+          scFail(x.error && SC_ERR[x.error] ? x.error : 'otro');
+        });
+      }
+      next(0);
+    }
+    function scDone(x){
+      var deg = scNum(x.degraded);
+      sc.loop = false; sc.stop = false; sc.run = null; sc.sel = null; sc.err = '';
+      sc.msg = 'Listo: tarjetas actualizadas.' + (deg ? ' ' + (deg === 1 ? '1 sección quedó' : fmtN(deg) + ' secciones quedaron') + ' con una tarjeta básica (sin IA).' : '');
+      toast('Tarjetas actualizadas');
+      scLoad(true); scStatus(false);
+    }
+    // Cancelar: corta la corrida en el servidor; lo hecho aparte se tira y las tarjetas de antes quedan como estaban.
+    // err: código a mostrar en vez de "Cancelado" (cuando la corta el panel por trabarse).
+    function scCancelNow(id, err){
+      clearTimeout(sc.timer); sc.gen++; sc.call = true; scRender();
+      vfInvoke('import-site', { action: 'cards_cancel', run_id: id }).then(function(r){
+        sc.call = false; sc.loop = false; sc.stop = false; sc.retry = 0;
+        var st = (r.data || {}).status;
+        if (r.ok && st === 'done'){ sc.run = null; sc.sel = null; sc.msg = 'La generación ya había terminado: las tarjetas se actualizaron.'; scLoad(true); return scStatus(false); }
+        if (r.ok){ sc.run = null; if (err) sc.err = err; else sc.msg = 'Cancelado: todo quedó como estaba.'; return scStatus(false); }
+        toast('No se pudo cancelar. Probá de nuevo.'); scStatus(true);   // sigue viva: se retoma el bucle
+      });
+    }
+    function scCancel(){ if (!sc.loop || sc.stop) return; sc.stop = true; scRender(); if (!sc.call) scCancelNow(sc.runId); }
+
+    // Línea de estado y botones. Un solo negro: Generar / Actualizar / Reintentar, o Regenerar (n) al seleccionar.
+    function scCounts(){
+      var s = sc.st; if (!s) return null;
+      var c = { sec: scNum(s.sections), fresh: scNum(s.fresh), stale: scNum(s.stale), missing: scNum(s.missing) };
+      c.any = c.fresh + c.stale > 0; c.todo = c.stale + c.missing; return c;
+    }
+    function scWhen(){ var at = sc.st && sc.st.last_generated_at; return at && !isNaN(new Date(at)) ? VF_DATE.format(new Date(at)) : ''; }
+    function scSummary(c){
+      var p = [rsCount(c.sec, 'sección', 'secciones')];
+      if (!c.any) p.push('ninguna tiene tarjeta');
+      else if (!c.todo) p.push('todas al día');
+      else { if (c.fresh) p.push(fmtN(c.fresh) + ' al día'); if (c.stale) p.push(fmtN(c.stale) + (c.stale === 1 ? ' desactualizada' : ' desactualizadas')); if (c.missing) p.push(fmtN(c.missing) + ' sin tarjeta'); }
+      var w = scWhen(); if (w) p.push('Última generación: ' + w);
+      return p.join(' · ');
+    }
+    function scRender(){
+      if (!mm || !sc || !wgId('scT')) return;
+      var c = scCounts(), busy = sc.loop || sc.call, t;
+      if (sc.loop) t = sc.stop ? 'Cancelando…' : sc.retry ? 'Sin conexión. Reintentando (' + sc.retry + ' de ' + SC_RETRY + ')…' : 'Generando tarjetas…';
+      else if (!c) t = sc.stErr ? 'No pudimos cargar el estado de las tarjetas.' : 'Revisando las tarjetas…';
+      else if (!c.sec) t = 'No hay secciones leídas de tu sitio.';
+      else t = scSummary(c);
+      var tt = wgId('scT'); if (tt.textContent !== t) tt.textContent = t;   // solo si cambia (el lector no repite)
+      // Barra de avance "{done} de {total}" con Cancelar al lado.
+      var run = sc.loop && sc.run, total = run ? scNum(run.total) : 0, done = run ? Math.min(scNum(run.done), total || Infinity) : 0;
+      wgId('scRun').hidden = !sc.loop;
+      var tr = wgId('scTrack'); tr.setAttribute('aria-valuemax', total || 1); tr.setAttribute('aria-valuenow', done); tr.setAttribute('aria-valuetext', total ? fmtN(done) + ' de ' + fmtN(total) : 'Empezando');
+      wgId('scFill').style.width = (total ? 100 * done / total : 0) + '%'; wgId('scN').textContent = total ? fmtN(done) + ' de ' + fmtN(total) : '';
+      wgId('scCancel').disabled = sc.stop; wgId('scCancel').textContent = sc.stop ? 'Cancelando…' : 'Cancelar';
+      // Aviso o error (con un enlace cuando hay algo que hacer en otra parte).
+      var m = wgId('scMsg'), mt = sc.loop ? '' : sc.err ? SC_ERR[sc.err] || SC_ERR.otro : sc.msg, mk = JSON.stringify([mt, sc.err]);
+      if (m.getAttribute('data-k') !== mk){
+        m.setAttribute('data-k', mk); m.textContent = mt; m.classList.toggle('is-err', !!sc.err);
+        var l = null;
+        if (sc.err === 'sitio_no_verificado'){ l = rsEl('a', 'mm-link', 'Verificar mi sitio'); l.href = '/app/verificaciones'; l.setAttribute('data-mmgo', 'verificaciones'); }
+        else if (sc.err === 'sin_secciones'){ l = rsEl('button', 'mm-link', 'Leer el sitio en Fuentes'); l.type = 'button'; l.setAttribute('data-mmtab', 'fuentes'); }
+        if (l){ m.appendChild(document.createTextNode(' ')); m.appendChild(l); }
+      }
+      m.hidden = !mt;
+      // Botones
+      var go = wgId('scGo'), all = wgId('scAll'), sel = wgId('scSel'), sg = wgId('scSelGo'), sx = wgId('scSelX'), ready = !!(c && c.sec);
+      var selN = sc.sel ? Object.keys(sc.sel).length : 0, inSel = !!sc.sel && !sc.loop;
+      var goAct = '', goLabel = '';
+      if (!sc.loop && !inSel){
+        if (sc.err === 'red' && sc.runId){ goAct = 'resume'; goLabel = 'Reintentar'; }
+        else if (ready && !c.any){ goAct = 'gen'; goLabel = 'Generar'; }
+        else if (ready && c.todo){ goAct = 'gen'; goLabel = 'Actualizar'; }
+        else if (!c && sc.stErr){ goAct = 'status'; goLabel = 'Probar de nuevo'; }
+      }
+      go.hidden = !goAct; go.textContent = goLabel; go.setAttribute('data-act', goAct); go.classList.toggle('wa-btn-primary', !!goAct && goAct !== 'status'); go.disabled = busy;
+      all.hidden = sc.loop || inSel || !ready || !c.any; all.disabled = busy;
+      sel.hidden = sc.loop || inSel || !ready; sel.disabled = busy || !c || !c.any;
+      sg.hidden = sx.hidden = !inSel; sg.textContent = 'Regenerar (' + fmtN(selN) + ')'; sg.disabled = busy || !selN; sg.classList.add('wa-btn-primary'); sx.disabled = busy;
+      // Filtro de página (desde Fuentes › Páginas leídas)
+      var pf = wgId('scPage'), pk = sc.page;
+      if (pf.getAttribute('data-k') !== pk){
+        pf.setAttribute('data-k', pk); pf.textContent = '';
+        if (pk){ var x = rsEl('button', 'mm-chip', 'Página: ' + mmPath(pk) + ' ✕'); x.type = 'button'; x.setAttribute('data-scpx', ''); x.setAttribute('aria-label', 'Quitar el filtro de página ' + mmPath(pk)); pf.appendChild(x); }
+      }
+      pf.hidden = !pk;
+      scGrid(); mgRender();
+    }
+    // Recuadros por grupo. Se rehacen solo si cambia lo que muestran (no en cada paso de la corrida).
+    function scGrid(){
+      var box = wgId('scGrid'), s = mmSecs, inSel = !!sc.sel && !sc.loop;
+      var key = JSON.stringify([s ? (s.err ? 'e' : s.rows.length) : 'l', sc.data ? (sc.data.err ? 'e' : sc.data.n) : 'l', sc.page, inSel, vfHost(vfW().siteUrl)]);
+      if (key === sc.gridKey) return; sc.gridKey = key;
+      box.textContent = '';
+      if (!s){ box.appendChild(mmSBox('Cargando…')); return; }
+      var own = s.err ? [] : mmRows().filter(function(x){ return !sc.page || x.document_url === sc.page; });
+      if (s.err || !own.length){
+        var b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : sc.page ? 'Esa página no tiene secciones.' : 'Tu sitio no tiene secciones leídas.'), l = null;
+        if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.setAttribute('data-mmretry', ''); }
+        else if (!sc.page && vfVerified()){ l = rsEl('button', 'mm-link', 'Ir a Fuentes'); l.setAttribute('data-mmtab', 'fuentes'); }
+        if (l){ l.type = 'button'; b.firstChild.appendChild(l); }
+        box.appendChild(b); return;
+      }
+      MM_G.forEach(function(g){
+        var rows = own.filter(function(x){ return g[2].indexOf(mmKind(x)) >= 0; }); if (!rows.length) return;
+        var fold = !g[3], wrap = rsEl(fold ? 'details' : 'section', 'sc-g'), h = rsEl(fold ? 'summary' : 'h3', 'sc-g__h', g[1] + ' '), grid = rsEl('div', 'sc-grid' + (inSel ? ' is-sel' : ''));
+        wrap.id = 'scG-' + g[0]; wrap.setAttribute('data-scg', g[0]);
+        h.appendChild(rsEl('span', '', fmtN(rows.length)));
+        if (fold){ h.insertAdjacentHTML('beforeend', SC_CHEV); wrap.open = !!sc.open[g[0]]; }
+        wrap.appendChild(h);
+        rows.forEach(function(x){ grid.appendChild(scTile(x, inSel)); });
+        wrap.appendChild(grid); box.appendChild(wrap);
+      });
+    }
+    function scTile(x, inSel){
+      var b = rsEl('button', 'sc-tile'), top = rsEl('span', 'sc-tile__top'), k = mmKind(x), has = sc.data && !sc.data.err ? !!sc.data.cards[x.id] : true;
+      b.type = 'button'; b.setAttribute('data-scid', x.id);
+      top.innerHTML = SC_IC[k] || SC_IC.info; top.appendChild(rsEl('span', 'sc-tile__n', '#' + x.n));
+      if (inSel){ top.insertAdjacentHTML('beforeend', SC_BOX); b.setAttribute('aria-pressed', sc.sel[x.id] ? 'true' : 'false'); if (!has){ b.setAttribute('aria-disabled', 'true'); b.title = 'Sin tarjeta: se crea con Generar o Actualizar.'; } }
+      b.appendChild(top);
+      b.appendChild(rsEl('span', 'sc-tile__t', mmSecTitle(x)));
+      b.appendChild(rsEl('span', 'sc-tile__m', (x.is_hidden ? 'De la app' : 'Del sitio') + (has ? '' : ' · Sin tarjeta')));
+      b.setAttribute('aria-label', '#' + x.n + ', ' + SC_ONE[k] + ': ' + mmSecTitle(x) + (has ? '' : ', sin tarjeta'));
+      return b;
+    }
+    function scGoGroup(g){
+      if (g === 'pages' || g === 'legal') sc.open[g] = true;
+      sc.page = ''; sc.gridKey = ''; mmTabSet('secciones', true);
+      var w = wgId('scG-' + g); if (!w) return;
+      if (w.tagName === 'DETAILS') w.open = true;
+      w.scrollIntoView({ block: 'start' }); var h = w.firstChild; if (h.tagName === 'H3') h.tabIndex = -1; h.focus({ preventScroll: true });
+    }
+    function scGoPage(u){ sc.page = u || ''; sc.gridKey = ''; mmTabSet('secciones', true); }
+
+    // General: estado de las tarjetas y de la información pública, y lo que falta (Hecho / Falta, como Widget › General).
+    function mgRender(){
+      var ci = wgId('mgCards'); if (!ci || !sc || !appState.memory) return;
+      var c = scCounts(), m = appState.memory, w = scWhen(), t;
+      if (sc.loop){ var r = sc.run || {}; t = 'Generando tarjetas' + (scNum(r.total) ? ': ' + fmtN(Math.min(scNum(r.done), scNum(r.total))) + ' de ' + fmtN(scNum(r.total)) : '') + '.'; }
+      else if (!c) t = sc.stErr ? 'No pudimos cargar el estado de las tarjetas.' : 'Revisando…';
+      else if (!c.sec) t = 'Sin secciones: primero leé tu sitio en Fuentes.';
+      else if (!c.any) t = 'Faltan: ninguna de las ' + rsCount(c.sec, 'sección', 'secciones') + ' tiene tarjeta.';
+      else if (c.todo) t = (c.stale ? 'Desactualizadas: ' : 'Faltan: ') + [c.stale ? fmtN(c.stale) + (c.stale === 1 ? ' cambió' : ' cambiaron') : '', c.missing ? fmtN(c.missing) + (c.missing === 1 ? ' no tiene tarjeta' : ' no tienen tarjeta') : ''].filter(Boolean).join(' y ') + ' (de ' + rsCount(c.sec, 'sección', 'secciones') + ').';
+      else t = 'Al día: ' + fmtN(c.sec) + ' de ' + rsCount(c.sec, 'sección', 'secciones') + '.';
+      if (c && w && !sc.loop) t += ' Última generación: ' + w + '.';
+      if (ci.textContent !== t) ci.textContent = t;
+      var has = !!m.knowledge.trim(), draft = !!m.draft.trim();
+      wgId('mgInfo').textContent = !has ? 'Vacía: tu asistente no tiene un resumen de tu sitio.'
+        : (m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) : 'Editada por vos') + ' · ' + fmtN(m.knowledge.length) + ' / ' + fmtN(MM_MAX) + ' caracteres' + (draft ? ' · Hay una versión nueva para revisar.' : '');
+      // Qué falta, en orden: lo primero de "Falta" es lo que sigue. null = sin dato todavía (no se afirma nada).
+      var read = mmSecs && !mmSecs.err ? mmRows().length > 0 : null, items = [
+        [vfVerified(), 'Sitio verificado', 'Verificar el sitio', 'go', 'verificaciones'],
+        [read, 'Sitio leído', 'Leer el sitio', 'tab', 'fuentes'],
+        [has, 'Información pública creada', 'Crear la información pública', 'tab', 'info'],
+        [c && c.sec ? c.any && !c.todo : null, 'Tarjetas al día', c && c.any ? 'Actualizar las tarjetas' : 'Generar las tarjetas', 'tab', 'secciones'],
+        [draft ? false : null, '', 'Revisar la versión nueva de la información pública', 'tab', 'info']
+      ];
+      var box = wgId('mgTodo'), key = JSON.stringify(items.map(function(i){ return [i[0], i[2]]; }));
+      if (box.getAttribute('data-k') === key) return; box.setAttribute('data-k', key); box.textContent = '';
+      var done = rsEl('ul', 'wg-todo'), todo = rsEl('ul', 'wg-todo');
+      items.forEach(function(i){
+        if (i[0] === null) return;
+        var li = rsEl('li');
+        if (i[0]){ li.innerHTML = WG_CHECK; li.appendChild(document.createTextNode(i[1])); done.appendChild(li); return; }
+        var b = rsEl(i[3] === 'go' ? 'a' : 'button', 'wg-link', i[2]);
+        if (i[3] === 'go'){ b.href = '/app/' + i[4]; b.setAttribute('data-mmgo', i[4]); } else { b.type = 'button'; b.setAttribute('data-mmtab', i[4]); }
+        li.appendChild(b); todo.appendChild(li);
+      });
+      if (done.children.length){ box.appendChild(rsEl('span', 'wg-field__label', 'Hecho')); box.appendChild(done); }
+      if (todo.children.length){ box.appendChild(rsEl('span', 'wg-field__label', 'Falta')); box.appendChild(todo); }
+      else if (done.children.length) box.appendChild(rsEl('p', 'wg-field__hint', 'No falta nada por completar.'));
+    }
+
+    // Detalle de una sección (modal): texto de la tarjeta y el texto exacto con número de línea. Los enlaces son palabras en azul
+    // donde aparece su etiqueta (o el título de la sección destino si no tiene); con "line", solo en esa línea.
+    var scM = wgId('scModal');
+    function scOpen(id, push){
+      if (!scById(id)) return;
+      if (!scM.classList.contains('is-open')){ sc.mBack = document.activeElement; sc.back = []; scM.classList.add('is-open'); document.body.style.overflow = 'hidden'; sc.cur = id; scFill(); wgId('scMCard').scrollTop = 0; scM.querySelector('.sc-x').focus(); return; }
+      if (push && sc.cur && sc.cur !== id) sc.back.push(sc.cur);
+      sc.cur = id; scFill(); wgId('scMCard').scrollTop = 0; wgId('scMT').focus();
+    }
+    function scClose(){
+      if (!scM.classList.contains('is-open')) return;
+      scM.classList.remove('is-open'); document.body.style.overflow = ''; sc.cur = null; sc.back = [];
+      var b = sc.mBack && sc.mBack.offsetParent ? sc.mBack : null; if (b && b.focus) b.focus();
+    }
+    // Etiquetas que se buscan en el texto para un enlace: la suya; sin etiqueta, el título de la destino y su última parte.
+    function scLabels(l){
+      var lb = String(l.label || '').trim(); if (lb) return [lb];
+      var t = scById(l.to_section); if (!t) return [];
+      var h = String(t.heading_path || '').trim(), out = []; if (!h) return out;
+      out.push(h); var p = h.split(' › '), last = p[p.length - 1].trim(); if (last && last !== h) out.push(last);
+      return out;
+    }
+    var SC_WORD = /[\p{L}\p{N}]/u;
+    // Busca la primera aparición de cada enlace (palabra entera; primero tal cual y, si no está, sin distinguir mayúsculas)
+    // y no deja que se pisen.
+    function scFind(hay, needle, text){
+      for (var from = 0, at; needle && (at = hay.indexOf(needle, from)) >= 0; from = at + 1){
+        var end = at + needle.length;
+        if (!SC_WORD.test(text.charAt(at - 1) || ' ') && !SC_WORD.test(text.charAt(end) || ' ')) return at;
+      }
+      return -1;
+    }
+    function scMatches(text, links){
+      var low = text.toLowerCase(), same = low.length === text.length, found = [];
+      links.forEach(function(l){
+        var labs = scLabels(l), i, at;
+        for (i = 0; i < labs.length; i++) if ((at = scFind(text, labs[i], text)) >= 0) return found.push({ a: at, b: at + labs[i].length, l: l });
+        if (same) for (i = 0; i < labs.length; i++){ var nl = labs[i].toLowerCase(); if ((at = scFind(low, nl, text)) >= 0) return found.push({ a: at, b: at + nl.length, l: l }); }
+      });
+      found.sort(function(x, y){ return x.a - y.a || (y.b - y.a) - (x.b - x.a); });
+      var out = [], cut = 0;
+      found.forEach(function(f){ if (f.a >= cut){ out.push(f); cut = f.b; } });
+      return out;
+    }
+    function scLinkify(el, text, links){
+      var ms = scMatches(text, links), pos = 0;
+      ms.forEach(function(f){
+        if (f.a > pos) el.appendChild(document.createTextNode(text.slice(pos, f.a)));
+        var t = scById(f.l.to_section), b = rsEl('button', 'sc-lk', text.slice(f.a, f.b));
+        b.type = 'button'; b.setAttribute('data-scgo', f.l.to_section); b.title = 'Abrir #' + t.n + ': ' + mmSecTitle(t);
+        el.appendChild(b); pos = f.b;
+      });
+      if (pos < text.length) el.appendChild(document.createTextNode(text.slice(pos)));
+      return ms;
+    }
+    // "2, 5-6" → { 2: 1, 5: 1, 6: 1 } (solo líneas que existen); null si no queda ninguna.
+    function scEv(s, max){
+      var set = {}, n = 0;
+      String(s || '').replace(/(\d+)\s*(?:[-–]\s*(\d+))?/g, function(all, a, b){
+        a = +a; b = b ? +b : a; if (b < a){ var t = a; a = b; b = t; }
+        for (var i = Math.max(1, a); i <= Math.min(b, max); i++){ set[i] = 1; n++; }
+        return all;
+      });
+      return n ? set : null;
+    }
+    function scFill(){
+      var x = scById(sc.cur); if (!x) return scClose();
+      var k = mmKind(x), card = scCard(x.id), body = wgId('scMBody'), back = wgId('scMBack');
+      wgId('scMK').textContent = '#' + x.n + ' · ' + SC_ONE[k] + ' · ' + (x.is_hidden ? 'De la app' : 'Del sitio');
+      var h = wgId('scMT'); h.textContent = mmSecTitle(x); h.tabIndex = -1;
+      var prev = sc.back.length ? scById(sc.back[sc.back.length - 1]) : null;
+      back.hidden = !prev; back.textContent = '';
+      if (prev){ back.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4L6 8l4 4"/></svg>'; back.appendChild(document.createTextNode('Volver a #' + prev.n)); }
+      body.textContent = '';
+      var links = sc.data && !sc.data.err ? (sc.data.links[x.id] || []).filter(function(l){ return !!scById(l.to_section) && l.to_section !== x.id; }) : [];
+      // Tarjeta (para qué sirve). Los enlaces sin línea pueden aparecer acá.
+      var s1 = rsEl('section', 'sc-sec'); s1.appendChild(rsEl('h3', 'sc-h3', 'Para qué sirve'));
+      if (!sc.data) s1.appendChild(rsEl('p', 'sc-none', 'Cargando…'));
+      else if (sc.data.err) s1.appendChild(rsEl('p', 'sc-none', 'No pudimos cargar las tarjetas.'));
+      else if (!card || !String(card.purpose || '').trim()) s1.appendChild(rsEl('p', 'sc-none', 'Esta sección no tiene tarjeta.'));
+      else { var p = rsEl('p', 'sc-p'); scLinkify(p, String(card.purpose), links.filter(function(l){ return !l.line; })); s1.appendChild(p); }
+      body.appendChild(s1);
+      // Texto exacto, una fila por línea (split por "\n", sin recortar; línea = índice + 1).
+      var s2 = rsEl('section', 'sc-sec'); s2.appendChild(rsEl('h3', 'sc-h3', 'Texto de la sección')); body.appendChild(s2);
+      var txt = sc.text[x.id];
+      if (typeof txt !== 'string'){
+        s2.appendChild(rsEl('p', 'sc-none', txt === 0 ? 'No pudimos cargar el texto. Cerrá y abrí la sección de nuevo.' : 'Cargando…'));
+        if (txt === 0){ delete sc.text[x.id]; return; }
+        if (txt !== 1){
+          sc.text[x.id] = 1; var id = x.id;
+          SB.from('sections').select('text').eq('id', id).maybeSingle().then(function(r){
+            sc.text[id] = r && !r.error && r.data ? String(r.data.text || '') : 0; if (sc.cur === id) scFill();
+          }, function(){ sc.text[id] = 0; if (sc.cur === id) scFill(); });
+        }
+        return;
+      }
+      var lines = txt.split('\n'), ev = card ? scEv(card.evidence, lines.length) : null, ol = rsEl('ol', 'sc-lines'), used = {};
+      if (ev){ var e = rsEl('p', 'sc-ev'), sw = rsEl('i'); sw.setAttribute('aria-hidden', 'true'); e.appendChild(sw); e.appendChild(document.createTextNode('Las líneas marcadas respaldan la tarjeta.')); s2.appendChild(e); }
+      ol.setAttribute('aria-label', 'Texto de la sección, ' + rsCount(lines.length, 'línea', 'líneas'));
+      lines.forEach(function(line, i){
+        var n = i + 1, li = rsEl('li', ev && ev[n] ? 'is-ev' : ''), ln = rsEl('span', 'sc-ln', String(n)), lt = rsEl('span', 'sc-lt');
+        ln.setAttribute('aria-hidden', 'true');
+        if (ev && ev[n]) lt.appendChild(rsEl('span', 'sr-only', 'Respaldo. '));
+        var here = links.filter(function(l, j){ return l.line ? l.line === n : !used[j]; });
+        scLinkify(lt, line, here).forEach(function(f){ if (!f.l.line) used[links.indexOf(f.l)] = 1; });
+        li.appendChild(ln); li.appendChild(lt); ol.appendChild(li);
+      });
+      s2.appendChild(ol);
+      if (/^https?:\/\//i.test(x.document_url || '')){ var a = rsEl('a', 'sc-open', 'Abrir la página'); a.href = x.document_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; body.appendChild(a); }
+    }
+    // Confirmación de "Regenerar todas" (mismo patrón que "¿Descartar la versión nueva?").
+    var scAm = wgId('scAllModal'), scAmBack = null;
+    function scAllAsk(){ scAmBack = document.activeElement; scAm.classList.add('is-open'); document.body.style.overflow = 'hidden'; scAm.querySelector('.wa-btn[data-scclose]').focus(); }
+    function scAllClose(){
+      if (!scAm.classList.contains('is-open')) return;
+      scAm.classList.remove('is-open'); document.body.style.overflow = '';
+      var b = scAmBack && scAmBack.offsetParent ? scAmBack : wgId('scAll'); if (b && b.focus) b.focus();
+    }
+    (function(){
+      wgId('scGo').addEventListener('click', function(){
+        var a = this.getAttribute('data-act');
+        if (a === 'gen') scStart({}); else if (a === 'resume'){ sc.err = ''; scStatus(true); } else if (a === 'status') scStatus(true);
+      });
+      wgId('scAll').addEventListener('click', scAllAsk);
+      wgId('scAllGo').addEventListener('click', function(){ scAllClose(); scStart({ force: true }); });
+      Array.prototype.forEach.call(scAm.querySelectorAll('[data-scclose]'), function(el){ el.addEventListener('click', scAllClose); });
+      wgId('scCancel').addEventListener('click', scCancel);
+      wgId('scSel').addEventListener('click', function(){ if (!this.disabled){ sc.sel = {}; sc.msg = ''; sc.err = ''; scRender(); wgId('scSelX').focus(); } });
+      wgId('scSelX').addEventListener('click', function(){ sc.sel = null; scRender(); wgId('scSel').focus(); });
+      wgId('scSelGo').addEventListener('click', function(){ var ids = sc.sel ? Object.keys(sc.sel) : []; if (ids.length) scStart({ ids: ids }); });
+      wgId('scPage').addEventListener('click', function(e){ if (e.target.closest('[data-scpx]')){ sc.page = ''; scRender(); wgId('mmTab-secciones').focus(); } });
+      wgId('scGrid').addEventListener('click', function(e){
+        var b = e.target.closest('[data-scid]'); if (!b) return;
+        var id = b.getAttribute('data-scid');
+        if (!sc.sel || sc.loop) return scOpen(id);
+        if (b.getAttribute('aria-disabled') === 'true') return;
+        if (sc.sel[id]) delete sc.sel[id];
+        else { if (Object.keys(sc.sel).length >= SC_SEL_MAX) return toast('Se pueden elegir hasta ' + SC_SEL_MAX + ' secciones por vez.'); sc.sel[id] = true; }
+        b.setAttribute('aria-pressed', sc.sel[id] ? 'true' : 'false'); scRender();   // en su lugar, sin redibujar la cuadrícula
+      });
+      wgId('scGrid').addEventListener('toggle', function(e){ var d = e.target; if (d.tagName === 'DETAILS') sc.open[d.getAttribute('data-scg')] = d.open; }, true);
+      scM.addEventListener('click', function(e){
+        if (e.target.closest('[data-scmclose]')) return scClose();
+        var g = e.target.closest('[data-scgo]'); if (g) return scOpen(g.getAttribute('data-scgo'), true);
+        if (e.target.closest('#scMBack')){ var p = sc.back.pop(); if (p){ sc.cur = p; scFill(); wgId('scMCard').scrollTop = 0; wgId('scMT').focus(); } }
+      });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ scClose(); scAllClose(); } });
+    })();
+    /* sc:end */
 
     /* ---------- Router por ruta (pathname) ----------
        El router decide la vista SOLO leyendo location.pathname. Nunca usamos
@@ -3979,7 +4500,7 @@
       else if (current === 'analiticas') renderAnalytics();
       else if (current === 'verificaciones') vfEnter();
       else if (current === 'memoria') mmEnter();
-      vfBadge(); mmBadge();
+      vfBadge(); mmBadge(); scStatus(true);   // Tarjetas: si hay una corrida viva, se retoma
     }
 
     // El valor 'resolved' de la base significa chat cerrado; se renombra a 'closed' en la Fase 3 (migración de Supabase, no ahora).
