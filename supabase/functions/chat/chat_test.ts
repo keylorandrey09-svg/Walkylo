@@ -1,6 +1,6 @@
 // supabase/functions/chat/chat_test.ts   Ejecutar: deno test -A chat_test.ts
 // Sin red ni claves: almacén en memoria e IA falsa.
-import { buildQuery, cleanEmails, detectNoAnswer, emailOf, formatSections, instructions, LIMITS, NO_ANSWER, REPLY_NOTE, sectionLink, type SectionHit, type Widget } from "./core.ts";
+import { buildQuery, cleanEmails, detectNoAnswer, emailOf, formatSections, instructions, LIMITS, NO_ANSWER, REPLY_NOTE, searchWithFallback, sectionLink, type SectionHit, type Widget } from "./core.ts";
 import { handle, type Store } from "./handler.ts";
 import type { AiArgs, AiRaw } from "./core.ts";
 
@@ -483,4 +483,76 @@ Deno.test("v22: si la acción no tiene pasos descritos, no se deducen ni se copi
     ok(modo.includes("Decí en una frase que no figuran los pasos"), "avisar que no figuran");
   }
   ok(!instructions(baseWidget()).includes("SECCIONES"), "el modo viejo sigue sin nombrar secciones");
+});
+
+// ---------- v23: búsqueda con tarjetas ----------
+const rpcOf = (script: Record<string, { data?: unknown; error?: unknown; throws?: Error }>) => {
+  const calls: { name: string; args: Record<string, unknown> }[] = [];
+  const fn = (name: string, args: Record<string, unknown>) => {
+    calls.push({ name, args });
+    const r = script[name] ?? { error: { message: "no existe" } };
+    if (r.throws) return Promise.reject(r.throws);
+    return Promise.resolve({ data: r.data ?? null, error: r.error ?? null });
+  };
+  return { fn, calls };
+};
+const ROW = { kind: "info", is_hidden: false, heading_path: "Configuración", text: "Apariencia", anchor: null, document_url: "https://x.test/", rank: 1, via: "tarjeta", purpose: "Resumen de la tarjeta" };
+
+Deno.test("v23: la búsqueda usa primero search_sections_v2 (con tarjetas) y no toca la v1 si funciona", async () => {
+  const r = rpcOf({ search_sections_v2: { data: [ROW] }, search_sections: { data: [] } });
+  const fb: string[] = [];
+  const hits = await searchWithFallback(r.fn, WID, "modo nocturno", 8, (m) => fb.push(m));
+  eq(hits.length, 1, "devuelve lo de v2");
+  eq(r.calls.length, 1, "una sola llamada");
+  eq(r.calls[0].name, "search_sections_v2", "usa v2");
+  eq(JSON.stringify(r.calls[0].args), JSON.stringify({ p_widget: WID, p_query: "modo nocturno", p_k: 8 }), "mismos parámetros");
+  eq(fb.length, 0, "sin aviso de respaldo");
+});
+
+Deno.test("v23: si v2 devuelve error, usa la búsqueda de siempre (v1) con los mismos parámetros y avisa", async () => {
+  const r = rpcOf({ search_sections_v2: { error: { message: "function does not exist" } }, search_sections: { data: [ROW] } });
+  const fb: string[] = [];
+  const hits = await searchWithFallback(r.fn, WID, "hola", 5, (m) => fb.push(m));
+  eq(hits.length, 1, "devuelve lo de v1");
+  eq(r.calls.map((c) => c.name).join(","), "search_sections_v2,search_sections", "v2 y después v1");
+  eq(JSON.stringify(r.calls[1].args), JSON.stringify({ p_widget: WID, p_query: "hola", p_k: 5 }), "v1 recibe lo mismo");
+  ok(fb.length === 1 && fb[0].includes("function does not exist"), "avisa el motivo");
+});
+
+Deno.test("v23: si v2 lanza una excepción (por ejemplo de red) también cae a v1", async () => {
+  const r = rpcOf({ search_sections_v2: { throws: new Error("red caída") }, search_sections: { data: [ROW] } });
+  const hits = await searchWithFallback(r.fn, WID, "hola", 8);
+  eq(hits.length, 1, "devuelve lo de v1");
+  eq(r.calls.length, 2, "dos llamadas");
+});
+
+Deno.test("v23: si fallan v2 y v1 es un error de búsqueda (db_busqueda), no un resultado vacío", async () => {
+  const r = rpcOf({ search_sections_v2: { error: { message: "x" } }, search_sections: { error: { message: "y" } } });
+  let msg = "";
+  try { await searchWithFallback(r.fn, WID, "hola", 8); } catch (e) { msg = (e as Error).message; }
+  eq(msg, "db_busqueda", "error");
+  const r2 = rpcOf({ search_sections_v2: { throws: new Error("a") }, search_sections: { throws: new Error("b") } });
+  msg = "";
+  try { await searchWithFallback(r2.fn, WID, "hola", 8); } catch (e) { msg = (e as Error).message; }
+  eq(msg, "db_busqueda", "error también con excepciones");
+});
+
+Deno.test("v23: sin resultados (data null) devuelve lista vacía, sin error ni respaldo", async () => {
+  const r = rpcOf({ search_sections_v2: { data: null } });
+  const hits = await searchWithFallback(r.fn, WID, "nada", 8);
+  eq(hits.length, 0, "vacío");
+  eq(r.calls.length, 1, "no cae a v1 por no encontrar nada");
+});
+
+Deno.test("v23: el resumen de la tarjeta NUNCA llega a la IA; solo el texto real de la sección", async () => {
+  const card = "TARJETA-SECRETA-777 dice que hay un botón Inventado";
+  const hit = { ...ROW, heading_path: "Configuración", text: "Apariencia\nBotón: Oscuro", purpose: card, via: "tarjeta" };
+  ok(!formatSections([hit]).block.includes("TARJETA-SECRETA-777"), "formatSections no incluye la tarjeta");
+  ok(formatSections([hit]).block.includes("Botón: Oscuro"), "sí incluye el texto real");
+  const s = setup(baseWidget({ use_sections: true }));
+  s.store.hits = [hit];
+  await s.send({ message: "¿Dónde cambio el tema?" });
+  const sent = s.ai.calls[0].instructions + JSON.stringify(s.ai.calls[0].input);
+  ok(!sent.includes("TARJETA-SECRETA-777"), "ni en las instrucciones ni en los mensajes a la IA");
+  ok(s.ai.calls[0].instructions.includes("Botón: Oscuro"), "la sección real sí está");
 });
