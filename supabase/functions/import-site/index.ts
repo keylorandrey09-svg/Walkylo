@@ -5,6 +5,10 @@ import { type PageForSummary, type Store2, summarize, type WidgetFull } from "./
 import {
   acceptMemoryDraft, discardMemoryDraft, generateMemory, type MemSection, type MemStore, type Run, type WidgetMem,
 } from "./memory.ts";
+import {
+  cancelCards, type CardMeta, type CardRow, type CardRun, type CardSection, type CardsStore, cardsStatus, type LinkRow, normalizeRun, startCards,
+  stepCards,
+} from "./cards.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -26,7 +30,19 @@ function must<T>(r: { data: T; error: any }): T {
   return r.data;
 }
 
-const store: Store2 & MemStore = {
+// PostgREST devuelve como máximo 1000 filas por pedido: se pide por páginas para no cortar nada en silencio.
+// deno-lint-ignore no-explicit-any
+async function fetchAll<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>): Promise<T[]> {
+  const res: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const rows = must(await page(from, from + 999)) ?? [];
+    res.push(...rows);
+    if (rows.length < 1000) return res;
+  }
+}
+const chunks = <T>(a: T[], n: number): T[][] => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+
+const store: Store2 & MemStore & CardsStore = {
   async recentJobs(widgetId, since) {
     return (must(await sb.from("site_import_jobs").select("*").eq("widget_id", widgetId)
       .gte("created_at", since).order("created_at", { ascending: false })) ?? []) as Job[];
@@ -148,13 +164,48 @@ const store: Store2 & MemStore = {
   async discardDraft(widgetId, userId) {
     must(await sb.from("widgets").update({ memory_draft: null, memory_draft_at: null }).eq("id", widgetId).eq("user_id", userId));
   },
+  // suma atómica (no "leer, sumar y escribir"): dos corridas a la vez no se pisan
   async addUsage(userId, tIn, tOut) {
     const month = new Date().toISOString().slice(0, 7) + "-01";
-    const u = must(await sb.from("usage_monthly").select("*").eq("user_id", userId).eq("month", month).maybeSingle());
-    must(await sb.from("usage_monthly").upsert({
-      user_id: userId, month, conversations: u?.conversations ?? 0, messages: u?.messages ?? 0,
-      tokens_in: (u?.tokens_in ?? 0) + tIn, tokens_out: (u?.tokens_out ?? 0) + tOut,
-    }));
+    must(await sb.rpc("bump_usage", { p_user: userId, p_month: month, p_conv: 0, p_msgs: 0, p_in: tIn, p_out: tOut }));
+  },
+  // ---------- Tarjetas ----------
+  async widgetBasic(userId) {
+    return must(await sb.from("widgets").select("id,language").eq("user_id", userId).maybeSingle()) as { id: string; language: string | null } | null;
+  },
+  async allSections(widgetId) {
+    return await fetchAll<CardSection>((a, b) =>
+      sb.from("sections").select("id,widget_id,user_id,document_url,position,kind,is_hidden,heading_path,text,content_hash,lang,anchor")
+        .eq("widget_id", widgetId).order("document_url").order("position").range(a, b));
+  },
+  async cardMetas(widgetId) {
+    return await fetchAll<CardMeta>((a, b) =>
+      sb.from("section_cards").select("section_id,section_hash,version,updated_at").eq("widget_id", widgetId).order("section_id").range(a, b));
+  },
+  async upsertCards(rows: CardRow[]) {
+    for (const c of chunks(rows, 100)) must(await sb.from("section_cards").upsert(c, { onConflict: "section_id" }));
+  },
+  async replaceAiLinks(fromIds: string[], rows: LinkRow[]) {
+    for (const c of chunks(fromIds, 50)) must(await sb.from("section_links").delete().eq("source", "ai").in("from_section", c));
+    for (const c of chunks(rows, 100)) must(await sb.from("section_links").upsert(c, { onConflict: "from_section,to_section,kind,label" }));
+  },
+  async replaceCodeLinks(widgetId: string, rows: LinkRow[]) {
+    must(await sb.from("section_links").delete().eq("widget_id", widgetId).eq("source", "code"));
+    for (const c of chunks(rows, 100)) must(await sb.from("section_links").upsert(c, { onConflict: "from_section,to_section,kind,label" }));
+  },
+  async recentCardRuns(widgetId, since) {
+    return (must(await sb.from("card_runs").select("*").eq("widget_id", widgetId).gte("started_at", since)
+      .order("started_at", { ascending: false })) ?? []).map((r: Record<string, unknown>) => normalizeRun(r));
+  },
+  async createCardRun(row) {
+    return normalizeRun(must(await sb.from("card_runs").insert(row).select("*").single()) as Record<string, unknown>);
+  },
+  async getCardRun(userId, id) {
+    const r = must(await sb.from("card_runs").select("*").eq("id", id).eq("user_id", userId).maybeSingle()) as Record<string, unknown> | null;
+    return r ? normalizeRun(r) : null;
+  },
+  async updateCardRun(id, patch) {
+    must(await sb.from("card_runs").update({ updated_at: new Date().toISOString(), ...patch }).eq("id", id));
   },
 };
 
@@ -168,10 +219,11 @@ Deno.serve(async (req) => {
     if (ue || !ud?.user) return json({ error: "token_invalido" }, 401);
     const uid = ud.user.id;
 
-    let b: { action?: string; job_id?: string; mode?: string; force?: boolean } = {};
+    let b: { action?: string; job_id?: string; run_id?: string; mode?: string; force?: boolean } = {};
     try { b = await req.json(); } catch { /* cuerpo vacío */ }
     const action = String(b.action ?? "");
     const jobId = typeof b.job_id === "string" ? b.job_id : "";
+    const runId = typeof b.run_id === "string" ? b.run_id : "";
 
     const { data: w } = await sb.from("widgets").select("id,site_url,verified_host,verified_at,language").eq("user_id", uid).maybeSingle();
     if (!w) return json({ error: "sin_widget" }, 404);
@@ -203,6 +255,26 @@ Deno.serve(async (req) => {
     }
     if (action === "memory_discard") {
       const r = await discardMemoryDraft(store, uid, w);
+      return json(r.body, r.status);
+    }
+    if (action === "cards_start") {
+      { const g = puerta(w); if (g) return json(g.body, g.status); }
+      const r = await startCards(store, uid, w, { force: b.force === true });
+      return json(r.body, r.status);
+    }
+    if (action === "cards_step") {
+      { const g = puerta(w); if (g) return json(g.body, g.status); }
+      if (!runId) return json({ error: "falta_run_id" }, 400);
+      const r = await stepCards(store, uid, w, runId);
+      return json(r.body, r.status);
+    }
+    if (action === "cards_status") {
+      const r = await cardsStatus(store, uid, w, runId || undefined);
+      return json(r.body, r.status);
+    }
+    if (action === "cards_cancel") {
+      if (!runId) return json({ error: "falta_run_id" }, 400);
+      const r = await cancelCards(store, uid, w, runId);
       return json(r.body, r.status);
     }
     if (action === "status") {
