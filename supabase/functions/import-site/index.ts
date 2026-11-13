@@ -6,7 +6,7 @@ import {
   acceptMemoryDraft, discardMemoryDraft, generateMemory, type MemSection, type MemStore, type Run, type WidgetMem,
 } from "./memory.ts";
 import {
-  cancelCards, type CardMeta, type CardRow, type CardRun, type CardSection, type CardsStore, cardsStatus, type LinkRow, normalizeRun, startCards,
+  cancelCards, type CardMeta, type CardRun, type CardSection, type CardsStore, cardsStatus, type LinkRow, normalizeRun, type StagedItem, startCards,
   stepCards,
 } from "./cards.ts";
 
@@ -182,12 +182,20 @@ const store: Store2 & MemStore & CardsStore = {
     return await fetchAll<CardMeta>((a, b) =>
       sb.from("section_cards").select("section_id,section_hash,version,updated_at").eq("widget_id", widgetId).order("section_id").range(a, b));
   },
-  async upsertCards(rows: CardRow[]) {
-    for (const c of chunks(rows, 100)) must(await sb.from("section_cards").upsert(c, { onConflict: "section_id" }));
+  // lo de cada tanda se guarda aparte; las tarjetas de siempre no se tocan hasta applyRun (todo junto, en una transacción)
+  async stageItems(runId: string, items: StagedItem[]) {
+    const rows = items.map((it) => ({ run_id: runId, section_id: it.section_id, widget_id: it.widget_id, user_id: it.user_id, card: it.card, links: it.links }));
+    for (const c of chunks(rows, 50)) must(await sb.from("card_run_items").upsert(c, { onConflict: "run_id,section_id" }));
   },
-  async replaceAiLinks(fromIds: string[], rows: LinkRow[]) {
-    for (const c of chunks(fromIds, 50)) must(await sb.from("section_links").delete().eq("source", "ai").in("from_section", c));
-    for (const c of chunks(rows, 100)) must(await sb.from("section_links").upsert(c, { onConflict: "from_section,to_section,kind,label" }));
+  async stagedIds(runId: string) {
+    return (await fetchAll<{ section_id: string }>((a, b) =>
+      sb.from("card_run_items").select("section_id").eq("run_id", runId).order("section_id").range(a, b))).map((r) => r.section_id);
+  },
+  async discardStaged(runId: string) {
+    must(await sb.from("card_run_items").delete().eq("run_id", runId));
+  },
+  async applyRun(runId: string) {
+    must(await sb.rpc("apply_card_run", { p_run: runId }));
   },
   async replaceCodeLinks(widgetId: string, rows: LinkRow[]) {
     must(await sb.from("section_links").delete().eq("widget_id", widgetId).eq("source", "code"));
@@ -219,7 +227,7 @@ Deno.serve(async (req) => {
     if (ue || !ud?.user) return json({ error: "token_invalido" }, 401);
     const uid = ud.user.id;
 
-    let b: { action?: string; job_id?: string; run_id?: string; mode?: string; force?: boolean } = {};
+    let b: { action?: string; job_id?: string; run_id?: string; mode?: string; force?: boolean; section_ids?: unknown } = {};
     try { b = await req.json(); } catch { /* cuerpo vacío */ }
     const action = String(b.action ?? "");
     const jobId = typeof b.job_id === "string" ? b.job_id : "";
@@ -259,7 +267,15 @@ Deno.serve(async (req) => {
     }
     if (action === "cards_start") {
       { const g = puerta(w); if (g) return json(g.body, g.status); }
-      const r = await startCards(store, uid, w, { force: b.force === true });
+      // section_ids: SOLO esas secciones (hasta 200). Si viene y no es una lista de textos, es un pedido mal hecho.
+      let sectionIds: string[] | undefined;
+      if (b.section_ids !== undefined) {
+        if (!Array.isArray(b.section_ids) || b.section_ids.length > 200 || b.section_ids.some((x) => typeof x !== "string")) {
+          return json({ error: "section_ids_invalido" }, 400);
+        }
+        sectionIds = b.section_ids as string[];
+      }
+      const r = await startCards(store, uid, w, { force: b.force === true, sectionIds });
       return json(r.body, r.status);
     }
     if (action === "cards_step") {

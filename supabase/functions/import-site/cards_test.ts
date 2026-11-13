@@ -5,8 +5,8 @@ import { sha256 } from "./lib.ts";
 import { type AiArgs, aiCfg } from "./summarize.ts";
 import {
   aiCard, BATCH_MAX_CHARS, BATCH_MAX_SECTIONS, buildCardsInput, buildCatalog, CARDS_ATTEMPTS_DAILY, CARDS_INSTRUCTIONS, CARDS_VERSION,
-  cancelCards, type CardMeta, type CardRow, type CardRun, type CardSection, type CardsStore, cardsStatus, codeCard, coverage, deriveLinks,
-  type LinkRow, makeBatches, MAX_RELATED, norm, normalizeRun, numberLines, parseCards, parseEvidence, pendingSections, rawLines, RUN_STALE_MIN, sourceLink, startCards,
+  cancelCards, type CardMeta, type CardRow, type CardRun, type CardSection, type CardsStore, cardsStatus, codeCard, coverage, deriveLinks, lastGeneratedAt,
+  type LinkRow, makeBatches, MAX_RELATED, norm, normalizeRun, numberLines, parseCards, parseEvidence, pendingSections, rawLines, RUN_STALE_MIN, runTargets, sourceLink, startCards, type StagedItem,
   stepCards, titleOf, ungroundedQuotes, validateRelated,
   MAX_INLINE_LINKS, resolveInlineRefs,
 } from "./cards.ts";
@@ -36,17 +36,31 @@ class Mem implements CardsStore {
   usage = { in: 0, out: 0, writes: 0 };
   language = "es";
   tick = 1_800_000_000_000;
-  upsertCalls = 0;
+  staged = new Map<string, Map<string, StagedItem>>();
+  failApply = false;
   now() { this.tick += 1000; return new Date(this.tick).toISOString(); }
   widgetBasic(uid: string) { return Promise.resolve(uid === "u1" ? { id: "w1", language: this.language } : null); }
   allSections() { return Promise.resolve(this.secs); }
   cardMetas(): Promise<CardMeta[]> { return Promise.resolve([...this.cards.values()].map((c) => ({ section_id: c.section_id, section_hash: c.section_hash, version: c.version, updated_at: c.updated_at }))); }
-  upsertCards(rows: CardRow[]) { this.upsertCalls++; for (const r of rows) this.cards.set(r.section_id, { ...r, updated_at: this.now() }); return Promise.resolve(); }
-  replaceAiLinks(fromIds: string[], rows: LinkRow[]) { this.aiLinks = [...this.aiLinks.filter((l) => !fromIds.includes(l.from_section)), ...rows]; return Promise.resolve(); }
+  stageItems(runId: string, items: StagedItem[]) { const m = this.staged.get(runId) ?? new Map(); for (const it of items) m.set(it.section_id, it); this.staged.set(runId, m); return Promise.resolve(); }
+  stagedIds(runId: string) { return Promise.resolve([...(this.staged.get(runId)?.keys() ?? [])]); }
+  discardStaged(runId: string) { this.staged.delete(runId); return Promise.resolve(); }
+  // igual que apply_card_run: solo con la corrida en curso; tarjetas y enlaces de IA se reemplazan juntos; si falla, no cambia nada
+  applyRun(runId: string) {
+    if (this.failApply) return Promise.reject(new Error("db_apply"));
+    const run = this.runs.find((r) => r.id === runId);
+    if (!run || run.status !== "running") return Promise.reject(new Error("corrida_no_activa"));
+    const items = [...(this.staged.get(runId)?.values() ?? [])];
+    for (const it of items) this.cards.set(it.section_id, { ...it.card, updated_at: this.now() });
+    const ids = items.map((i) => i.section_id);
+    this.aiLinks = [...this.aiLinks.filter((l) => !ids.includes(l.from_section)), ...items.flatMap((i) => i.links)];
+    this.staged.delete(runId);
+    return Promise.resolve();
+  }
   replaceCodeLinks(_w: string, rows: LinkRow[]) { this.codeLinks = rows; return Promise.resolve(); }
   recentCardRuns(_w: string, since: string) { return Promise.resolve(this.runs.filter((r) => Date.parse(r.started_at) >= Date.parse(since)).slice().reverse()); }
-  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string }) {
-    const r: CardRun = { id: "run" + (this.runs.length + 1), ...row, status: "running", total: 0, done: 0, degraded: 0, steps: 0, calls: 0, tokens_in: 0, tokens_out: 0, effort: null, error: null, started_at: this.now(), updated_at: this.now() };
+  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string; scope?: string[] | null }) {
+    const r: CardRun = { id: "run" + (this.runs.length + 1), ...row, scope: row.scope ?? null, status: "running", total: 0, done: 0, degraded: 0, steps: 0, calls: 0, tokens_in: 0, tokens_out: 0, effort: null, error: null, started_at: this.now(), updated_at: this.now() };
     this.runs.push(r); return Promise.resolve({ ...r });
   }
   getCardRun(uid: string, id: string) { const r = this.runs.find((x) => x.id === id && x.user_id === uid); return Promise.resolve(r ? { ...r } : null); }
@@ -140,7 +154,7 @@ Deno.test("enlaces por código: el nombre de la pantalla gana al último tramo, 
 });
 
 // ---------- qué falta, tandas y catálogo ----------
-Deno.test("pendientes: sin tarjeta, texto cambiado, otra versión, y 'forzar' solo las hechas antes de la corrida", () => {
+Deno.test("pendientes: sin tarjeta, texto cambiado, otra versión; y qué rehace cada tipo de corrida (elegidas, todas, o las que faltan)", () => {
   const a = mk("a", "A"), b = mk("b", "B"), c = mk("c", "C"), d = mk("d", "D");
   const metas: CardMeta[] = [
     { section_id: "a", section_hash: a.content_hash, version: CARDS_VERSION, updated_at: "2026-11-13T10:00:00Z" },
@@ -149,8 +163,11 @@ Deno.test("pendientes: sin tarjeta, texto cambiado, otra versión, y 'forzar' so
   ];
   const ids = (x: CardSection[]) => x.map((s) => s.id).join();
   eq(ids(pendingSections([a, b, c, d], metas, { version: CARDS_VERSION })), "b,c,d", "cambiada, vieja y sin tarjeta; la fresca no");
-  eq(ids(pendingSections([a], metas, { version: CARDS_VERSION, force: true, since: "2026-11-13T11:00:00Z" })), "a", "forzar: la hecha ANTES de la corrida vuelve a estar pendiente");
-  eq(ids(pendingSections([a], metas, { version: CARDS_VERSION, force: true, since: "2026-11-13T09:00:00Z" })), "", "forzar: la hecha DESPUÉS de empezar la corrida ya está lista");
+  eq(ids(runTargets([a, b, c, d], metas, { force: false, version: CARDS_VERSION })), "b,c,d", "corrida normal: lo que falta o está viejo");
+  eq(ids(runTargets([a, b, c, d], metas, { force: true, version: CARDS_VERSION })), "a,b,c,d", "forzar: todas, aunque estén al día");
+  eq(ids(runTargets([a, b, c, d], metas, { force: false, version: CARDS_VERSION, scope: ["a", "d", "zzz"] })), "a,d", "elegidas: solo esas (aunque 'a' esté al día y 'b' esté vieja); un id que no existe se ignora");
+  eq(ids(runTargets([a, b, c, d], metas, { force: true, version: CARDS_VERSION, scope: ["c"] })), "c", "si hay elegidas, mandan sobre 'todas'");
+  eq(ids(runTargets([a, b], metas, { force: false, version: CARDS_VERSION, scope: [] })), "b", "una lista vacía no cuenta como elección");
   eq(ids(pendingSections([a], metas, { version: "c2" })), "a", "otra versión del generador: todas pendientes");
 });
 
@@ -268,7 +285,7 @@ Deno.test("generación completa: tarjetas para TODAS las secciones, por tandas, 
   const calls = fakeAI({ related: (n, total) => `${n}, ${(n % total) + 1}, 999` });
   const r = await startCards(st, "u1", { id: "w1" });
   eq(r.status, 200, "200"); eq(r.body.total, st.secs.length, "total = todas"); eq(r.body.status, "running", "en curso");
-  ok(st.codeLinks.length >= 15, "los enlaces por código se arman al empezar, antes de la IA: " + st.codeLinks.length);
+  eq(st.codeLinks.length, 0, "los enlaces por código se recalculan al terminar (no al empezar): hasta entonces no cambia nada");
   const runId = String(r.body.run_id);
   const progreso: number[] = [];
   let ult: Record<string, unknown> = {};
@@ -280,6 +297,7 @@ Deno.test("generación completa: tarjetas para TODAS las secciones, por tandas, 
   ok([...st.cards.values()].every((c) => c.source === "ai" && c.purpose && c.keywords.includes("modo noche") && c.version === CARDS_VERSION), "tarjetas de IA completas");
   ok(st.aiLinks.every((l) => l.source === "ai" && l.kind === "related" && l.from_section !== l.to_section && st.secs.some((s) => s.id === l.to_section)), "enlaces de IA válidos");
   ok(!st.aiLinks.some((l) => l.label !== ""), "sin enlaces inventados");
+  ok(st.codeLinks.length >= 15, "los enlaces por código se arman al terminar: " + st.codeLinks.length);
   ok(st.usage.in > 0 && st.usage.writes === calls.length, "el consumo se registra en cada paso");
   const largo = st.secs.reduce((m, s) => (s.text.length > m.text.length ? s : m));
   ok(calls.some((c) => c.input.includes(numberLines(largo.text))), "la sección más larga llegó ENTERA a la IA (con sus líneas numeradas)");
@@ -322,19 +340,24 @@ Deno.test("si la IA no devuelve la tarjeta de una sección, se arma una por cód
   eq(st.cards.size, 5, "igual hay tarjeta para todas");
 });
 
-Deno.test("si la IA falla a mitad: lo ya hecho se conserva, la corrida queda en error y al retomar solo se pide lo que faltaba", async () => {
+Deno.test("si la IA falla a mitad: la corrida queda en error, NO queda nada a medias (las tarjetas de antes siguen igual) y al reintentar se empieza completa", async () => {
   const st = new Mem(); st.secs = (await realSections()).slice(0, 20);
+  fakeAI(); const base = await startCards(st, "u1", { id: "w1" }); await st.stepAll(String(base.body.run_id));
+  const antes = JSON.stringify([...st.cards.entries()]), linksAntes = JSON.stringify(st.aiLinks);
   fakeAI({ fail: (call) => (call === 2 ? new Error("openai_429:rate_limit") : null) });
-  const r = await startCards(st, "u1", { id: "w1" }); const id = String(r.body.run_id);
+  const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
   eq((await stepCards(st, "u1", { id: "w1" }, id)).status, 200, "primer paso bien");
+  eq(st.staged.get(id)?.size, 8, "lo del primer paso está guardado APARTE");
+  eq(JSON.stringify([...st.cards.entries()]), antes, "mientras corre, las tarjetas de antes no cambian");
   const mal = await stepCards(st, "u1", { id: "w1" }, id);
   eq(mal.status, 502, "segundo paso: error de IA"); eq(mal.body.error, "ia_no_disponible", "error claro");
-  eq(st.runs[0].status, "error", "la corrida queda en error"); eq(st.cards.size, 8, "las 8 del primer paso se conservan");
+  eq(st.runs[1].status, "error", "la corrida queda en error"); eq(st.staged.has(id), false, "lo guardado aparte se tiró");
+  eq(JSON.stringify([...st.cards.entries()]), antes, "tarjetas EXACTAMENTE como antes del intento"); eq(JSON.stringify(st.aiLinks), linksAntes, "enlaces de IA también");
   st.tick += 1000;
   const calls = fakeAI();
-  const r2 = await startCards(st, "u1", { id: "w1" });
-  eq(r2.body.total, 12, "al retomar: solo las 12 pendientes"); const fin = await st.stepAll(String(r2.body.run_id));
-  eq(fin.status, "done", "terminó"); eq(st.cards.size, 20, "todas con tarjeta"); eq(calls.length, 2, "12 pendientes = 2 tandas");
+  const r2 = await startCards(st, "u1", { id: "w1" }, { force: true });
+  eq(r2.body.total, 20, "al reintentar: se empieza completa"); const fin = await st.stepAll(String(r2.body.run_id));
+  eq(fin.status, "done", "terminó"); eq(calls.length, 3, "20 secciones = 3 tandas");
 });
 
 Deno.test("esfuerzo: se pide 'medium'; si el modelo no lo acepta (400) se repite con el de siempre y queda registrado; otros errores no se reintentan", async () => {
@@ -394,17 +417,24 @@ Deno.test("resguardo contra bucles: si los pasos superan lo razonable, la corrid
   eq(p.body.status, "error", "error"); eq(p.body.error, "demasiados_pasos", "motivo");
 });
 
-Deno.test("estado para el panel: cobertura (frescas, viejas, faltantes) y la última corrida; cancelar", async () => {
+Deno.test("estado para el panel: cobertura (frescas, viejas, faltantes) y la última corrida; cancelar no deja nada", async () => {
   const st = new Mem(); st.secs = (await realSections()).slice(0, 10); fakeAI();
   const antes = (await cardsStatus(st, "u1", { id: "w1" })).body;
   eq(antes.missing, 10, "al principio faltan todas"); ok(!("run" in antes), "sin corrida todavía");
   const r = await startCards(st, "u1", { id: "w1" }); const id = String(r.body.run_id); await stepCards(st, "u1", { id: "w1" }, id);
   const mid = (await cardsStatus(st, "u1", { id: "w1" })).body as Record<string, unknown> & { run: Record<string, unknown> };
-  eq(mid.fresh, 8, "8 frescas"); eq(mid.missing, 2, "2 faltan"); eq(mid.run.status, "running", "corrida en curso"); eq(mid.run.pending, 2, "progreso real: faltan 2");
-  eq((await cancelCards(st, "u1", { id: "w1" }, id)).status, 200, "cancelar"); eq(st.runs[0].status, "cancelled", "queda cancelada");
+  eq(mid.fresh, 0, "a mitad de la corrida todavía no hay tarjetas aplicadas"); eq(mid.missing, 10, "siguen faltando las 10");
+  eq(mid.run.status, "running", "corrida en curso"); eq(mid.run.pending, 2, "progreso real: faltan 2"); eq(mid.run.done, 8, "8 hechas (guardadas aparte)");
+  const c = await cancelCards(st, "u1", { id: "w1" }, id);
+  eq(c.status, 200, "cancelar"); eq(c.body.status, "cancelled", "dice que se canceló"); eq(st.runs[0].status, "cancelled", "queda cancelada");
+  eq(st.cards.size, 0, "NO quedó ninguna tarjeta a medias"); eq(st.staged.has(id), false, "ni nada guardado aparte");
+  const post = (await cardsStatus(st, "u1", { id: "w1" })).body; eq(post.missing, 10, "todo como estaba: faltan las 10");
+  eq((await stepCards(st, "u1", { id: "w1" }, id)).body.status, "cancelled", "una cancelada no sigue");
+  eq(st.cards.size, 0, "y seguir pidiendo pasos tampoco crea nada");
+  const r2 = await startCards(st, "u1", { id: "w1" }); await st.stepAll(String(r2.body.run_id));
+  eq((await cardsStatus(st, "u1", { id: "w1" })).body.fresh, 10, "una corrida nueva completa todo");
   st.secs[0] = { ...st.secs[0], content_hash: "CAMBIO" };
   const cov = coverage(st.secs, await st.cardMetas()); eq(cov.stale, 1, "una quedó vieja porque su texto cambió");
-  eq((await stepCards(st, "u1", { id: "w1" }, id)).body.status, "cancelled", "una cancelada no sigue");
 });
 
 Deno.test("instrucciones de la IA: formato exacto, 'solo lo que figura', maqueta, sinónimos que no estén en el texto, tope de relacionadas y datos-no-órdenes", () => {
@@ -455,4 +485,127 @@ Deno.test("generación con menciones: la tarjeta guardada es texto limpio y los 
 Deno.test("instrucciones: explican cómo mencionar otra sección dentro del texto", () => {
   ok(CARDS_INSTRUCTIONS.includes("[número|texto visible]") && CARDS_INSTRUCTIONS.includes('"se cambia desde [12|Configuración]"'), "formato de la mención con ejemplo");
   ok(CARDS_INSTRUCTIONS.includes("Solo secciones del CATÁLOGO, y nunca la propia"), "restricciones");
+});
+
+Deno.test("estado para el panel: fecha de la última generación (la más reciente; ignora tarjetas de secciones borradas; null si no hay)", async () => {
+  const st = new Mem(); st.secs = (await realSections()).slice(0, 3); fakeAI();
+  const sin = (await cardsStatus(st, "u1", { id: "w1" })).body;
+  eq(sin.last_generated_at, null, "sin tarjetas: null");
+  const [a, b] = st.secs;
+  const metas: CardMeta[] = [
+    { section_id: a.id, section_hash: a.content_hash, version: CARDS_VERSION, updated_at: "2026-11-13T10:00:00Z" },
+    { section_id: b.id, section_hash: b.content_hash, version: CARDS_VERSION, updated_at: "2026-11-13T12:30:00Z" },
+    { section_id: "borrada", section_hash: "x", version: CARDS_VERSION, updated_at: "2026-11-14T09:00:00Z" },
+    { section_id: a.id + "-x", section_hash: "x", version: CARDS_VERSION, updated_at: "no-es-fecha" },
+  ];
+  eq(lastGeneratedAt(st.secs, metas), "2026-11-13T12:30:00Z", "la más reciente de las secciones que existen; la de una sección borrada no cuenta");
+  eq(lastGeneratedAt(st.secs, []), null, "sin metas: null");
+  const r = await startCards(st, "u1", { id: "w1" }); await stepCards(st, "u1", { id: "w1" }, String(r.body.run_id));
+  const st2 = (await cardsStatus(st, "u1", { id: "w1" })).body;
+  ok(typeof st2.last_generated_at === "string" && !Number.isNaN(Date.parse(String(st2.last_generated_at))), "después de generar, trae una fecha válida");
+  ok("fresh" in st2 && "stale" in st2 && "missing" in st2 && "sections" in st2, "la cobertura sigue igual");
+});
+
+// ---------- todo o nada ----------
+async function conBase(n = 12) {
+  const st = new Mem(); st.secs = (await realSections()).slice(0, n);
+  fakeAI({ related: (k, total) => `${(k % total) + 1}` });
+  const r = await startCards(st, "u1", { id: "w1" }); await st.stepAll(String(r.body.run_id));
+  return { st, snap: () => JSON.stringify([[...st.cards.entries()], st.aiLinks]) };
+}
+
+Deno.test("cancelar a mitad de una regeneración: vuelve EXACTAMENTE a como estaba (tarjetas, enlaces y fechas), y solo se corta lo que hacía", async () => {
+  const { st, snap } = await conBase(12); const antes = snap();
+  const calls = fakeAI({ related: () => "ninguna" });
+  const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
+  await stepCards(st, "u1", { id: "w1" }, id);
+  eq(calls.length, 1, "una tanda hecha"); eq(snap(), antes, "con la primera tanda hecha, nada de lo anterior cambió");
+  eq((await cancelCards(st, "u1", { id: "w1" }, id)).body.status, "cancelled", "cancelada");
+  eq(snap(), antes, "después de cancelar: idéntico, hasta las fechas de generación"); eq(st.staged.has(id), false, "nada guardado aparte");
+  await stepCards(st, "u1", { id: "w1" }, id); eq(calls.length, 1, "una cancelada no vuelve a llamar a la IA"); eq(snap(), antes, "y no cambia nada");
+});
+
+Deno.test("las tarjetas nuevas reemplazan a las viejas TODAS JUNTAS recién al terminar la última tanda", async () => {
+  const { st } = await conBase(12);
+  const fechas = () => JSON.stringify([...st.cards.values()].map((c) => c.updated_at));
+  const antes = fechas();
+  fakeAI({ related: () => "ninguna" });
+  const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
+  const p1 = (await stepCards(st, "u1", { id: "w1" }, id)).body;
+  eq(p1.status, "running", "queda una tanda"); eq(fechas(), antes, "con una tanda hecha todavía no se tocó ninguna");
+  ok(st.aiLinks.length > 0, "los enlaces de IA de antes siguen");
+  const p2 = (await stepCards(st, "u1", { id: "w1" }, id)).body;
+  eq(p2.status, "done", "terminó"); ok(fechas() !== antes && [...st.cards.values()].every((c, i) => c.updated_at !== JSON.parse(antes)[i]), "al terminar, las 12 se reemplazaron");
+  eq(st.aiLinks.length, 0, "y los enlaces de IA quedaron los nuevos (la IA ahora no relacionó ninguno)");
+  eq(st.staged.has(id), false, "lo guardado aparte se aplicó y se borró");
+});
+
+Deno.test("si guardar todo junto falla: la corrida queda en error y todo sigue como estaba", async () => {
+  const { st, snap } = await conBase(10); const antes = snap();
+  fakeAI(); const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
+  st.failApply = true;
+  const fin = await st.stepAll(id);
+  eq(fin.status, "error", "error"); eq(fin.error, "no_se_pudo_guardar", "motivo claro");
+  eq(snap(), antes, "las tarjetas y los enlaces de antes quedaron intactos"); eq(st.staged.has(id), false, "y no quedó nada guardado aparte");
+});
+
+Deno.test("cancelar mientras la IA está pensando: no se guarda ni se aplica nada", async () => {
+  const { st, snap } = await conBase(10); const antes = snap();
+  fakeAI({ fail: () => { st.runs[1].status = "cancelled"; return null; } });
+  const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
+  const p = (await stepCards(st, "u1", { id: "w1" }, id)).body;
+  eq(p.status, "cancelled", "el paso termina diciendo que está cancelada"); eq(st.staged.has(id), false, "lo que la IA acababa de devolver se tiró");
+  eq(snap(), antes, "todo como estaba");
+});
+
+Deno.test("regenerar solo algunas: se rehacen esas, las demás no se tocan, y lo que no existe se ignora", async () => {
+  const { st } = await conBase(12);
+  const fechas = () => new Map([...st.cards.entries()].map(([k, v]) => [k, v.updated_at]));
+  const antes = fechas();
+  const calls = fakeAI({ related: () => "ninguna" });
+  const elegidas = [st.secs[2].id, st.secs[7].id, "no-existe", st.secs[2].id];
+  const r = await startCards(st, "u1", { id: "w1" }, { sectionIds: elegidas });
+  eq(r.body.total, 2, "2 elegidas (la repetida y la que no existe no cuentan)"); eq(r.body.selected, 2, "el resumen dice cuántas eligió"); eq(r.body.force, false, "no es 'todas'");
+  const fin = await st.stepAll(String(r.body.run_id));
+  eq(fin.status, "done", "terminó"); eq(calls.length, 1, "una sola llamada");
+  const desc = calls[0].input.split("SECCIONES A DESCRIBIR")[1]; eq((desc.match(/^### \[/gm) ?? []).length, 2, "solo esas 2 se describen");
+  const ahora = fechas();
+  for (const sec of st.secs) {
+    const cambio = ahora.get(sec.id) !== antes.get(sec.id);
+    eq(cambio, sec.id === st.secs[2].id || sec.id === st.secs[7].id, "solo se rehicieron las elegidas: " + sec.id);
+  }
+});
+
+Deno.test("regenerar algunas: aunque todo esté al día igual corre; sin ninguna válida es un pedido vacío; y no toca lo que estaba viejo pero no se eligió", async () => {
+  const { st } = await conBase(10); fakeAI();
+  const r = await startCards(st, "u1", { id: "w1" }, { sectionIds: [st.secs[0].id] });
+  eq(r.body.up_to_date, undefined, "no dice 'al día': se pidió expresamente"); eq(r.body.total, 1, "una");
+  await st.stepAll(String(r.body.run_id));
+  const vacio = await startCards(st, "u1", { id: "w1" }, { sectionIds: ["x", "y"] }); eq(vacio.status, 400, "ninguna existe: 400"); eq(vacio.body.error, "sin_seleccion", "motivo");
+  eq((await startCards(st, "u1", { id: "w1" }, { sectionIds: [] })).body.error, "sin_seleccion", "una lista vacía también");
+  st.secs[5] = { ...st.secs[5], content_hash: "VIEJA" };
+  const calls = fakeAI();
+  const r2 = await startCards(st, "u1", { id: "w1" }, { sectionIds: [st.secs[1].id] }); await st.stepAll(String(r2.body.run_id));
+  eq(calls.length, 1, "una llamada"); eq(st.cards.get(st.secs[5].id)!.section_hash !== "VIEJA", true, "la vieja que no se eligió sigue vieja (no se rehízo)");
+  const cov = coverage(st.secs, await st.cardMetas()); eq(cov.stale, 1, "sigue figurando como desactualizada");
+});
+
+Deno.test("al empezar otra corrida se limpia lo que dejó guardado aparte una corrida abandonada, cancelada o con error", async () => {
+  const st = new Mem(); st.secs = (await realSections()).slice(0, 10); fakeAI();
+  const r1 = await startCards(st, "u1", { id: "w1" }, {}, st.tick); await stepCards(st, "u1", { id: "w1" }, String(r1.body.run_id));
+  ok(st.staged.get("run1")!.size === 8, "hay 8 guardadas aparte");
+  const futuro = Date.parse(st.runs[0].updated_at) + (RUN_STALE_MIN + 1) * 60_000;
+  const r2 = await startCards(st, "u1", { id: "w1" }, {}, futuro);
+  eq(r2.body.resumed, false, "empieza otra"); eq(st.staged.has("run1"), false, "lo de la abandonada se tiró"); eq(st.cards.size, 0, "y no se aplicó nada");
+  st.staged.set("run1", new Map([["s1", { section_id: "s1", widget_id: "w1", user_id: "u1", card: codeCard(st.secs[0], "es"), links: [] }]]));
+  await cancelCards(st, "u1", { id: "w1" }, String(r2.body.run_id));
+  await startCards(st, "u1", { id: "w1" }, {}, futuro + 1);
+  eq(st.staged.has("run1"), false, "lo huérfano de una corrida ya cancelada también se limpia");
+});
+
+Deno.test("la corrida usada para aplicar tiene que estar en curso (como la función de la base)", async () => {
+  const st = new Mem(); st.secs = (await realSections()).slice(0, 3); fakeAI();
+  const r = await startCards(st, "u1", { id: "w1" }); await st.stepAll(String(r.body.run_id));
+  let err = ""; try { await st.applyRun(String(r.body.run_id)); } catch (e) { err = (e as Error).message; }
+  eq(err, "corrida_no_activa", "una corrida ya terminada no se puede volver a aplicar");
 });
