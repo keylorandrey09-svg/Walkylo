@@ -1,4 +1,4 @@
-// supabase/functions/import-site/memory.ts   (Memoria m3)
+// supabase/functions/import-site/memory.ts   (Memoria m7)
 // MEMORIA: lo que el asistente lee antes de cada respuesta para ubicarse. Mitad por CÓDIGO, mitad por IA:
 //  - CÓDIGO (determinista; no se pierde ni se inventa nada): "Dónde está cada cosa", "Cómo se hace" y "Enlaces",
 //    armados desde la estructura que ya se leyó (pantallas, botones, campos, pasos).
@@ -10,9 +10,9 @@ import type { Out } from "./flow.ts";
 import { sha256 } from "./lib.ts";
 import { callAI } from "./summarize.ts";
 
-export const MEMORY_VERSION = "m5";          // si cambia el armado o las instrucciones, cambia la huella y se regenera
+export const MEMORY_VERSION = "m7";          // si cambia el armado o las instrucciones, cambia la huella y se regenera
 export const MEMORY_MAX_CHARS = 8000;        // tope duro (el chat usa hasta 8.000)
-export const MEMORY_TARGET_MAX = 6500;       // lo que se busca no pasar
+export const MEMORY_TARGET_MAX = 7000;       // lo que se busca no pasar
 export const MEMORY_MIN_CHARS = 300;
 export const LLM_SITE_CHARS = 24_000;        // páginas del sitio que se le pasan a la IA
 export const LLM_LEGAL_CHARS = 30_000;       // textos legales que se le pasan: que NINGÚN documento quede afuera
@@ -174,9 +174,9 @@ Planes y límites
 Políticas
 Reglas:
 - "Qué es": de 4 a 6 líneas. Qué hace el producto o servicio, para quién, qué se necesita para usarlo y los límites o restricciones de uso más importantes.
-- "Planes y límites": hasta 8 líneas. Nombres de planes, precios, límites y plazos EXACTOS.
+- "Planes y límites": hasta 8 líneas. UNA línea por cada plan, con su precio y TODAS sus características y límites tal como figuran (por ejemplo cantidad de mensajes o de automatizaciones, marca, estadísticas, soporte). Después, las reglas generales de límites o de cambio de plan (plazos, qué pasa al llegar al límite). Datos EXACTOS.
 - No escribas correos ni teléfonos de contacto: el contacto lo agrega el sistema.
-- "Políticas": hasta 8 líneas, una por tema (qué datos se tratan, con quién se comparten, plazos, derechos, cancelaciones y reembolsos). El detalle legal no va: el asistente lo consulta aparte.
+- "Políticas": hasta 8 líneas. Si figura, escribí UNA línea para cada uno de estos temas, en este orden: datos que se tratan; con quién se comparten; conservación y eliminación; derechos de las personas; cancelación del plan; reembolsos (condiciones y plazos); cookies y menores. Los temas que no figuren se omiten. Cada línea de Políticas: máximo unas 150 letras, solo el dato clave (plazos y condiciones). El detalle legal no va: el asistente lo consulta aparte.
 - Cada línea empieza con un guion y tiene como máximo unas 250 letras: los datos exactos (precios, plazos, límites) van completos.
 - NUNCA afirmes que algo "no se indica", "no figura" o "no existe": recibís los textos recortados y el dato puede estar en una parte que no ves. Si no tenés un dato, omití esa línea.
 - Ignorá las maquetas o ejemplos ilustrativos con cifras de muestra (por ejemplo, un panel de demostración): no son datos reales ni pantallas de la app.

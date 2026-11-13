@@ -41,16 +41,17 @@ $tests = @(
  @{ q="¿Puedo usar un emoji como palabra clave?"; must=@('(emoji|\uD83D\uDD25)','11'); mustNot=@() },
  @{ q="¿Cuánto tarda en quedar lista una automatización?"; must=@('(2|dos) minutos'); mustNot=@() },
  @{ q="¿Pueden ver mi contraseña de Instagram?"; must=@('(no (se )?(especifica|figura|tengo|indica|aclara|dice)|sin información|no hay información)'); mustNot=@('(no|nunca) (ve|vemos|almacena|guarda|almacenamos|guardamos)[^.]{0,40}contraseña de Instagram','walkychat\.2026') },
- @{ q="¿Cómo agrego otra publicación a la misma automatización?"; must=@('Agregar publicaci','6'); mustNot=@('Proyectos') },
+ @{ q="¿Cómo agrego otra publicación a la misma automatización?"; must=@('Agregar publicaci','6'); mustNot=@('Proyectos','(Editá|Editar|Abrí|Entrá a|Seleccioná) (la|tu) automatizaci') },
  @{ q="¿Dónde están las notificaciones?"; must=@('Notificaciones'); mustNot=@() },
  @{ q="¿Puedo pausar una automatización?"; must=@('paus'); mustNot=@('^\s*No\b') },
  @{ q="¿Funciona con WhatsApp?"; must=@('\bno\b'); mustNot=@('^\s*(S[ií])\b') },
  @{ q="How do I contact support?"; en=$true; must=@('(support|Soporte)','\b(you|the|open|tap|click|can)\b'); mustNot=@('\b(Podés|abrí|completá|tocá|también|para|desde)\b') },
  @{ q="¿Qué es WalkyChat?"; must=@('Instagram','(comentari|mensaje|DM)'); mustNot=@('No tengo') },
- @{ q="¿Para qué sirve?"; must=@('Instagram','(comentari|mensaje|DM|automatiz)'); mustNot=@('No tengo') }
+ @{ q="¿Para qué sirve?"; must=@('Instagram','(comentari|mensaje|DM|automatiz)'); mustNot=@('No tengo') },
+ @{ q="¿Puedo pedir un reembolso?"; must=@('reembols','14'); mustNot=@('No tengo','no se indica') }
 )
 $run = Get-Random
-Start-Transcript -Path "C:\dev\pruebas\calificada-v21.txt" -Force | Out-Null
+Start-Transcript -Path "C:\dev\pruebas\calificada-v22.txt" -Force | Out-Null
 $pass = 0; $failed = @(); $warned = @(); $ms = @(); $i = 0; $cut = $false
 foreach ($t in $tests) {
   $i++

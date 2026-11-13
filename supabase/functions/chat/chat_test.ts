@@ -476,3 +476,11 @@ Deno.test("v21: si la IA da otro correo, la respuesta guardada y enviada lleva e
   eq(r.body.answer, "Podés escribir a hola@walkychat.app o abrir Soporte.", "respuesta enviada");
   ok(s.store.msgs.some((m) => m.from_role === "assistant" && m.text === "Podés escribir a hola@walkychat.app o abrir Soporte."), "respuesta guardada");
 });
+
+Deno.test("v22: si la acción no tiene pasos descritos, no se deducen ni se copian de otro flujo (en los dos modos)", () => {
+  for (const modo of [instructions(baseWidget({ use_sections: true }), { sections: "x" }), instructions(baseWidget())]) {
+    ok(modo.includes("ACCIONES SIN PASOS:") && modo.includes("no los deduzcas ni los copies de otro flujo"), "regla de acciones sin pasos");
+    ok(modo.includes("Decí en una frase que no figuran los pasos"), "avisar que no figuran");
+  }
+  ok(!instructions(baseWidget()).includes("SECCIONES"), "el modo viejo sigue sin nombrar secciones");
+});

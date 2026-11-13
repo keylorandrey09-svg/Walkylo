@@ -293,27 +293,30 @@ Deno.test("otro usuario no puede generar la memoria de este widget", async () =>
 });
 
 // ---------- versión e instrucciones ----------
-Deno.test("m5: las instrucciones de la IA piden solo 4 secciones, con topes, y descartan las maquetas", () => {
+Deno.test("m7: las instrucciones de la IA piden solo 4 secciones, con topes, y descartan las maquetas", () => {
   const i = LLM_INSTRUCTIONS;
   ok(i.includes('NUNCA afirmes que algo "no se indica"'), "no se le deja afirmar ausencias");
   for (const t of ["\nQué es\n", "\nPlanes y límites\n", "\nPolíticas\n"]) ok(i.includes(t), "título " + t.trim());
   ok(!i.includes("\nContacto\n"), "Contacto ya NO se le pide a la IA");
+  ok(i.includes("UNA línea por cada plan") && i.includes("TODAS sus características"), "Planes: una línea por plan con todas sus características");
+  ok(i.includes("Cada línea de Políticas: máximo unas 150 letras"), "Políticas: líneas cortas para que entren todos los temas");
+  for (const tema of ["datos que se tratan", "con quién se comparten", "conservación y eliminación", "derechos de las personas", "cancelación del plan", "reembolsos (condiciones y plazos)", "cookies y menores"]) ok(i.includes(tema), "Políticas: tema " + tema);
   ok(i.includes("No escribas correos ni teléfonos"), "se le prohíbe escribir correos");
   ok(!i.includes("Dónde está cada cosa") && !i.includes("\nEnlaces\n") && !i.includes("Cómo se hace"), "lo estructural NO se le pide a la IA");
   ok(i.includes("hasta 8 líneas") && i.includes("Ignorá las maquetas"), "topes y maquetas");
-  eq(MEMORY_VERSION, "m5", "versión m5");
+  eq(MEMORY_VERSION, "m7", "versión m7");
 });
 
-Deno.test("m5: cambiar de versión cambia la huella (la Memoria vieja se considera desactualizada)", async () => {
+Deno.test("m7: cambiar de versión cambia la huella (la Memoria vieja se considera desactualizada)", async () => {
   const st = new Mem(); st.secs = await realSections(); fakeAI();
   await generateMemory(st, "u1", { id: "w1" });
   const hashActual = st.w.memory_sources_hash;
-  st.w.memory_sources_hash = "huella-de-la-version-m4";
+  st.w.memory_sources_hash = "huella-de-la-version-m6";
   const calls = fakeAI();
   const r = await generateMemory(st, "u1", { id: "w1" });
   eq(r.body.status, "ok", "regenera porque la huella es distinta");
   eq(calls.length, 1, "una llamada");
-  eq(st.w.memory_sources_hash, hashActual, "vuelve a la huella de m5");
+  eq(st.w.memory_sources_hash, hashActual, "vuelve a la huella de m7");
 });
 
 Deno.test("m5: sin correo configurado no hay sección Contacto, y los demás correos NO se tocan", async () => {
@@ -335,4 +338,18 @@ Deno.test("m5: un correo inválido en el campo se trata como no configurado (no 
   eq(memoryEmail(" Hola@Ejemplo.com "), "Hola@Ejemplo.com", "se recorta");
   eq(replaceEmails("a x@y.com b", "z@w.com"), "a z@w.com b", "reemplaza");
   eq(replaceEmails("a Z@W.com b", "z@w.com"), "a Z@W.com b", "el configurado no se toca");
+});
+
+Deno.test("m7: con Planes largo y los 7 temas de Políticas en líneas cortas, NO se pierde ningún tema de Políticas", () => {
+  const linea = (n: number, c: number, pre = "- línea") => Array.from({ length: n }, (_, i) => `${pre} ${i} ` + "x".repeat(c));
+  const p: Parts = {
+    // tamaños medidos en la Memoria real de WalkyChat: Qué es ~850, Planes ~1.350, mapa ~2.800, enlaces ~560
+    que: linea(5, 160), planes: linea(5, 260), mapa: linea(22, 117), flujos: linea(1, 170), contacto: ["- Correo de contacto del sitio: a@b.com"],
+    enlaces: linea(7, 70), politicas: linea(7, 140),
+  };
+  const q = fit(p);
+  ok(render(p).length <= MEMORY_TARGET_MAX, "el caso entra sin recortar: " + render(p).length);
+  eq(q.politicas.length, 7, "los 7 temas de Políticas quedan");
+  eq(render(q), render(p), "no se recortó nada");
+  ok(MEMORY_TARGET_MAX >= 7000 && MEMORY_TARGET_MAX < MEMORY_MAX_CHARS, "objetivo 7.000 y por debajo del tope duro");
 });
