@@ -13,7 +13,7 @@ export const MAX_LINKS_PAGE = 30;
 export const MAX_LINKS_TOTAL = 60;
 export const MAX_OUTPUT_TOKENS = 4_000;
 
-export type AiArgs = { instructions: string; input: string; maxOut: number };
+export type AiArgs = { instructions: string; input: string; maxOut: number; effort?: string }; // effort: esfuerzo de razonamiento de ESTA llamada (si falta, el de siempre)
 export type AiResult = { text: string; tIn: number; tOut: number };
 // Solo para pruebas: en producción nadie lo cambia.
 export const aiCfg: { baseUrl: string; call?: (a: AiArgs) => Promise<AiResult> } = {
@@ -25,7 +25,7 @@ export async function callAI(a: AiArgs): Promise<AiResult> {
   const key = Deno.env.get("OPENAI_API_KEY") ?? "";
   if (!key) throw new Error("sin_clave_openai");
   const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-6-luna";
-  const effort = Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low";
+  const effort = a.effort ?? Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low";
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 90_000);
   try {
