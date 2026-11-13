@@ -10,7 +10,7 @@ si algo cambia allá, hay que actualizar esta carpeta (y al revés).
   Comprobación: `md5(array_to_string(statements, E';\n'))` coincide con el md5 del archivo sin ese último salto.
   Excepción: las 2 últimas (`20261113063528` y `20261113065723`) NO llevan ese salto final, así su md5 coincide
   tal cual con el registrado en Supabase (`f82f0de4…` y `46dc654b…`).
-- `functions/chat/` — Edge Function del chat, v22 (verify_jwt = false: la usan visitantes anónimos):
+- `functions/chat/` — Edge Function del chat, v23 (verify_jwt = false: la usan visitantes anónimos):
   `index.ts` (conexión a la base y a OpenAI), `handler.ts` (lógica del pedido), `core.ts` (partes puras),
   más su prueba `chat_test.ts`.
 - `functions/delete-account/index.ts` — borrado de cuenta (verify_jwt = true).
@@ -99,7 +99,7 @@ v7 **genera la Memoria** (`memory.ts`, acción `memory_generate`): toma las secc
 Hace falta [Deno](https://deno.com/). Las pruebas no tocan Supabase, OpenAI ni sitios reales: usan servidores locales,
 un almacén en memoria y una IA falsa. La primera vez Deno descarga dependencias desde npm.
 
-chat (`chat_test.ts`, 42 pruebas):
+chat (`chat_test.ts`, 48 pruebas):
 ```
 cd supabase/functions/chat
 deno test -A

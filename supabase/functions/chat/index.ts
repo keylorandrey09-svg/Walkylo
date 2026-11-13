@@ -1,8 +1,9 @@
 // supabase/functions/chat/index.ts  (verify_jwt: false)
 // v15: búsqueda de secciones (si el widget tiene use_sections), modo prueba del dueño, reintento ante 429.
+// v23: la búsqueda usa las tarjetas (search_sections_v2) con respaldo a la de siempre (search_sections).
 import { createClient } from "npm:@supabase/supabase-js@2";
-import type { AiArgs, AiRaw, SectionHit, Turn, Widget } from "./core.ts";
-import { parseRetryAfter, LIMITS } from "./core.ts";
+import type { AiArgs, AiRaw, Turn, Widget } from "./core.ts";
+import { LIMITS, parseRetryAfter, searchWithFallback } from "./core.ts";
 import { handle, type Store, type Usage } from "./handler.ts";
 
 const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
@@ -71,9 +72,10 @@ const store: Store = {
     if (error) throw new Error("db_usage:" + String(error.message ?? error).slice(0, 80));
   },
   async searchSections(widgetId, query, k) {
-    const { data, error } = await sb.rpc("search_sections", { p_widget: widgetId, p_query: query, p_k: k });
-    if (error) throw new Error("db_busqueda");
-    return (data ?? []) as SectionHit[];
+    return await searchWithFallback(
+      (name, args) => sb.rpc(name, args) as unknown as Promise<{ data: unknown; error: unknown }>,
+      widgetId, query, k, (m) => console.log("search_v2_fallback", JSON.stringify({ m })),
+    );
   },
 };
 

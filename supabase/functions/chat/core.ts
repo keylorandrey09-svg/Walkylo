@@ -37,6 +37,9 @@ export type Widget = {
 export type SectionHit = {
   kind: string; is_hidden: boolean; heading_path: string; text: string; anchor: string | null;
   document_url: string; rank: number;
+  // v23: la búsqueda con tarjetas (search_sections_v2) devuelve además cómo la encontró y el resumen de la tarjeta.
+  // La tarjeta sirve SOLO para encontrar la sección: nunca se manda a la IA (ver formatSections).
+  via?: string | null; purpose?: string | null;
 };
 export type Turn = { from_role: string; text: string };
 
@@ -104,6 +107,8 @@ export function sectionLink(h: SectionHit): string | null {
   return h.anchor ? `${h.document_url.split("#")[0]}#${h.anchor}` : h.document_url;
 }
 
+// GARANTÍA (v23): a la IA solo le llega el texto REAL de la sección. El resumen de la tarjeta (h.purpose) ayuda a encontrarla,
+// pero no se incluye acá: así una tarjeta que se equivoque no puede cambiar un paso ni un dato de la respuesta.
 export function formatSections(hits: SectionHit[], budget = LIMITS.SECTIONS_BUDGET_CHARS): { block: string; used: number } {
   const parts: string[] = [];
   let left = budget, used = 0;
@@ -118,6 +123,27 @@ export function formatSections(hits: SectionHit[], budget = LIMITS.SECTIONS_BUDG
     used++;
   }
   return { block: parts.join("\n\n"), used };
+}
+
+// ---------- Búsqueda de secciones (v23) ----------
+// Primero la búsqueda con tarjetas (v2). Si falla por cualquier motivo (función ausente, error de base, red), se usa la de
+// siempre (v1, solo texto). Solo si fallan las dos se devuelve error. Así volver atrás no exige desplegar nada.
+export type RpcResult = { data: unknown; error: unknown };
+export type RpcFn = (name: string, args: Record<string, unknown>) => Promise<RpcResult>;
+export async function searchWithFallback(
+  rpc: RpcFn, widgetId: string, query: string, k: number, onFallback: (motivo: string) => void = () => {},
+): Promise<SectionHit[]> {
+  const args = { p_widget: widgetId, p_query: query, p_k: k };
+  const call = async (name: string): Promise<RpcResult> => {
+    try { return await rpc(name, args); } catch (e) { return { data: null, error: e }; }
+  };
+  const v2 = await call("search_sections_v2");
+  if (!v2.error) return (v2.data ?? []) as SectionHit[];
+  const m = (v2.error as { message?: unknown } | null)?.message ?? v2.error;
+  onFallback(String(m).slice(0, 100));
+  const v1 = await call("search_sections");
+  if (v1.error) throw new Error("db_busqueda");
+  return (v1.data ?? []) as SectionHit[];
 }
 
 // ---------- Consulta de búsqueda ----------
