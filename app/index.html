@@ -3255,8 +3255,9 @@
       return { url: v };
     }
     // Llama a una función de Supabase con la sesión. Siempre resuelve { ok, status, data } (el cuerpo del error también).
-    function vfInvoke(fn, body){
-      return SB.functions.invoke(fn, { body: body }).then(function(res){
+    // signal (opcional): AbortSignal para cortar el pedido (supabase-js v2 lo pasa a fetch); abortado = status 0.
+    function vfInvoke(fn, body, signal){
+      return SB.functions.invoke(fn, signal ? { body: body, signal: signal } : { body: body }).then(function(res){
         if (!res.error) return { ok: true, status: 200, data: res.data || {} };
         var ctx = res.error.context, st = ctx && ctx.status || 0;
         if (!ctx || typeof ctx.json !== 'function') return { ok: false, status: st, data: {} };
@@ -3713,15 +3714,15 @@
     // st: último cards_status · data: tarjetas y enlaces por sección (v sube con cada edición) · read: fase 1 en curso
     // { z, jobId, found, done, stop, retry, until } · run: resumen de la corrida de tarjetas · runG: su zona ('' = no se sabe)
     // · mem: al terminar bien, memory_generate en silencio · loop: hay bucle de pasos de tarjetas · call: hay una llamada en
-    // vuelo · stop: se pidió cancelar las tarjetas · page: filtro de página (desde Fuentes) · ed: edición de la tarjeta abierta
+    // vuelo (ctl: su AbortController) · cancelP: aviso de cancelación en camino (wait: un trabajo nuevo lo espera) · page: filtro de página (desde Fuentes) · ed: edición de la tarjeta abierta
     // · z: por zona (y x = sin zona conocida, se ve en General) el error, el aviso, la nota de la lectura salteada, la
     // selección (null o { id: true }) y los grupos plegables abiertos.
-    var sc = { st: null, stErr: '', data: null, req: null, again: false, text: {}, read: null, run: null, runId: null, runG: '', mem: false, loop: false, call: false, stop: false,
+    var sc = { st: null, stErr: '', data: null, req: null, again: false, text: {}, read: null, run: null, runId: null, runG: '', mem: false, loop: false, call: false, stop: false, ctl: null, cancelP: null, wait: false,
       retry: 0, gen: 0, timer: null, page: '', gridKey: '', cur: null, back: [], mBack: null, ed: null,
       z: { public: { err: '', msg: '', skip: '', sel: null, open: { legal: false } }, internal: { err: '', msg: '', skip: '', sel: null, open: { menus: false } }, x: { err: '', msg: '', skip: '', sel: null, open: {} } } };
     function scZ(){ return mm && mm.tab === 'flujos' ? 'internal' : 'public'; }
     function scRZ(){ return sc.z[sc.runG] || sc.z.x; }   // zona del trabajo (o la de General si no se sabe)
-    function scBusy(){ return sc.loop || sc.call || !!sc.read; }
+    function scBusy(){ return sc.loop || sc.call || sc.wait || !!sc.read; }
     function scNum(n){ n = Number(n); return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
     function scSsGet(){ try { var v = JSON.parse(sessionStorage.getItem(SC_SS) || 'null'); return v && typeof v === 'object' ? v : null; } catch(e){ return null; } }
     function scSsSet(v){ try { if (v) sessionStorage.setItem(SC_SS, JSON.stringify(v)); else sessionStorage.removeItem(SC_SS); } catch(e){} }
@@ -3760,43 +3761,87 @@
         scRender(); if (sc.cur) scFill();
       });
     }
+    // Llamadas del trabajo (lectura y tarjetas): una sola en vuelo, abortable (AbortController) y atada a la ronda (sc.gen).
+    // Cancelar sube la ronda y aborta el pedido: la respuesta tardía de esa ronda se descarta sin tocar nada (ni sc.call,
+    // ni la barra, ni el bucle). Devuelve null si la ronda ya no es la actual.
+    function scCall(body){
+      var g = sc.gen, ctl = typeof AbortController === 'function' ? new AbortController() : null;
+      sc.ctl = ctl; sc.call = true; scRender();
+      return vfInvoke('import-site', body, ctl ? ctl.signal : undefined).then(function(r){
+        if (g !== sc.gen) return null;
+        if (sc.ctl === ctl) sc.ctl = null;
+        sc.call = false; return r;
+      });
+    }
+    function scAbort(){
+      sc.gen++; clearTimeout(sc.timer);
+      if (sc.ctl){ try { sc.ctl.abort(); } catch(e){} sc.ctl = null; }
+      sc.call = false;
+    }
+    // Avisar una cancelación al servidor sin trabar la pantalla: si falla por red, un aviso corto y UN reintento en segundo plano.
+    function scSendCancel(body){
+      return vfInvoke('import-site', body).then(function(r){
+        if (r.ok || r.status !== 0) return r;
+        toast('Sin conexión: se reintenta la cancelación en segundo plano.');
+        return new Promise(function(res){ setTimeout(res, SC_RETRY_MS); }).then(function(){ return vfInvoke('import-site', body); }).then(function(r2){
+          if (!r2.ok && r2.status === 0) toast('No se pudo confirmar la cancelación. Revisá tu conexión.');
+          return r2;
+        });
+      });
+    }
+    // Un trabajo nuevo espera a que llegue la cancelación anterior (para que el servidor no retome lo cancelado).
+    function scAfterCancel(fn){
+      if (!sc.cancelP) return false;
+      sc.wait = true; scRender();
+      sc.cancelP.then(function(){ sc.wait = false; fn(); });
+      return true;
+    }
     // Estado de las tarjetas. resume: retoma un trabajo vivo (al abrir el panel o la vista): una corrida de tarjetas en la zona
-    // de run.group (o la guardada en sessionStorage; si no hay, en General) o una lectura guardada en sessionStorage.
-    function scStatus(resume){
+    // de run.group (o la guardada en sessionStorage; si no hay, en General) o una lectura guardada en sessionStorage. Una
+    // corrida que se canceló acá y cuyo aviso no llegó al servidor ({ p: 'kill' }) no se retoma: se vuelve a cancelar.
+    // quiet: solo refresca los conteos (después de cancelar), sin marcar el panel como ocupado ni retomar nada.
+    function scStatus(resume, quiet){
+      if (quiet){
+        if (!window.__wuUser) return;
+        return vfInvoke('import-site', { action: 'cards_status' }).then(function(r){ if (r.ok){ var run = sc.st && sc.st.run; sc.stErr = ''; sc.st = r.data || {}; if (scBusy()) sc.st.run = run; } scRender(); wgRenderExtras(); });
+      }
       if (scBusy() || !window.__wuUser) return;
-      sc.call = true; scRender();
-      vfInvoke('import-site', { action: 'cards_status' }).then(function(r){
-        sc.call = false;
+      scCall({ action: 'cards_status' }).then(function(r){
+        if (!r) return;
         if (!r.ok){ sc.st = null; sc.stErr = (r.data || {}).error || (r.status === 0 ? 'red' : 'otro'); return scRender(); }
         sc.stErr = ''; sc.st = r.data || {};
-        var run = sc.st.run, ss = scSsGet();
-        if (resume && run && run.status === 'running' && run.run_id){
+        var run = sc.st.run, ss = scSsGet(), live = run && run.status === 'running' && run.run_id;
+        if (ss && ss.p === 'kill'){
+          if (live && run.run_id === ss.run){ scSendCancel({ action: 'cards_cancel', run_id: ss.run }).then(function(x){ if (x.ok || x.status !== 0) scSsSet(null); scStatus(false); }); sc.st.run = null; return scRender(); }
+          scSsSet(null); ss = null;
+        }
+        if (resume && live){
           var mine = ss && ss.p === 'cards' && ss.run === run.run_id ? ss : null;
           sc.runG = run.group === 'public' || run.group === 'internal' ? run.group : mine && sc.z[mine.z] ? mine.z : '';
           sc.mem = !!(mine && mine.mem); scRZ().err = ''; scRZ().msg = ''; sc.run = run;
           return scLoop(run.run_id);
         }
         if (resume && ss && ss.p === 'read' && sc.z[ss.z]) return scReadResume(ss.z);
-        if (ss && ss.p === 'cards' && !(run && run.status === 'running')) scSsSet(null);
+        if (ss && ss.p === 'cards' && !live) scSsSet(null);
         scRender(); wgRenderExtras();
       });
     }
 
     // ---------- Fase 1: leer el sitio (solo Generar / Actualizar) ----------
     function scGen(z){
-      if (scBusy()) return;
+      if (scBusy() || scAfterCancel(function(){ scGen(z); })) return;
       var Z = sc.z[z]; Z.err = ''; Z.msg = ''; Z.skip = ''; Z.sel = null; sc.z.x.err = sc.z.x.msg = '';
       if (!vfVerified()){ Z.err = 'sitio_no_verificado'; return scRender(); }   // no se empieza: aviso con el enlace
-      sc.read = { z: z, jobId: null, found: 0, done: 0, stop: false, retry: 0, until: Date.now() + SC_READ_MS };
+      sc.read = { z: z, jobId: null, found: 0, done: 0, retry: 0, until: Date.now() + SC_READ_MS };
       scSsSet({ p: 'read', z: z }); scRender();
       scReadCall({ action: 'start' }, 0);
     }
     // Al recargar en medio de la lectura: si sigue viva se retoma (status del último trabajo); si ya terminó, sigue la fase 2.
     function scReadResume(z){
-      sc.read = { z: z, jobId: null, found: 0, done: 0, stop: false, retry: 0, until: Date.now() + SC_READ_MS };
-      sc.call = true; scRender();
-      vfInvoke('import-site', { action: 'status' }).then(function(r){
-        sc.call = false; var d = r.data || {}, R = sc.read; if (!R) return;
+      var R = sc.read = { z: z, jobId: null, found: 0, done: 0, retry: 0, until: Date.now() + SC_READ_MS };
+      scCall({ action: 'status' }).then(function(r){
+        if (!r || sc.read !== R) return;
+        var d = r.data || {};
         if (r.ok && d.status === 'running' && d.job_id){ R.jobId = d.job_id; R.found = scNum(d.pages_found); R.done = scNum(d.pages_done); scRender(); return scReadCall({ action: 'step', job_id: d.job_id }, 0); }
         if (r.ok && d.status === 'done') return scReadDone();
         sc.read = null; scSsSet(null); scRender();   // se perdió: no se empieza nada solo
@@ -3804,10 +3849,8 @@
     }
     function scReadCall(body, tries){
       var R = sc.read; if (!R) return;
-      if (R.stop) return scReadCancel();
-      sc.call = true; scRender();
-      vfInvoke('import-site', body).then(function(r){
-        sc.call = false; if (sc.read !== R) return;
+      scCall(body).then(function(r){
+        if (!r || sc.read !== R) return;   // ronda cancelada: se descarta
         var d = r.data || {};
         if (!r.ok && r.status === 0 && tries < SC_RETRY){ R.retry = tries + 1; scRender(); sc.timer = setTimeout(function(){ if (sc.read === R) scReadCall(body, tries + 1); }, SC_RETRY_MS); return; }
         R.retry = 0;
@@ -3822,7 +3865,6 @@
         if (d.job_id) R.jobId = d.job_id;
         R.found = scNum(d.pages_found); R.done = scNum(d.pages_done);
         if (d.status === 'done') return scReadDone();
-        if (R.stop) return scReadCancel();
         if (d.status === 'running' && R.jobId && Date.now() < R.until){
           scRender(); sc.timer = setTimeout(function(){ if (sc.read === R) scReadCall({ action: 'step', job_id: R.jobId }, 0); }, 400); return;
         }
@@ -3838,31 +3880,35 @@
       if (Z.err === 'sitio_no_verificado') vfRefresh();
       scReadAfter(); scRender();
     }
-    // Frenar la lectura: lo ya leído queda guardado (no se puede deshacer) y no se arman tarjetas.
+    // Frenar la lectura AL INSTANTE: se corta el bucle, se aborta el paso en vuelo y se avisa al servidor (cancel) sin
+    // esperar. Lo ya leído queda guardado (no se puede deshacer) y no se arman tarjetas. Sin job_id todavía (start en
+    // vuelo), se busca la lectura viva con status.
     function scReadCancel(){
       var R = sc.read; if (!R) return;
-      clearTimeout(sc.timer);
-      function end(){ if (sc.read !== R) return; sc.read = null; scSsSet(null); sc.z[R.z].msg = 'Lectura frenada: las páginas ya leídas quedaron guardadas. No se armaron tarjetas.'; scReadAfter(); scStatus(false); }
-      if (!R.jobId) return end();
-      sc.call = true; scRender();
-      vfInvoke('import-site', { action: 'cancel', job_id: R.jobId }).then(function(){ sc.call = false; end(); });   // si falla, la lectura igual queda frenada: avanza solo con pasos
+      scAbort(); sc.read = null; scSsSet(null);
+      var Z = sc.z[R.z]; Z.err = ''; Z.msg = 'Lectura frenada: las páginas ya leídas quedaron guardadas. No se armaron tarjetas.';
+      scRender();
+      var p = (R.jobId ? Promise.resolve(R.jobId) : vfInvoke('import-site', { action: 'status' }).then(function(r){ var d = r.data || {}; return r.ok && d.status === 'running' && d.job_id ? d.job_id : null; }))
+        .then(function(id){ return id ? scSendCancel({ action: 'cancel', job_id: id }) : null; });
+      sc.cancelP = p;
+      p.then(function(){ if (sc.cancelP === p) sc.cancelP = null; scReadAfter(); scStatus(false, true); });
     }
 
     // ---------- Fase 2: tarjetas ----------
     function scCode(r){ var d = r.data || {}; return d.error && SC_ERR[d.error] ? d.error : r.status === 0 ? 'red' : 'otro'; }
-    function scFail(code){ var Z = scRZ(); sc.loop = false; sc.stop = false; sc.retry = 0; sc.mem = false; Z.err = code; Z.msg = ''; scSsSet(null); scRender(); scStatus(false); }
+    function scFail(code){ var Z = scRZ(); sc.loop = false; sc.retry = 0; sc.mem = false; Z.err = code; Z.msg = ''; scSsSet(null); scRender(); scStatus(false); }
     // Silencioso: mantiene al día el texto interno de respaldo que el chat todavía lee. Nada se muestra, ni los errores.
     function scMemQuiet(){ vfInvoke('import-site', { action: 'memory_generate' }).then(function(){}, function(){}); }
     // o: { z, force, ids, mem }. Generar / Actualizar llegan acá desde la fase 1 con mem; Regenerar todas (force) y
     // Regenerar (n) (ids) empiezan acá directo.
     function scStart(o){
-      if (sc.loop || sc.call || sc.read) return;
+      if (sc.loop || sc.call || sc.read || scAfterCancel(function(){ scStart(o); })) return;
       var body = { action: 'cards_start' }, Z = sc.z[o.z];
       if (o.force) body.force = true;
       if (o.ids) body.section_ids = o.ids; else body.group = o.z;
-      sc.runG = o.z; sc.mem = !!o.mem; sc.z.x.err = sc.z.x.msg = ''; Z.err = ''; Z.msg = ''; if (!o.mem) Z.skip = ''; sc.runId = null; sc.call = true; scRender();
-      vfInvoke('import-site', body).then(function(r){
-        sc.call = false;
+      sc.runG = o.z; sc.mem = !!o.mem; sc.z.x.err = sc.z.x.msg = ''; Z.err = ''; Z.msg = ''; if (!o.mem) Z.skip = ''; sc.runId = null;
+      scCall(body).then(function(r){
+        if (!r) return;
         if (!r.ok) return scFail(scCode(r));
         var d = r.data || {};
         if (d.status === 'running' && d.run_id){ sc.run = d; scSsSet({ p: 'cards', run: d.run_id, z: o.z, mem: sc.mem }); return scLoop(d.run_id); }
@@ -3875,28 +3921,26 @@
       });
     }
     function scSkipNote(Z){ var s = Z.skip; Z.skip = ''; return s ? ' No se volvió a leer el sitio (' + s + '): se usó la última lectura.' : ''; }
-    // Bucle de pasos: uno por vez, mientras la corrida esté en "running".
+    // Bucle de pasos: uno por vez, mientras la corrida esté en "running". Cada paso es de la ronda g: si se cancela, su
+    // respuesta tardía se descarta.
     function scLoop(id){
       if (sc.loop) return;
-      sc.loop = true; sc.stop = false; sc.retry = 0; sc.runId = id;
+      sc.loop = true; sc.retry = 0; sc.runId = id;
       var g = ++sc.gen, still = 0, last = sc.run ? scNum(sc.run.done) : -1;
       scRender();
       function next(tries){
         if (g !== sc.gen) return;
-        if (sc.stop) return scCancelNow(id);
-        sc.call = true; scRender();
-        vfInvoke('import-site', { action: 'cards_step', run_id: id }).then(function(r){
-          sc.call = false; if (g !== sc.gen) return;
+        scCall({ action: 'cards_step', run_id: id }).then(function(r){
+          if (!r || g !== sc.gen) return;
           var x = r.ok ? r.data || {} : null;
           if (x && x.status === 'done') return scDone(x);
-          if (sc.stop) return scCancelNow(id);
           if (!r.ok && r.status === 0 && tries < SC_RETRY){ sc.retry = tries + 1; scRender(); sc.timer = setTimeout(function(){ next(tries + 1); }, SC_RETRY_MS); return; }
           sc.retry = 0;
           if (!r.ok) return scFail(scCode(r));
           sc.run = x;
           if (x.status === 'running'){
             var dn = scNum(x.done); still = dn > last ? 0 : still + 1; last = dn;
-            if (still >= SC_STUCK) return scCancelNow(id, 'otro');   // trabada: se corta en el servidor, sin dejar nada
+            if (still >= SC_STUCK) return scCancelRun('otro');   // trabada: se corta en el servidor, sin dejar nada
             scRender(); return next(0);
           }
           if (x.status === 'cancelled' || x.status === 'canceled'){ sc.loop = false; sc.run = null; sc.mem = false; scSsSet(null); scRZ().msg = 'Cancelado: las tarjetas quedaron como estaban.'; return scStatus(false); }
@@ -3907,29 +3951,36 @@
     }
     function scDone(x){
       var deg = scNum(x.degraded), Z = scRZ(), mem = sc.mem;
-      sc.loop = false; sc.stop = false; sc.run = null; sc.mem = false; Z.sel = null; Z.err = ''; scSsSet(null);
+      sc.loop = false; sc.run = null; sc.mem = false; Z.sel = null; Z.err = ''; scSsSet(null);
       if (mem) scMemQuiet();
       Z.msg = (mem ? 'Listo: se leyó el sitio y se armaron las tarjetas.' : 'Listo: tarjetas actualizadas.') + (deg ? ' ' + (deg === 1 ? '1 sección quedó' : fmtN(deg) + ' secciones quedaron') + ' con una tarjeta básica (sin IA).' : '') + scSkipNote(Z);
       toast('Tarjetas actualizadas');
       scLoad(true); scStatus(false);
     }
-    // Cancelar las tarjetas: corta la corrida en el servidor; lo hecho aparte se tira y las de antes quedan como estaban.
-    // err: código a mostrar en vez de "Cancelado" (cuando la corta el panel por trabarse).
-    function scCancelNow(id, err){
-      clearTimeout(sc.timer); sc.gen++; sc.call = true; scRender();
-      vfInvoke('import-site', { action: 'cards_cancel', run_id: id }).then(function(r){
-        var Z = scRZ(), st = (r.data || {}).status, mem = sc.mem;
-        sc.call = false; sc.loop = false; sc.stop = false; sc.retry = 0;
-        if (r.ok && st === 'done'){ sc.run = null; sc.mem = false; Z.sel = null; scSsSet(null); if (mem) scMemQuiet(); Z.msg = 'La generación ya había terminado: las tarjetas se actualizaron.'; scLoad(true); return scStatus(false); }
-        if (r.ok){ sc.run = null; sc.mem = false; scSsSet(null); if (err) Z.err = err; else Z.msg = 'Cancelado: las tarjetas quedaron como estaban.'; return scStatus(false); }
-        toast('No se pudo cancelar. Probá de nuevo.'); scStatus(true);   // sigue viva: se retoma el bucle
+    // Cancelar las tarjetas AL INSTANTE: "Cancelado" y botones libres en el mismo momento; se aborta el paso en vuelo (el
+    // servidor tira lo que quede) y cards_cancel sale de inmediato, sin esperar a ese paso. Lo hecho aparte se tira y las
+    // tarjetas de antes quedan como estaban. err: código a mostrar en vez de "Cancelado" (cuando la corta el panel por
+    // trabarse). Mientras el aviso no llega al servidor, sessionStorage guarda { p: 'kill', run } para no retomarla al recargar.
+    function scCancelRun(err){
+      var id = sc.runId, Z = scRZ(), mem = sc.mem;
+      scAbort(); sc.loop = false; sc.retry = 0; sc.run = null; sc.mem = false;
+      if (err){ Z.err = err; Z.msg = ''; } else { Z.err = ''; Z.msg = 'Cancelado: las tarjetas quedaron como estaban.'; }
+      scSsSet(id ? { p: 'kill', run: id } : null); scRender();
+      if (!id) return;
+      var p = scSendCancel({ action: 'cards_cancel', run_id: id });
+      sc.cancelP = p;
+      p.then(function(r){
+        if (sc.cancelP === p) sc.cancelP = null;
+        var s = scSsGet(); if ((r.ok || r.status !== 0) && s && s.p === 'kill' && s.run === id) scSsSet(null);
+        // La corrida ya había terminado en el servidor (su último paso llegó antes que la cancelación): se dice lo que pasó.
+        if (r.ok && (r.data || {}).status === 'done' && !err){ if (mem) scMemQuiet(); if (!scBusy()) Z.msg = 'La generación ya había terminado: las tarjetas se actualizaron.'; scLoad(true); }
+        scStatus(false, true);
+        // Si el aviso no llegó, se vuelve a intentar al próximo estado completo (y al recargar, por la marca kill).
+        var k = scSsGet(); if (k && k.p === 'kill' && k.run === id && !scBusy()) scStatus(false);
       });
     }
     // Un solo Cancelar para las dos fases.
-    function scCancel(){
-      if (sc.read){ if (sc.read.stop) return; sc.read.stop = true; scRender(); if (!sc.call) scReadCancel(); return; }
-      if (!sc.loop || sc.stop) return; sc.stop = true; scRender(); if (!sc.call) scCancelNow(sc.runId);
-    }
+    function scCancel(){ if (sc.read) return scReadCancel(); if (sc.loop) scCancelRun(); }
 
     // Conteos de una zona (cards_status.groups[z]). null = sin dato (cargando, error o un servidor sin grupos).
     function scCounts(z){
