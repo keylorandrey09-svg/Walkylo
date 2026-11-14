@@ -652,50 +652,9 @@
     .mm-msg.is-err{color:var(--danger);}
     .mm-empty{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:20px;border:1px solid var(--border);border-radius:10px;}
     .mm-empty p{margin:0;color:var(--text-2);max-width:56ch;}
-    /* Franja del borrador: borde, sin relleno de color */
-    .mm-band{margin-bottom:12px;padding:16px;border:1px solid var(--border);border-radius:10px;}
-    .mm-band__t{margin:0;font-weight:500;}
-    .mm-band .mm-act{margin-top:12px;}
-    .mm-diff{margin:12px 0 0;padding:12px 16px;list-style:none;border-radius:6px;background:var(--surface);font-size:.875rem;line-height:1.6;max-height:60vh;overflow:auto;}
-    .mm-diff li{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text-2);}
-    .mm-diff .is-add{color:var(--text);font-weight:500;}
-    .mm-diff .is-gap{padding:2px 0;}
-    /* Bloques de la Memoria: cada uno es una tarjeta (como .cfg-card), 12px entre tarjetas; "Ver más" adentro */
-    .mm-blks{display:flex;flex-direction:column;gap:12px;}
-    .mm-blk{padding:20px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
-    .mm-blk__t{margin:0 0 4px;font-size:.9375rem;line-height:1.5;font-weight:500;overflow-wrap:anywhere;scroll-margin-top:24px;}
-    .mm-blk__l{margin:0;padding:0;list-style:none;}
-    .mm-blk__l li{position:relative;padding-left:16px;line-height:1.6;overflow-wrap:anywhere;}
-    .mm-blk__l li::before{content:"–";position:absolute;left:0;color:var(--text-2);}
-    /* Cabecera del bloque: título y "Editar" (solo ese bloque) a la derecha, sin borde ni relleno */
-    .mm-blk__h{display:flex;align-items:flex-start;gap:8px;}
-    .mm-blk__h .mm-blk__t{flex:1;min-width:0;}
-    .mm-blk__e{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:-6px -8px -2px auto;padding:0 8px;border:0;border-radius:6px;background:none;
-      font:inherit;font-size:.8125rem;color:var(--text-2);cursor:pointer;flex-shrink:0;touch-action:manipulation;}
-    .mm-blk__e:hover{color:var(--text);}
-    .mm-blk__e svg{width:16px;height:16px;}
-    .mm-blk__e:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
-    .mm-eact{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:12px;}
-    .mm-ta{min-height:calc(10lh + 18px) !important;}
-    .mm-blk-ed .mm-ta{min-height:calc(5lh + 18px) !important;}
     .mm-over{margin:6px 0 0;font-size:.8125rem;color:var(--text);}
-    /* Columnas: texto de hasta 860px; desde 1100px, "Qué cubre" e índice a la derecha (sticky). En menos, arriba y sin índice. */
     .mm-pane{max-width:860px;}
     .mm-pane > * + *{margin-top:16px;}
-    .mm-cols{display:flex;flex-direction:column;gap:24px;}
-    .mm-main{min-width:0;max-width:860px;}
-    .mm-side{display:flex;flex-direction:column;gap:12px;}
-    .mm-side .cfg-card{padding:16px;}
-    .mm-idx{display:none;}
-    .mm-idx ol{margin:8px 0 0;padding:0;list-style:none;}
-    .mm-idx button{display:block;width:100%;min-height:32px;padding:4px 0;border:0;background:none;font:inherit;font-size:.875rem;color:var(--text-2);text-align:left;cursor:pointer;overflow-wrap:anywhere;}
-    .mm-idx button:hover{color:var(--text);}
-    @media (min-width:1100px){
-      .mm-cols{display:grid;grid-template-columns:minmax(0,860px) 232px;align-items:start;}
-      .mm-main{grid-column:1;grid-row:1;}
-      .mm-side{grid-column:2;grid-row:1;position:sticky;top:24px;}
-      .mm-idx{display:block;}
-    }
     /* Fichas (filtros y ejemplos): borde, sin relleno de color; la elegida con borde --text */
     .mm-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
     .mm-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font:inherit;font-size:.875rem;color:var(--text);cursor:pointer;}
@@ -705,12 +664,6 @@
     .mm-chip:disabled{opacity:.5;cursor:default;}
     .mm-chip:focus-visible,.mm-idx button:focus-visible,.mm-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
     .mm-how{margin:12px 0 0;padding-left:20px;line-height:1.8;}
-    /* Línea de estado de la Memoria: una fila (estado a la izquierda, Regenerar a la derecha) */
-    .mm-st--line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:56px;margin-bottom:12px;padding:7px 8px 7px 16px;}
-    .mm-st--line > [role=status]{flex:1 1 240px;min-width:0;}
-    .mm-st--line .mm-st__act{margin:0;}
-    .mm-st--line .vf-s[data-st=err] .vf-s__l{color:var(--danger);}
-    .mm-st__h.mm-note{margin:-4px 0 12px;}
     /* Fuentes: filas de páginas y de actividad */
     .mm-list{margin:8px 0 0;padding:0;list-style:none;}
     .mm-list > li + li{border-top:1px solid var(--border);}
@@ -723,11 +676,11 @@
     .mm-row__b{flex:1;min-width:0;}
     .mm-row__t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .mm-row__m{display:block;font-size:.8125rem;color:var(--text-2);}
-    /* Fuentes › Páginas leídas: última lectura, aviso sin verificar y "Volver a leer el sitio" */
-    .mm-src__st{margin:12px 0 0;font-size:.875rem;color:var(--text-2);overflow-wrap:anywhere;}
-    .mm-src__st .mm-link{min-height:0;}
+    /* Fuentes › Páginas leídas: última lectura y cantidad de secciones */
     .mm-src__meta{margin:4px 0 0;font-size:.8125rem;color:var(--text-2);font-variant-numeric:tabular-nums;}
-    #mmPages .mm-st{margin-top:16px;}
+    .mm-list[hidden]{display:none;}
+    /* General › Último trabajo */
+    .mg-job.is-err{color:var(--danger);}
     #mmAct .mm-note{margin:4px 0 0;}
     button.mm-row .mm-row__go{width:16px;height:16px;flex-shrink:0;color:var(--text-2);}
     /* Caja de vacío (Secciones): alto mínimo y mensaje centrado */
@@ -756,10 +709,11 @@
     .sc-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .sc-act:not(:has(> :not([hidden]))),.sc-run[hidden],.sc-msg[hidden],.sc-act [hidden]{display:none;}
     /* Zona de recuadros (debajo de los bloques de texto de Información pública o de Flujos) */
-    .sc-zone{margin-top:40px;}
     .sc-zone > * + *{margin-top:16px;}
-    .sc-zh{margin:0;font-size:1.0625rem;line-height:1.4;font-weight:500;letter-spacing:-0.01em;color:var(--text);}
-    .sc-zone > .sc-zd{margin-top:4px;}
+    .sc-zone > .sc-zd{margin:0;max-width:68ch;}
+    .mm-zone-wrap{max-width:860px;}
+    .sc-bar > .sc-hint{margin:0;}
+    .sc-hint[hidden]{display:none;}
     #scPage[hidden]{display:none;}
     /* Grupos: Pantallas y Flujos abiertos; Páginas y Legales plegables (<details>) */
     .sc-g{margin-top:24px;}
@@ -825,7 +779,8 @@
     .sc-lk{display:inline;padding:0;border:0;background:none;font:inherit;line-height:inherit;color:var(--accent);text-align:inherit;cursor:pointer;}
     .sc-lk:hover{text-decoration:underline;}
     .sc-lk:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:2px;}
-    .sc-open{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;font-size:.875rem;color:var(--accent);}
+    .sc-where{display:inline-flex;align-items:center;min-height:44px;font-size:.875rem;color:var(--accent);overflow-wrap:anywhere;word-break:break-word;}
+    .sc-where:hover{text-decoration:underline;}
     /* Tarjeta en el modal: insignia "Editada", Editar / Volver al original y el campo de edición (solo el texto de la tarjeta) */
     .sc-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
     .sc-h .sc-h3{margin:0;}
@@ -1307,12 +1262,12 @@
         </section>
         <!-- vf:end -->
 
-        <!-- VIEW: Memoria (mm:start) — 5 pestañas en memoria, sin cambiar la URL; todos los paneles quedan en el DOM -->
+        <!-- VIEW: Memoria (mm:start) — 5 pestañas en memoria, sin cambiar la URL; todos los paneles quedan en el DOM.
+             Las tarjetas son la memoria: no se muestra ningún texto de memoria fuera de ellas. -->
         <section class="wa-view" data-view="memoria">
           <div class="mm-head">
             <h1 class="wa-page-title">Memoria</h1>
             <div class="mm-hact">
-              <button class="wa-btn" id="mmEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmSave" type="button" hidden>Guardar</button>
               <button class="wa-btn wa-btn-primary" id="mmNotesEdit" type="button" hidden>Editar</button><button class="wa-btn" id="mmNotesCancel" type="button" hidden>Cancelar</button><button class="wa-btn wa-btn-primary" id="mmNotesSave" type="button" hidden>Guardar</button>
             </div>
           </div>
@@ -1327,9 +1282,9 @@
             </div>
           </div>
           <div class="mm">
-            <!-- General (mg:start): estado de Información pública y de Flujos por separado, el texto de la Memoria y qué hacer a continuación -->
+            <!-- General (mg:start): solo tarjetas (Información pública y Flujos por separado), sitio verificado y el último trabajo -->
             <div class="wg-panel mm-pane" id="mmPanel-general" role="tabpanel" aria-labelledby="mmTab-general" tabindex="0">
-              <p class="wg-panel__hint">Estado de lo que sabe tu asistente y lo que falta.</p>
+              <p class="wg-panel__hint">Estado de las tarjetas de tu asistente y lo que falta.</p>
               <div class="wg-field wg-state">
                 <div>
                   <span class="wg-field__label">Información pública</span>
@@ -1344,75 +1299,46 @@
                 </div>
                 <button class="wa-btn" type="button" data-mmtab="flujos">Ver flujos</button>
               </div>
-              <div class="wg-field">
-                <span class="wg-field__label">Texto de la Memoria</span>
-                <p class="wg-field__hint" id="mgInfo"></p>
+              <div class="wg-field wg-state">
+                <div role="status" aria-live="polite">
+                  <span class="wg-field__label">Último trabajo</span>
+                  <p class="wg-field__hint mg-job" id="mgJob">Revisando…</p>
+                </div>
+                <button class="wa-btn" type="button" id="mgCancel" hidden>Cancelar</button>
               </div>
               <div class="wg-field" id="mgTodo"></div>
             </div>
             <!-- mg:end -->
 
-            <!-- Información pública y Flujos: comparten un solo bloque (#mmCols) que se mueve a la pestaña abierta. Arriba, la línea
-                 de estado y los bloques de texto de esa pestaña; abajo, la zona de recuadros de sus secciones. -->
+            <!-- Información pública y Flujos: comparten un solo bloque (#mmCols) que se mueve a la pestaña abierta: una línea de
+                 ayuda, los botones de la zona y los recuadros de las tarjetas. Nada más. -->
             <div class="wg-panel" id="mmPanel-info" role="tabpanel" aria-labelledby="mmTab-info" tabindex="0" hidden>
-              <div class="mm-cols" id="mmCols">
-                <aside class="mm-side" id="mmSide" aria-label="Resumen de la Memoria" hidden>
-                  <div class="cfg-card" id="mmCover" hidden><h2 class="cfg-card__title">Qué cubre</h2><div class="mm-chips" id="mmCoverChips"></div></div>
-                  <nav class="cfg-card mm-idx" aria-labelledby="mmIdxT"><h2 class="cfg-card__title" id="mmIdxT">En esta pestaña</h2><ol id="mmIdxL"></ol></nav>
-                </aside>
-                <div class="mm-main">
-                  <div class="mm-band" id="mmBand" hidden>
-                    <p class="mm-band__t">Hay una versión nueva de la Memoria.</p>
-                    <div class="mm-act">
-                      <button class="wa-btn" id="mmDiffBtn" type="button" aria-expanded="false" aria-controls="mmDiff">Ver cambios</button>
-                      <button class="wa-btn wa-btn-primary" id="mmAccept" type="button">Usar la nueva</button>
-                      <button class="wa-btn" id="mmDiscard" type="button">Descartar</button>
+              <div class="mm-zone-wrap" id="mmCols">
+                <!-- Zona de recuadros (sc:start): una sola, que muestra las tarjetas públicas (Información pública) o las internas
+                     (Flujos). Generar / Actualizar leen el sitio y arman las tarjetas; un solo trabajo a la vez por widget. -->
+                <div class="sc-zone" id="scZone">
+                  <p class="wg-panel__hint sc-zd" id="scZD"></p>
+                  <div class="cfg-card sc-bar">
+                    <div role="status" aria-live="polite"><p class="sc-t" id="scT"></p></div>
+                    <div class="sc-run" id="scRun" hidden>
+                      <div class="sc-track" id="scTrack" role="progressbar" aria-label="Avance" aria-valuemin="0"><span class="sc-fill" id="scFill"></span></div>
+                      <span class="sc-n" id="scN"></span>
+                      <button class="wa-btn" id="scCancel" type="button">Cancelar</button>
                     </div>
-                    <ol class="mm-diff" id="mmDiff" aria-label="Cambios entre la Memoria actual y la nueva" hidden></ol>
-                  </div>
-                  <div class="mm-empty" id="mmEmptyNo" hidden><p>La Memoria se crea leyendo tu sitio. Primero confirmá que el sitio es tuyo.</p><a class="mm-link" href="/app/verificaciones" data-mmgo="verificaciones">Verificar mi sitio</a></div>
-                  <div class="mm-empty" id="mmEmptyGo" hidden><p>La Memoria se crea leyendo tu sitio: un resumen de lo que tiene, para que tu asistente responda con eso.</p><button class="wa-btn wa-btn-primary" id="mmCreate" type="button">Leer mi sitio y crear la Memoria</button></div>
-                  <div class="mm-st mm-st--line" id="mmSt" data-hint="mmRegenH" hidden>
-                    <div role="status" aria-live="polite"><ul class="vf-steps" id="mmStSteps"></ul><p class="mm-st__t" id="mmStT"></p></div>
-                    <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="mmRegen" type="button">Regenerar</button><p class="vf-wait" hidden></p></div>
-                  </div>
-                  <p class="mm-note mm-st__h" id="mmRegenH" hidden>Se creará una versión nueva para que la compares. Tu texto no se toca.</p>
-                  <div class="mm-empty" id="mmTabNone" hidden><p id="mmTabNoneT"></p></div>
-                  <div class="mm-blks" id="mmBlks" hidden></div>
-                  <div class="cfg-card" id="mmEditBox" hidden>
-                    <div class="kx-head"><label class="wg-field__label" id="mmTaL" for="mmTa">Texto</label><span class="kx-n" id="mmTaN"></span></div>
-                    <textarea class="wg-textarea mm-ta" id="mmTa" spellcheck="false" aria-describedby="mmTaN mmOver"></textarea>
-                    <p class="mm-over" id="mmOver" hidden></p>
-                    <div class="mm-eact" id="mmEAct" hidden><button class="wa-btn" id="mmBCancel" type="button">Cancelar</button><button class="wa-btn wa-btn-primary" id="mmBSave" type="button">Guardar</button></div>
-                  </div>
-                  <p class="mm-msg" id="mmMsg" role="status" aria-live="polite"></p>
-
-                  <!-- Zona de recuadros (sc:start): una sola, que muestra las secciones públicas (Información pública) o las internas
-                       (Flujos). Tarjetas con IA (import-site cards_* con group), una sola corrida a la vez por widget. -->
-                  <section class="sc-zone" id="scZone" aria-labelledby="scZT">
-                    <h2 class="sc-zh" id="scZT">Secciones del sitio</h2>
-                    <p class="mm-note sc-zd" id="scZD"></p>
-                    <div class="cfg-card sc-bar">
-                      <div role="status" aria-live="polite"><p class="sc-t" id="scT"></p></div>
-                      <div class="sc-run" id="scRun" hidden>
-                        <div class="sc-track" id="scTrack" role="progressbar" aria-label="Tarjetas generadas" aria-valuemin="0"><span class="sc-fill" id="scFill"></span></div>
-                        <span class="sc-n" id="scN"></span>
-                        <button class="wa-btn" id="scCancel" type="button">Cancelar</button>
-                      </div>
-                      <p class="sc-msg" id="scMsg" hidden></p>
-                      <div class="sc-act" id="scAct">
-                        <button class="wa-btn" id="scGo" type="button" hidden></button>
-                        <button class="wa-btn" id="scAll" type="button" hidden>Regenerar todas</button>
-                        <button class="wa-btn" id="scSel" type="button" hidden>Seleccionar</button>
-                        <button class="wa-btn" id="scSelGo" type="button" hidden>Regenerar</button>
-                        <button class="wa-btn" id="scSelX" type="button" hidden>Cancelar selección</button>
-                      </div>
+                    <p class="mm-note sc-hint" id="scHint" hidden></p>
+                    <p class="sc-msg" id="scMsg" hidden></p>
+                    <div class="sc-act" id="scAct">
+                      <button class="wa-btn" id="scGo" type="button" hidden></button>
+                      <button class="wa-btn" id="scAll" type="button" hidden>Regenerar todas</button>
+                      <button class="wa-btn" id="scSel" type="button" hidden>Seleccionar</button>
+                      <button class="wa-btn" id="scSelGo" type="button" hidden>Regenerar</button>
+                      <button class="wa-btn" id="scSelX" type="button" hidden>Cancelar selección</button>
                     </div>
-                    <div class="mm-chips" id="scPage" hidden></div>
-                    <div id="scGrid"></div>
-                  </section>
-                  <!-- sc:end -->
+                  </div>
+                  <div class="mm-chips" id="scPage" hidden></div>
+                  <div id="scGrid"></div>
                 </div>
+                <!-- sc:end -->
               </div>
             </div>
             <div class="wg-panel" id="mmPanel-flujos" role="tabpanel" aria-labelledby="mmTab-flujos" tabindex="0" hidden></div>
@@ -1446,20 +1372,14 @@
             </div>
             <!-- kx:end -->
 
-            <!-- Fuentes: páginas leídas (con "Volver a leer el sitio") y actividad reciente (cada lectura abre "Qué cambió") -->
+            <!-- Fuentes (solo lectura): páginas leídas y actividad reciente (cada lectura abre "Qué cambió"). Sin acciones de leer:
+                 el sitio se lee con Generar / Actualizar de Información pública y Flujos. -->
             <div class="wg-panel mm-pane" id="mmPanel-fuentes" role="tabpanel" aria-labelledby="mmTab-fuentes" tabindex="0" hidden>
               <div class="cfg-card" id="mmPages">
                 <h2 class="cfg-card__title">Páginas leídas</h2>
                 <p class="mm-src__meta" id="mmSrcMeta" hidden></p>
                 <ul class="mm-list" id="mmPagesL"></ul>
-                <p class="mm-note" id="mmPagesNone" hidden>Tu sitio no tiene páginas leídas.</p>
-                <p class="mm-src__st" id="mmSrcSt" hidden></p>
-                <div class="mm-st" id="rdSt" hidden>
-                  <div role="status" aria-live="polite"><ul class="vf-steps" id="rdSteps"></ul><p class="mm-st__t" id="rdMsg"></p></div>
-                  <p class="mm-note mm-st__h" id="rdH" hidden></p>
-                  <div class="mm-st__act"><button class="wa-btn mm-st__btn" id="rdGo" type="button">Volver a leer el sitio</button><p class="vf-wait" id="rdWait" hidden></p></div>
-                </div>
-                <p class="vf-use" id="rdUse" hidden></p>
+                <p class="mm-note" id="mmPagesNone" hidden></p>
               </div>
               <div class="cfg-card" id="mmAct" hidden><h2 class="cfg-card__title">Actividad reciente</h2><p class="mm-note">Tocá una lectura para ver qué cambió.</p><ul class="mm-list" id="mmActL"></ul></div>
             </div>
@@ -1620,20 +1540,6 @@
         <div class="wa-modal__actions">
           <button class="wa-btn wa-btn-ghost" type="button" data-loclose>Cancelar</button>
           <button class="wa-btn wa-btn-danger solid" type="button" id="logoutGo">Cerrar sesión</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="wa-modal" id="mmDiscardModal" role="dialog" aria-modal="true" aria-labelledby="mmDiscardT">
-    <div class="wa-modal__scrim" data-mmclose></div>
-    <div class="wa-modal__card" style="max-width:400px">
-      <div class="wa-modal__form">
-        <h2 class="wa-modal__title" id="mmDiscardT">¿Descartar la versión nueva?</h2>
-        <p class="wa-modal__desc">Tu Memoria actual queda como está.</p>
-        <div class="wa-modal__actions">
-          <button class="wa-btn" type="button" data-mmclose>Cancelar</button>
-          <button class="wa-btn wa-btn-danger solid" type="button" id="mmDiscardGo">Descartar</button>
         </div>
       </div>
     </div>
@@ -3070,7 +2976,7 @@
                    ['contactEmail','Correo de contacto','contacto'],['privacyUrl','URL de privacidad','contacto']];
       var done = '', todo = '';
       items.forEach(function(it){
-        if (String((it[0] === 'knowledge' ? appState.memory || {} : w)[it[0]] || '').trim()) done += '<li>' + WG_CHECK + it[1] + '</li>';
+        if (it[0] === 'knowledge' ? typeof scHasCards === 'function' && scHasCards() : String(w[it[0]] || '').trim()) done += '<li>' + WG_CHECK + it[1] + '</li>';
         else todo += '<li><button class="wg-link" type="button" data-goto="' + it[2] + '">' + it[1] + '</button></li>';
       });
       var box = wgId('wgTodo');
@@ -3550,53 +3456,22 @@
     /* vf:end */
 
     /* mm:start — Vista Memoria (pestañas General · Información pública · Flujos · Notas · Fuentes).
-       Escribe SOLO widgets.knowledge (Memoria) y widgets.owner_notes (Notas). El texto de la Memoria se reparte entre dos
-       pestañas por el título de cada bloque: "Dónde está cada cosa" y "Cómo se hace" van a Flujos; el resto (Qué es, Planes y
-       límites, Contacto, Enlaces, Políticas y cualquier bloque que no se reconozca) a Información pública. Editar una pestaña
-       o un bloque mezcla lo editado de vuelta en el texto completo (mmMerge) sin tocar los bloques de la otra pestaña ni su
-       orden; el total no pasa de 8.000. Al guardar, el trigger widgets_clear_ai_stamp lo marca como editado por el dueño (las
-       generaciones de IA siguientes quedan como borrador). memory_draft es de solo lectura: se usa o se descarta con
-       import-site (memory_accept / memory_discard). Lectura del sitio (Fuentes › Páginas leídas): import-site start → step
-       (en bucle) → memory_generate. Nunca se llama a summarize. Todo texto del servidor o del sitio va con textContent. */
-    appState.memory = { knowledge: '', aiAt: null, draft: '', draftAt: null, notes: '' };
-    var MM_MAX = 8000, MM_LINES = 6, MM_TABS = ['general', 'info', 'flujos', 'notas', 'fuentes'];
+       LAS TARJETAS SON LA MEMORIA: el panel no muestra ningún texto de memoria (ni widgets.knowledge ni memory_draft). Lo
+       único que escribe la vista es widgets.owner_notes (Notas) y, por import-site, las tarjetas. La lectura del sitio va
+       dentro de Generar / Actualizar de cada pestaña (zonas de recuadros, sc:start). Al terminar bien un Generar /
+       Actualizar se llama en silencio a memory_generate (texto interno de respaldo que el chat todavía lee; no se muestra).
+       Nunca se llama a summarize. Todo texto del servidor o del sitio va con textContent. */
+    appState.memory = { notes: '' };
+    var MM_TABS = ['general', 'info', 'flujos', 'notas', 'fuentes'];
     var MM_KINDS = [['screen', 'Pantallas'], ['steps', 'Flujos'], ['menu', 'Menús'], ['ui', 'Ventanas'], ['info', 'Páginas'], ['faq', 'Preguntas'], ['legal', 'Legales']];
-    // Títulos de los bloques (sin tildes ni mayúsculas), en el orden en que se muestran. Los que no se reconocen van al
-    // final de Información pública.
-    var MM_FLOW_T = ['donde esta cada cosa', 'como se hace'], MM_PUB_T = ['que es', 'planes y limites', 'contacto', 'enlaces', 'politicas'];
-    var MM_TAB_NAME = { info: 'Información pública', flujos: 'Flujos' };
-    var MM_PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
-    // edit: null en lectura; al editar { tab, idx (-1 = toda la pestaña; si no, el bloque), title, base (texto completo al
-    // empezar), orig, text }. notes: null en lectura o el texto del borrador. Los dos sobreviven al cambiar de vista.
-    var mm = { tab: 'general', run: 'idle', runMsg: '', runT: 0, saving: false, notesSaving: false, edit: null, notes: null, open: {}, notesOpen: false, diff: false, busy: false, msg: '', err: false, blkKey: '' };
-    var rd = { gen: 0, timer: null, doneT: 0, waitT: null, waitEnd: 0, until: 0, daily: false, phase: 'idle', failAt: '', found: 0, done: 0, msg: '', err: false };
+    // notes: null en lectura o el texto del borrador (sobrevive al cambiar de vista).
+    var mm = { tab: 'general', notesSaving: false, notes: null, notesOpen: false };
     var mmSecs = null, mmSecReq = null;
     // Grupos de recuadros: [clave, nombre, zona, abierto al entrar]. La zona sigue el criterio del servidor: interna = screen,
     // steps, ui, menu, o info/faq ocultos (is_hidden); pública = el resto (info/faq visibles y legal).
     var MM_G = [['pages', 'Páginas', 'public', true], ['legal', 'Legales', 'public', false], ['screen', 'Pantallas', 'internal', true], ['steps', 'Flujos', 'internal', true], ['menus', 'Menús y ventanas', 'internal', false]];
-    var mmSrc = null, mmWide = window.matchMedia('(min-width:1100px)'), mmCols = wgId('mmCols'), mmEB = wgId('mmEditBox');
-    function mmSetRow(r){
-      var m = appState.memory;
-      if ('knowledge' in r) m.knowledge = r.knowledge || '';
-      if ('knowledge_ai_at' in r) m.aiAt = r.knowledge_ai_at || null;
-      if ('memory_draft' in r) m.draft = r.memory_draft || '';
-      if ('memory_draft_at' in r) m.draftAt = r.memory_draft_at || null;
-      if ('owner_notes' in r) m.notes = r.owner_notes || '';
-    }
-    // Vuelve a leer la Memoria, su fecha y el borrador desde la base (después de generar, usar o descartar).
-    function mmReload(){
-      var uid = currentUserId(); if (!uid) return Promise.resolve();
-      return SB.from('widgets').select('knowledge,knowledge_ai_at,memory_draft,memory_draft_at').eq('user_id', uid).maybeSingle().then(function(r){
-        if (r && r.data) mmSetRow(r.data);
-        mm.blkKey = ''; mmRender(); mmBadge(); wgRenderExtras();
-      }, function(){});
-    }
-    function mmBadge(){
-      if (!appState.memory) return;
-      var a = nav.querySelector('a[data-view="memoria"]'), on = !!String(appState.memory.draft || '').trim();
-      if (a) a.classList.toggle('has-todo', on); wgId('navMmSr').hidden = !on;
-    }
-    function mmSay(t, err){ mm.msg = t || ''; mm.err = !!err; var p = wgId('mmMsg'); p.textContent = mm.msg; p.classList.toggle('is-err', mm.err); }
+    var mmSrc = null, mmCols = wgId('mmCols');
+    function mmSetRow(r){ if ('owner_notes' in r) appState.memory.notes = r.owner_notes || ''; }
     function mmFit(ta){ if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
     function mmFine(){ return window.matchMedia('(pointer:fine)').matches; }   // en pantallas táctiles no se enfoca solo
     function mmTabSet(name, focus){
@@ -3609,311 +3484,25 @@
         var bar = wgId('mmTabs'), l = b.offsetLeft, r = l + b.offsetWidth;
         if (l < bar.scrollLeft) bar.scrollLeft = l - 16; else if (r > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = r - bar.clientWidth + 16;
       });
-      // Información pública y Flujos comparten el mismo bloque (texto + zona de recuadros): se mueve a la pestaña abierta.
+      // Información pública y Flujos comparten la misma zona de recuadros: se mueve a la pestaña abierta.
       if (name === 'info' || name === 'flujos'){
         var p = wgId('mmPanel-' + name); if (mmCols.parentNode !== p) p.appendChild(mmCols);
-        mm.blkKey = ''; sc.gridKey = ''; scLoad();
+        sc.gridKey = ''; scLoad();
       }
-      if (name === 'fuentes'){ vfLoadUse(); mmSrcLoad(); }
+      if (name === 'fuentes' || name === 'general') mmSrcLoad();
       mmSecLoad();
       mmRender();
     }
-    // Al entrar: siempre en General. El estado de las tarjetas se pide de nuevo (y retoma una corrida viva).
-    function mmEnter(){ if (!mm) return; mmTabSet('general'); vfCount(rd, 0, rdRender); scStatus(true); }
-
-    // Bloques: una línea sin guion al inicio es un título y sus líneas con guion van debajo. mmSegs parte el texto en
-    // bloques SIN perder nada (las líneas en blanco quedan con el bloque de arriba): unir lead + lines de todos con "\n"
-    // devuelve el texto exacto.
-    var MM_DASH = /^[-–—•]\s*/;
-    function mmNorm(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^#+\s*/, '').replace(/[\s:.]+$/, '').trim(); }
-    function mmTabOf(t){ return MM_FLOW_T.indexOf(mmNorm(t)) >= 0 ? 'flujos' : 'info'; }
-    function mmSegs(text){
-      var lead = [], segs = [], cur = null;
-      String(text || '').split('\n').forEach(function(raw){
-        var l = raw.trim();
-        if (!l){ (cur ? cur.lines : lead).push(raw); return; }
-        if (MM_DASH.test(l)){ if (!cur) segs.push(cur = { t: '', lines: [] }); cur.lines.push(raw); }
-        else segs.push(cur = { t: l, lines: [raw] });
-      });
-      segs.forEach(function(s, i){
-        s.i = i; s.tab = mmTabOf(s.t); s.text = s.lines.join('\n').replace(/\s+$/, '');
-        s.items = s.lines.map(function(x){ return x.trim(); }).filter(function(x){ return MM_DASH.test(x); }).map(function(x){ return x.replace(MM_DASH, ''); });
-      });
-      return { lead: lead, segs: segs };
-    }
-    // Bloques de una pestaña en el orden en que se muestran (los conocidos en su orden; los demás al final, como vienen).
-    function mmTabSegs(segs, tab){
-      var ord = tab === 'flujos' ? MM_FLOW_T : MM_PUB_T;
-      return segs.filter(function(s){ return s.tab === tab; })
-        .map(function(s){ var o = ord.indexOf(mmNorm(s.t)); return { s: s, o: (o < 0 ? 1e6 : o * 1e4) + s.i }; })
-        .sort(function(a, b){ return a.o - b.o; }).map(function(x){ return x.s; });
-    }
-    // Mezcla lo editado en el texto completo. idx >= 0: reemplaza ese bloque en su lugar. idx = -1: reemplaza los bloques de
-    // la pestaña; cada bloque editado vuelve al lugar del original con el mismo título, los nuevos van después del bloque
-    // que tenían arriba y los borrados desaparecen. Los bloques de la otra pestaña quedan iguales y en su orden: si lo
-    // escrito los cambiaría (líneas sin título que se pegan a un bloque ajeno, o un título de la otra pestaña), bad dice por qué.
-    function mmMerge(base, tab, idx, txt){
-      var p = mmSegs(base), clean = String(txt || '').replace(/\s+$/, '').replace(/^(\s*\n)+/, ''), out = p.lead.slice();
-      if (idx >= 0){
-        p.segs.forEach(function(s){ if (s.i !== idx) out = out.concat(s.lines); else if (clean) out = out.concat(clean.split('\n')); });
-      } else {
-        var np = mmSegs(clean).segs, used = {}, slot = {}, after = {}, head = [], prev = -1, headDone = false;
-        p.segs.forEach(function(s){
-          if (s.tab !== tab) return;
-          for (var j = 0; j < np.length; j++) if (!used[j] && mmNorm(np[j].t) === mmNorm(s.t)){ used[j] = 1; slot[s.i] = j; break; }
-        });
-        np.forEach(function(ns, j){ if (used[j]){ prev = j; return; } if (prev < 0) head.push(j); else (after[prev] = after[prev] || []).push(j); });
-        function put(j){ out = out.concat(np[j].lines); }
-        p.segs.forEach(function(s){
-          if (s.tab !== tab){ out = out.concat(s.lines); return; }
-          if (!headDone){ headDone = true; head.forEach(put); }
-          if (s.i in slot){ put(slot[s.i]); (after[slot[s.i]] || []).forEach(put); }
-        });
-        if (!headDone) head.forEach(put);   // la pestaña no tenía bloques: lo nuevo va al final
-      }
-      var text = out.join('\n'), other = tab === 'flujos' ? 'info' : 'flujos', bad = '';
-      var was = p.segs.filter(function(s){ return s.tab === other; }).map(function(s){ return s.text; }),
-          now = mmSegs(text).segs.filter(function(s){ return s.tab === other; }).map(function(s){ return s.text; });
-      if (JSON.stringify(was) !== JSON.stringify(now)){
-        var extra = now.length > was.length ? mmSegs(text).segs.filter(function(s){ return s.tab === other && was.indexOf(s.text) < 0; })[0] : null;
-        bad = extra && extra.t ? 'El título «' + extra.t + '» es de la pestaña ' + MM_TAB_NAME[other] + ': agregalo allá.' : 'La primera línea tiene que ser un título (sin guion al inicio).';
-      }
-      return { text: text, bad: bad };
-    }
-    // Cada bloque muestra hasta 6 líneas; "Ver más" solo si quedan 3 o más ocultas (con 1 o 2, se muestran).
-    // Mientras se edita un bloque, en su lugar queda un hueco (.mm-blk-ed) donde se pone el campo de edición.
-    function mmBlocks(){
-      var e = mm.edit, here = e && e.tab === mm.tab ? e : null, box = wgId('mmBlks');
-      var key = JSON.stringify([appState.memory.knowledge, mm.open, mm.tab, here ? here.idx : null, !!e]);
-      if (key === mm.blkKey) return; mm.blkKey = key;
-      if (box.contains(mmEB)) box.parentNode.insertBefore(mmEB, box.nextSibling);
-      box.textContent = '';
-      mmTabSegs(mmSegs(appState.memory.knowledge).segs, mm.tab).forEach(function(b){
-        var i = b.i;
-        if (here && here.idx === i){ var w = rsEl('div', 'mm-blk-ed'); w.setAttribute('data-mmseg', i); box.appendChild(w); return; }
-        var sec = rsEl('section', 'mm-blk'), k = i + '|' + b.t, hid = b.items.length - MM_LINES, cut = hid >= 3, open = cut && !!mm.open[k], hd = rsEl('div', 'mm-blk__h');
-        sec.setAttribute('data-mmseg', i);
-        if (b.t){ var h = rsEl('h3', 'mm-blk__t', b.t); h.id = 'mmBt' + i; h.tabIndex = -1; hd.appendChild(h); }
-        if (!e){
-          var eb = rsEl('button', 'mm-blk__e'); eb.type = 'button'; eb.setAttribute('data-mmedit', i);
-          eb.innerHTML = MM_PEN; eb.appendChild(document.createTextNode('Editar')); eb.setAttribute('aria-label', b.t ? 'Editar el bloque ' + b.t : 'Editar este bloque');
-          hd.appendChild(eb);
-        }
-        if (hd.firstChild) sec.appendChild(hd);
-        if (b.items.length){
-          var ul = rsEl('ul', 'mm-blk__l'); ul.id = 'mmB' + i;
-          b.items.forEach(function(x, j){ var li = rsEl('li', '', x); if (cut && !open && j >= MM_LINES) li.hidden = true; ul.appendChild(li); });
-          sec.appendChild(ul);
-        }
-        if (cut){
-          var more = rsEl('button', 'kx-more', open ? 'Ver menos' : 'Ver más (' + hid + ' más)');
-          more.type = 'button'; more.setAttribute('aria-expanded', open ? 'true' : 'false'); more.setAttribute('aria-controls', 'mmB' + i); more.setAttribute('data-mmblk', k);
-          sec.appendChild(more);
-        }
-        box.appendChild(sec);
-      });
-      var ol = wgId('mmIdxL'); ol.textContent = '';
-      box.querySelectorAll('.mm-blk__t').forEach(function(h){ var li = rsEl('li'), b = rsEl('button', '', h.textContent); b.type = 'button'; b.setAttribute('data-mmidx', h.id); li.appendChild(b); ol.appendChild(li); });
-      ol.parentNode.hidden = !ol.children.length;
-    }
-    // Fichas por grupo con su cantidad (sin las de 0). Las de "Qué cubre" llevan a ese grupo en su pestaña.
-    // Solo cuenta lo del dominio actual (site_url, sin "www."): lo leído antes de otro dominio no se lista ni suma.
-    // Sin site_url no se filtra nada.
+    // Al entrar: siempre en General. El estado de las tarjetas se pide de nuevo (y retoma un trabajo vivo).
+    function mmEnter(){ if (!mm) return; mmTabSet('general'); scStatus(true); }
     function mmOwn(u){ var h = vfHost(vfW().siteUrl); return !h || vfHost(u) === h; }
     function mmRows(){ return mmSecs && !mmSecs.err ? mmSecs.rows.filter(function(x){ return mmOwn(x.document_url); }) : []; }
     function mmZoneOf(x){ var k = mmKind(x); return k === 'screen' || k === 'steps' || k === 'ui' || k === 'menu' || ((k === 'info' || k === 'faq') && x.is_hidden) ? 'internal' : 'public'; }
     function mmGroupOf(x){ var k = mmKind(x); return k === 'screen' || k === 'steps' || k === 'legal' ? k : mmZoneOf(x) === 'internal' ? 'menus' : 'pages'; }
-    function mmChips(el){
-      el.textContent = ''; if (!mmSecs || mmSecs.err) return 0;
-      var rows = mmRows(), n = 0;
-      MM_G.forEach(function(g){
-        var c = rows.filter(function(x){ return mmGroupOf(x) === g[0]; }).length; if (!c) return;
-        var b = rsEl('button', 'mm-chip', g[1] + ' '); b.type = 'button'; b.setAttribute('data-mmf', g[0]); b.appendChild(rsEl('span', '', fmtN(c)));
-        el.appendChild(b); n++;
-      });
-      return n;
-    }
-    function mmCover(){ wgId('mmCover').hidden = !mmChips(wgId('mmCoverChips')); }
     function mmPath(u){ try { var x = new URL(u); return x.pathname + x.search; } catch(e){ return String(u || ''); } }
-    // Diferencias por línea (LCS): solo las distintas, con 2 de contexto. Sin color: prefijo y peso.
-    function mmDiffRender(){
-      var A = appState.memory.knowledge.split('\n').filter(function(l){ return l.trim(); }),
-          B = appState.memory.draft.split('\n').filter(function(l){ return l.trim(); }), n = A.length, m = B.length, L = [], i, j;
-      for (i = 0; i <= n; i++) L.push(new Int32Array(m + 1));
-      for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
-      var ops = []; i = 0; j = 0;
-      while (i < n || j < m){
-        if (i < n && j < m && A[i] === B[j]){ ops.push([' ', A[i]]); i++; j++; }
-        else if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])){ ops.push(['+', B[j]]); j++; }
-        else { ops.push(['-', A[i]]); i++; }
-      }
-      var keep = ops.map(function(o, k){ for (var d = -2; d <= 2; d++){ var x = ops[k + d]; if (x && x[0] !== ' ') return true; } return false; });
-      var ol = wgId('mmDiff'), last = -1; ol.textContent = '';
-      ops.forEach(function(o, k){
-        if (!keep[k]) return;
-        if (last >= 0 && k > last + 1){ var g = rsEl('li', 'is-gap', '…'); g.setAttribute('aria-hidden', 'true'); ol.appendChild(g); }
-        last = k;
-        var li = rsEl('li', o[0] === '+' ? 'is-add' : o[0] === '-' ? 'is-del' : ''), sym = rsEl('span', '', o[0] === '+' ? '+ ' : o[0] === '-' ? '− ' : '  ');
-        sym.setAttribute('aria-hidden', 'true'); li.appendChild(sym);
-        if (o[0] !== ' ') li.appendChild(rsEl('span', 'sr-only', o[0] === '+' ? 'Agregada: ' : 'Quitada: '));
-        li.appendChild(document.createTextNode(o[1])); ol.appendChild(li);
-      });
-      if (!ol.children.length) ol.appendChild(rsEl('li', '', 'El texto es igual al de tu Memoria actual.'));
-    }
-    // Tarjeta de estado (Memoria › Regenerar y Fuentes › Volver a leer el sitio): pasos con ícono (pendiente, en curso,
-    // listo, error), un texto y un botón. role="status" + aria-live anuncian cada paso. Sin barra ni números: el servidor no
-    // informa avance.
-    function stRender(id, o){
-      var root = wgId(id), t = root.querySelector('.mm-st__t'), h = wgId(root.getAttribute('data-hint')) || root.querySelector('.mm-st__h'), b = root.querySelector('.mm-st__btn'), w = root.querySelector('.vf-wait');
-      root.hidden = !!o.hidden; if (o.hidden){ h.hidden = true; return; }
-      vfSteps(root.querySelector('.vf-steps'), o.steps || []);
-      var k = JSON.stringify([o.text, o.link, !!o.err]);
-      if (t.getAttribute('data-k') !== k){   // se rehace solo si cambia lo que dice (el lector no repite)
-        t.setAttribute('data-k', k); t.textContent = o.text || ''; t.classList.toggle('is-err', !!o.err);
-        if (o.link){ var a = rsEl('a', 'mm-link', o.link); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); if (o.text) t.appendChild(document.createTextNode(' ')); t.appendChild(a); }
-      }
-      t.hidden = !o.text && !o.link;
-      h.textContent = o.hint || ''; h.hidden = !o.hint;
-      if (o.hint) b.setAttribute('aria-describedby', h.id); else b.removeAttribute('aria-describedby');
-      b.hidden = !o.btn; b.textContent = o.btn || ''; b.disabled = !!o.busy; b.classList.toggle('wa-btn-primary', !!o.primary);
-      w.textContent = o.wait || ''; w.hidden = !o.wait;
-    }
     function mmRender(){
       if (!mm || !appState.memory) return;
-      var m = appState.memory, has = !!m.knowledge.trim(), ok = vfVerified(), draft = !!m.draft.trim(), e = mm.edit, ed = !!e,
-          onM = mm.tab === 'info' || mm.tab === 'flujos', here = ed && e.tab === mm.tab ? e : null, whole = !!here && here.idx < 0,
-          busy = mm.busy || rdBusy() || mm.run === 'run', r = mm.run;
-      // Cabecera (Información pública y Flujos): Editar (los bloques de esa pestaña) en lectura; Cancelar y Guardar al editar
-      // la pestaña entera. Un bloque suelto se guarda desde su propia tarjeta. Un solo negro: Guardar > Usar la nueva > Editar.
-      wgId('mmEdit').hidden = !onM || ed || !has;   // si va en negro lo decide scRender (un solo negro por vista)
-      wgId('mmEdit').setAttribute('aria-label', onM ? 'Editar el texto de ' + MM_TAB_NAME[mm.tab] : 'Editar');
-      wgId('mmCancel').hidden = wgId('mmSave').hidden = !onM || !whole;
-      // Franja del borrador (es de toda la Memoria: se ve en las dos pestañas). Mientras editás, el negro es "Guardar".
-      wgId('mmBand').hidden = !draft;
-      wgId('mmAccept').classList.toggle('wa-btn-primary', !here);
-      wgId('mmAccept').disabled = wgId('mmDiscard').disabled = busy || ed;
-      wgId('mmDiffBtn').setAttribute('aria-expanded', mm.diff && draft ? 'true' : 'false');
-      wgId('mmDiffBtn').textContent = mm.diff && draft ? 'Ocultar cambios' : 'Ver cambios';
-      wgId('mmDiff').hidden = !(mm.diff && draft);
-      // Vacía: sin verificar (enlace) o verificada (botón negro que lee el sitio).
-      wgId('mmEmptyNo').hidden = has || !!here || ok;
-      wgId('mmEmptyGo').hidden = has || !!here || !ok;
-      wgId('mmCreate').disabled = busy; wgId('mmCreate').classList.toggle('wa-btn-primary', !draft);
-      var segs = has && onM ? mmTabSegs(mmSegs(m.knowledge).segs, mm.tab) : [];
-      wgId('mmTabNone').hidden = !has || !onM || whole || segs.length > 0;
-      if (!wgId('mmTabNone').hidden) wgId('mmTabNoneT').textContent = 'La Memoria no tiene texto para ' + MM_TAB_NAME[mm.tab] + '. ' + (ed ? '' : 'Con Editar lo podés agregar.');
-      wgId('mmBlks').hidden = !has || whole || !segs.length;
-      if (has && onM) mmBlocks();
-      mmCover(); wgId('mmSide').hidden = !has || !!here || (wgId('mmCover').hidden && !mmWide.matches);
-      // Línea de estado: "Generada por IA el … · N / 8.000 caracteres" y Regenerar (memory_generate con force, un paso).
-      var stamp = (m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) : 'Editada por vos') + ' · ' + fmtN(m.knowledge.length) + ' / ' + fmtN(MM_MAX) + ' caracteres';
-      stRender('mmSt', { hidden: !has || !!here, busy: busy || ed,
-        steps: r === 'run' ? [{ status: 'running', label: 'Creando la Memoria… puede tardar hasta un minuto' }] : r !== 'idle' ? [{ status: r === 'ok' ? 'ok' : 'err', label: mm.runMsg }] : [],
-        text: r === 'idle' ? stamp + (ok ? '' : ' ·') : '', link: r === 'idle' && !ok ? 'Verificar mi sitio' : '',
-        hint: ok && !m.aiAt && r === 'idle' ? 'Se creará una versión nueva para que la compares. Tu texto no se toca.' : '',
-        btn: ok ? (r === 'fail' ? 'Probar de nuevo' : 'Regenerar') : '' });
-      // Edición: un campo que crece, contador del TOTAL de la Memoria (con lo editado ya mezclado) y aviso si pasa de 8.000
-      // o si lo escrito cambiaría la otra pestaña. Guardar solo con cambios y sin avisos.
-      mmEB.hidden = !here;
-      if (here){
-        var home = wgId('mmBlks'), slot = here.idx >= 0 ? home.querySelector('.mm-blk-ed') : null;
-        if (slot){ if (mmEB.parentNode !== slot) slot.appendChild(mmEB); }
-        else if (mmEB.previousElementSibling !== home) home.parentNode.insertBefore(mmEB, home.nextSibling);
-        var ta = wgId('mmTa'); if (ta.value !== here.text) ta.value = here.text;
-        var mg = mmMerge(here.base, here.tab, here.idx, here.text), len = mg.text.length, n = wgId('mmTaN'), over = wgId('mmOver');
-        wgId('mmTaL').textContent = here.idx >= 0 ? (here.title ? 'Bloque «' + here.title + '»' : 'Bloque') : 'Texto de ' + MM_TAB_NAME[here.tab];
-        ta.placeholder = here.idx < 0 && !here.orig ? (here.tab === 'flujos' ? 'Cómo se hace\n- Para cambiar tu plan: …' : 'Qué es\n- …') : '';
-        n.textContent = fmtN(len) + ' / ' + fmtN(MM_MAX) + ' en total'; n.classList.toggle('is-max', len > MM_MAX);
-        over.textContent = mg.bad || (len > MM_MAX ? 'La Memoria pasa de 8.000 caracteres en total. Acortá el texto para guardar.' : '');
-        over.hidden = !over.textContent;
-        var blocked = mm.saving || here.text === here.orig || len > MM_MAX || !!mg.bad;
-        wgId('mmSave').disabled = wgId('mmBSave').disabled = blocked;
-        wgId('mmEAct').hidden = here.idx < 0;
-        mmFit(ta);
-      }
-      mmNotesRender(); rdRender(); scRender(); mgRender();
-    }
-    // Editar: idx = -1 edita todos los bloques de la pestaña; idx >= 0, solo ese bloque.
-    function mmEditStart(idx){
-      if (mm.edit || !appState.memory.knowledge.trim()) return;
-      var tab = mm.tab, segs = mmSegs(appState.memory.knowledge).segs, s = idx >= 0 ? segs[idx] : null;
-      if (tab !== 'info' && tab !== 'flujos') return;
-      if (idx >= 0 && !s) return;
-      var t = s ? s.text : segs.filter(function(x){ return x.tab === tab; }).map(function(x){ return x.text; }).join('\n');
-      mm.edit = { tab: tab, idx: s ? idx : -1, title: s ? s.t : '', base: appState.memory.knowledge, orig: t, text: t };
-      mmSay(''); mmRender(); if (mmFine()) wgId('mmTa').focus();
-    }
-    function mmEditEnd(){
-      var e = mm.edit; mm.edit = null; mm.blkKey = ''; mmRender();
-      var f = e && e.idx >= 0 ? wgId('mmBlks').querySelector('[data-mmedit="' + e.idx + '"]') : null;
-      if (!f || !f.offsetParent) f = wgId('mmEdit');
-      if (f && !f.hidden) f.focus();
-    }
-    function mmSave(){
-      var uid = currentUserId(), e = mm.edit, btns = [wgId('mmSave'), wgId('mmBSave')];
-      if (!e || mm.saving) return;
-      if (!uid) return toast('Perdimos tu sesión. Recargá.');
-      if (e.text === e.orig) return mmEditEnd();   // sin cambios: no hay pedido
-      // Si la Memoria cambió mientras editabas (otra versión usada, otra pestaña), no se pisa.
-      if (appState.memory.knowledge !== e.base) return mmSay('La Memoria cambió mientras editabas. Copiá tu texto, cancelá y volvé a editar.', true);
-      var mg = mmMerge(e.base, e.tab, e.idx, e.text); if (mg.bad || mg.text.length > MM_MAX) return mmRender();
-      function label(t){ btns.forEach(function(b){ b.textContent = t; }); }
-      function fail(){ mm.saving = false; label('Guardar'); mmSay('No se pudo guardar. Probá de nuevo.', true); mmRender(); }
-      mm.saving = true; label('Guardando…'); mmSay(''); mmRender();
-      SB.from('widgets').update({ knowledge: mg.text }).eq('user_id', uid).select('knowledge,knowledge_ai_at,memory_draft,memory_draft_at').maybeSingle().then(function(r){
-        if (!r || r.error || !r.data) return fail();
-        mm.saving = false; label('Guardar');
-        mmSetRow(r.data); mm.open = {}; mmEditEnd(); mmBadge(); wgRenderExtras(); toast('Memoria guardada');
-      }, fail);
-    }
-    // Resultado de memory_generate (Regenerar o Volver a leer el sitio): el texto a mostrar, sin códigos.
-    function mmGenText(r, afterRead){
-      var d = r.data || {}, e = d.error;
-      if (r.ok) return d.status === 'borrador' ? 'Hay una versión nueva para revisar.' : d.status === 'sin_cambios' ? 'Todo al día: tu sitio no cambió.' : 'Memoria actualizada.';
-      if (r.status === 502) return 'No se pudo crear la Memoria ahora. Probá de nuevo más tarde.' + (afterRead ? ' La lectura de tu sitio sí se guardó.' : '');
-      if (r.status === 429) return 'Llegaste al límite de Memorias de hoy. Probá mañana.';
-      if (r.status === 409 && e === 'en_curso') return 'Ya se está creando la Memoria. Volvé a mirar en un minuto.';
-      if (r.status === 409 && e === 'sin_secciones') return afterRead ? 'No encontramos texto para leer en tu sitio. Revisá que sus páginas sean públicas.' : 'Primero leé tu sitio desde Fuentes.';
-      if (r.status === 403) return 'Tu sitio no está verificado. Verificalo para crear la Memoria.';
-      return 'No se pudo crear la Memoria. Probá de nuevo en un momento.';
-    }
-    function mmRegen(){
-      if (mm.busy || rdBusy() || mm.run === 'run' || mm.edit) return;
-      clearTimeout(mm.runT); mm.run = 'run'; mm.runMsg = ''; mmSay(''); mmRender();
-      vfInvoke('import-site', { action: 'memory_generate', force: true }).then(function(r){
-        mm.run = r.ok ? 'ok' : 'fail'; mm.runMsg = mmGenText(r, false);
-        // Bien: check y resultado; vuelve al reposo a los 5 s. Error: queda con "Probar de nuevo".
-        if (r.ok){ mmReload(); mm.runT = setTimeout(function(){ mm.run = 'idle'; mm.runMsg = ''; mmRender(); }, 5000); }
-        else if (r.status === 403) vfRefresh();
-        mmRender();
-      });
-    }
-    function mmAccept(){
-      if (mm.busy || mm.edit) return;
-      mm.busy = true; mmSay(''); mmRender();
-      vfInvoke('import-site', { action: 'memory_accept' }).then(function(r){
-        mm.busy = false;
-        if (r.ok){ mm.diff = false; mm.open = {}; mmSay('Listo: tu asistente usa la versión nueva.'); toast('Memoria actualizada'); }
-        else mmSay(r.status === 409 ? 'Esa versión ya no está disponible.' : 'No se pudo usar la versión nueva. Probá de nuevo.', true);
-        mmReload();
-      });
-    }
-    // Descartar el borrador: aviso corto (mismo patrón que "¿Cerrar sesión?").
-    var mmDm = wgId('mmDiscardModal'), mmDmBack = null;
-    function mmDiscardAsk(){ mmDmBack = document.activeElement; mmDm.classList.add('is-open'); document.body.style.overflow = 'hidden'; mmDm.querySelector('.wa-btn[data-mmclose]').focus(); }
-    function mmDiscardClose(){
-      if (!mmDm.classList.contains('is-open')) return;
-      mmDm.classList.remove('is-open'); document.body.style.overflow = '';
-      var b = mmDmBack && mmDmBack.offsetParent ? mmDmBack : wgId('mmEdit'); if (b && b.focus) b.focus();
-    }
-    function mmDiscardGo(){
-      var go = wgId('mmDiscardGo'); go.disabled = true; mm.busy = true; mmRender();
-      vfInvoke('import-site', { action: 'memory_discard' }).then(function(r){
-        go.disabled = false; mm.busy = false;
-        if (r.ok){ mm.diff = false; mmDmBack = null; mmDiscardClose(); mmSay(''); toast('Versión nueva descartada'); }
-        else { mmDiscardClose(); mmSay('No se pudo descartar. Probá de nuevo.', true); }
-        mmReload();
-      });
+      mmNotesRender(); scRender(); mgRender();
     }
 
     /* kx:start — Notas: lectura recortada a 3 líneas con "Ver más" solo si no cabe; al editar, el campo crece. Guarda SOLO owner_notes. */
@@ -3951,96 +3540,22 @@
     }
     /* kx:end */
 
-    // Fuentes › Páginas leídas: "Volver a leer el sitio" (la única forma de leerlo: import-site start → step → memory_generate).
-    // La verificación vive en Verificaciones: acá solo el aviso y el enlace. La cuenta regresiva de "espera" usa vfCount.
-    function rdBusy(){ return !!rd && (rd.phase === 'reading' || rd.phase === 'writing'); }
-    function rdCall(body){ var g = rd.gen; return vfInvoke('import-site', body).then(function(r){ if (g !== rd.gen) throw 0; return r; }); }
-    function rdNone(){}
-    function rdStart(){
-      if (rdBusy() || mm.busy || mm.run === 'run' || !vfVerified() || vfLeft(rd) || rd.daily) return;
-      rd.gen++; clearTimeout(rd.timer); clearTimeout(rd.doneT);
-      rd.phase = 'reading'; rd.failAt = ''; rd.found = rd.done = 0; rd.msg = ''; rd.err = false; rd.until = Date.now() + 600000;
-      mmRender();
-      rdCall({ action: 'start' }).then(rdJob, rdNone);
-    }
-    function rdJob(r){
-      var d = r.data || {};
-      if (!r.ok) return rdFail(r);
-      rd.found = d.pages_found || 0; rd.done = d.pages_done || 0;
-      if (d.status === 'done') return rdMem();
-      if (d.status !== 'running' || !d.job_id || Date.now() > rd.until) return rdFail(r);
-      rdRender(); var g = rd.gen;
-      rd.timer = setTimeout(function(){ if (g === rd.gen) rdCall({ action: 'step', job_id: d.job_id }).then(rdJob, rdNone); }, 400);
-    }
-    function rdMem(){
-      mmSecs = null; sc.text = {}; sc.data = null;   // la lectura cambió las secciones (y sus tarjetas): se vuelven a pedir
-      rd.phase = 'writing'; rdRender(); mmSrcLoad();
-      rdCall({ action: 'memory_generate' }).then(function(r){
-        var st = (r.data || {}).status;
-        rd.phase = r.ok ? 'done' : 'fail'; rd.failAt = r.ok ? '' : 'writing'; rd.err = !r.ok; rd.msg = mmGenText(r, true);
-        if (!r.ok && r.status === 403) vfRefresh();
-        if (r.ok) rd.doneT = setTimeout(function(){ if (rd.phase === 'done'){ rd.phase = 'idle'; rd.msg = ''; rdRender(); } }, 5000);   // vuelve al reposo
-        vfLoadUse(); mmSecLoad(); mmSrcLoad(); mmReload(); scStatus(false);
-        // Con una versión nueva, se lleva a la pestaña Información pública para revisarla.
-        if (r.ok && st === 'borrador' && wuViewFromPath() === 'memoria' && mm.tab === 'fuentes'){ toast(rd.msg); mmSay(rd.msg); mmTabSet('info'); }
-      }, rdNone);
-    }
-    function rdFail(r){
-      var d = r.data || {};
-      rd.phase = 'fail'; rd.failAt = 'reading'; rd.err = true; rd.msg = '';
-      if (r.status === 429 && d.error === 'limite_diario') rd.daily = true;
-      else if (r.status === 429){ rd.phase = 'idle'; rd.err = false; vfCount(rd, d.retry_after_s || 60, rdRender); return mmRender(); }
-      else if (r.status === 403){ rd.msg = 'Tu sitio no está verificado. Verificalo para poder leerlo.'; vfRefresh(); }
-      else if (r.status === 400 && (d.error === 'sin_url' || d.error === 'url_no_permitida')) rd.msg = 'No pudimos leer esa dirección. Revisala en Verificaciones.';
-      else rd.msg = 'No pudimos leer tu sitio ahora. Probá de nuevo en un momento.';
-      vfLoadUse(); mmSrcLoad(); mmRender();
-    }
-    function rdPages(){ return mmSrc && !mmSrc.err ? mmSrc.pages.filter(function(p){ return MM_PST[p.status] && mmOwn(p.url); }) : []; }
-    function rdRender(){
-      if (!rd || !mm) return;
-      var ph = rd.phase, wait = vfLeft(rd), R1 = 'Leyendo tu sitio', R2 = 'Creando la Memoria', fail = ph === 'fail' && !rd.daily, ok = vfVerified();
-      // Mismo componente que Regenerar, con dos pasos: leer el sitio y crear la Memoria. Botón secundario.
-      stRender('rdSt', { hidden: !ok && ph !== 'fail', busy: rdBusy() || mm.busy || mm.run === 'run' || rd.daily,
-        steps: ph === 'reading' ? [{ status: 'running', label: R1 + '…' }, { status: 'pending', label: R2 }]
-          : ph === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'running', label: R2 + '… puede tardar hasta un minuto' }]
-          : ph === 'done' ? [{ status: 'ok', label: R1 }, { status: 'ok', label: R2 }]
-          : fail ? (rd.failAt === 'writing' ? [{ status: 'ok', label: R1 }, { status: 'err', label: R2 }] : [{ status: 'err', label: R1 }, { status: 'pending', label: R2 }]) : [],
-        text: ph === 'idle' ? 'Leemos las páginas públicas de tu sitio y actualizamos la Memoria.' : rd.msg, err: rd.err && !!rd.msg,
-        btn: wait || !ok ? '' : fail ? 'Probar de nuevo' : rdPages().length ? 'Volver a leer el sitio' : 'Leer el sitio',
-        wait: rd.daily ? 'Llegaste al límite de lecturas de hoy. Probá mañana.' : wait ? 'Podés leerlo de nuevo en ' + wait + ' s' : '' });
-      var r24 = mmSrc && !mmSrc.err ? mmSrc.runs24 : null; wgId('rdUse').hidden = !vf.use || !ok;
-      if (vf.use) wgId('rdUse').textContent = 'Hoy: ' + vf.use.rd + ' de ' + VF_LIMITS.reads + ' lecturas' + (r24 != null ? ' · ' + r24 + ' de ' + VF_LIMITS.memories + ' Memorias' : '');
-      // Sin verificar: el aviso y el acceso a Verificaciones (ahí se verifica; acá no).
-      var w = vfW(), st = wgId('mmSrcSt'), k = ok + '|' + (w.siteUrl || '');
-      st.hidden = ok;
-      if (!ok && st.getAttribute('data-k') !== k){
-        st.setAttribute('data-k', k); st.textContent = w.siteUrl ? 'Tu sitio no está verificado: para leerlo, primero verificalo. ' : 'Falta la dirección de tu sitio. ';
-        var a = rsEl('a', 'mm-link', w.siteUrl ? 'Verificar mi sitio' : 'Agregar la dirección en Verificaciones'); a.href = '/app/verificaciones'; a.setAttribute('data-mmgo', 'verificaciones'); st.appendChild(a);
-      }
-      if (ok) st.removeAttribute('data-k');
-      // Última lectura y cantidad de secciones (solo del dominio actual).
-      var meta = wgId('mmSrcMeta'), last = mmSrc && !mmSrc.err ? mmSrc.pages.reduce(function(a, x){ return x.status === 'done' && mmOwn(x.url) && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
-          own = mmRows().length, parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', own ? rsCount(own, 'sección', 'secciones') : ''].filter(Boolean);
-      meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
-    }
-
-    // Fuentes: páginas leídas (máx. 50), últimas 5 lecturas y 5 Memorias, y Memorias terminadas (status done) de las últimas 24 h.
-    // Los errores nunca se muestran crudos en la lista: openai_429 → "sin crédito o límite de la IA"; el resto, "error".
-    // Cada lectura de "Actividad reciente" abre "Qué cambió" (chOpen).
+    // Fuentes (solo lectura, sin acciones de leer): páginas leídas (máx. 50) y las últimas 5 lecturas del sitio. Cada lectura
+    // abre "Qué cambió" (chOpen). Solo cuenta lo del dominio actual (mmOwn).
     var MM_PST = { done: ['Leída', 'ok'], error: ['Con error', 'err'], blocked: ['Bloqueada', 'lock'] };
     var MM_GO = '<svg class="mm-row__go" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4l4 4-4 4"/></svg>';
+    var mmSrcReq = null;
     function mmSrcLoad(){
-      var since = new Date(Date.now() - 864e5).toISOString();
-      Promise.all([
+      if (mmSrcReq) return mmSrcReq;
+      mmSrcReq = Promise.all([
         SB.from('site_pages').select('url,status,fetched_at,flags,error,text_chars').order('fetched_at', { ascending: false, nullsFirst: false }).limit(50),
-        SB.from('site_import_jobs').select('id,status,pages_found,pages_done,pages_new,pages_changed,pages_same,error,created_at,finished_at').order('created_at', { ascending: false }).limit(5),
-        SB.from('memory_runs').select('status,mode,chars,error,started_at').order('started_at', { ascending: false }).limit(5),
-        SB.from('memory_runs').select('started_at', { count: 'exact', head: true }).eq('status', 'done').gte('started_at', since)   // solo las terminadas gastan el cupo
+        SB.from('site_import_jobs').select('id,status,pages_found,pages_done,pages_new,pages_changed,pages_same,error,created_at,finished_at').order('created_at', { ascending: false }).limit(5)
       ]).then(function(rs){
-        mmSrc = rs.slice(0, 3).some(function(r){ return !r || r.error; }) ? { err: true } : { pages: rs[0].data || [], jobs: rs[1].data || [], runs: rs[2].data || [], runs24: rs[3] && !rs[3].error && rs[3].count != null ? rs[3].count : null };
-        mmSrcRender(); rdRender();
-      }, function(){ mmSrc = { err: true }; mmSrcRender(); });
+        mmSrc = rs.some(function(r){ return !r || r.error; }) ? { err: true } : { pages: rs[0].data || [], jobs: rs[1].data || [] };
+      }, function(){ mmSrc = { err: true }; }).then(function(){ mmSrcReq = null; mmSrcRender(); mgRender(); });
+      return mmSrcReq;
     }
+    function mmPages(){ return mmSrc && !mmSrc.err ? mmSrc.pages.filter(function(p){ return MM_PST[p.status] && mmOwn(p.url); }) : []; }
     // Una fila: div (sin acción) o botón con data-<attr>="val" (abre la sección filtrada o "Qué cambió").
     function mmSrcRow(ic, cls, title, meta, attr, val){
       var li = rsEl('li'), b = rsEl(attr ? 'button' : 'div', 'mm-row'), i = rsEl('span', 'mm-row__i' + cls), bd = rsEl('span', 'mm-row__b');
@@ -4050,31 +3565,31 @@
       b.appendChild(i); b.appendChild(bd); if (attr === 'mmjob') b.insertAdjacentHTML('beforeend', MM_GO);
       li.appendChild(b); return li;
     }
+    function mmJobText(j){
+      var ch = scNum(j.pages_new) + scNum(j.pages_changed);
+      return j.status === 'done' ? 'Lectura: ' + rsCount(scNum(j.pages_found), 'página', 'páginas') + ', ' + (ch ? rsCount(ch, 'con cambios', 'con cambios') : 'sin cambios')
+        : j.status === 'error' ? 'Lectura: no se pudo completar' : j.status === 'running' ? 'Lectura en curso' : 'Lectura frenada';
+    }
     function mmSrcRender(){
-      var s = mmSrc && !mmSrc.err ? mmSrc : null, now = Date.now(), pl = wgId('mmPagesL'), al = wgId('mmActL'), pages = rdPages();
+      var s = mmSrc && !mmSrc.err ? mmSrc : null, now = Date.now(), pl = wgId('mmPagesL'), al = wgId('mmActL'), pages = mmPages(), none = wgId('mmPagesNone');
       pl.textContent = ''; al.textContent = '';
       pages.forEach(function(p){
         var st = MM_PST[p.status], n = p.flags && typeof p.flags.sections === 'number' && p.flags.sections > 0 ? p.flags.sections : 0;   // sin dato o 0 → "sin secciones"
         pl.appendChild(mmSrcRow(VF_IC[st[1]], st[1] === 'err' ? ' is-err' : '', mmPath(p.url), [st[0], p.fetched_at ? rsAgo(p.fetched_at, now) : '', n ? rsCount(n, 'sección', 'secciones') : 'sin secciones'].filter(Boolean).join(' · '), 'mmpage', p.url));
       });
       pl.hidden = !pages.length;
-      wgId('mmPagesNone').hidden = !s || pages.length > 0;
-      if (mmSrc && mmSrc.err){ wgId('mmPagesNone').hidden = false; wgId('mmPagesNone').textContent = 'No pudimos cargar las páginas leídas.'; }
-      else wgId('mmPagesNone').textContent = 'Tu sitio no tiene páginas leídas.';
-      var acts = !s ? [] : s.jobs.map(function(j){
-        var ch = (j.pages_new || 0) + (j.pages_changed || 0);
-        return { at: j.created_at, st: j.status, job: j.id, t: j.status === 'done' ? 'Lectura: ' + rsCount(j.pages_found || 0, 'página', 'páginas') + ', ' + (ch ? rsCount(ch, 'con cambios', 'con cambios') : 'sin cambios')
-          : j.status === 'error' ? 'Lectura: no se pudo completar' : j.status === 'running' ? 'Lectura en curso' : 'Lectura cancelada' };
-      }).concat(s.runs.map(function(r){
-        return { at: r.started_at, st: r.status, t: r.status === 'done' ? (r.mode === 'draft' ? 'Memoria: versión nueva para revisar' : 'Memoria: actualizada')
-          : r.status === 'error' ? 'Memoria: no se pudo crear (' + (/openai_429/.test(String(r.error || '')) ? 'sin crédito o límite de la IA' : 'error') + ')' : 'Memoria: creándose' };
-      })).sort(function(a, b){ return new Date(b.at) - new Date(a.at); }).slice(0, 6);
-      acts.forEach(function(a){
-        var li = mmSrcRow(a.st === 'done' ? VF_IC.ok : a.st === 'error' ? VF_IC.err : '', a.st === 'error' ? ' is-err' : '', a.t, a.at ? rsAgo(a.at, now) : '', a.job ? 'mmjob' : '', a.job || '');
-        if (a.job) li.firstChild.setAttribute('aria-label', a.t + ', ' + (a.at ? rsAgo(a.at, now) : '') + '. Ver qué cambió');
+      none.hidden = !!s && pages.length > 0 || !mmSrc;
+      none.textContent = mmSrc && mmSrc.err ? 'No pudimos cargar las páginas leídas.' : 'Tu sitio no tiene páginas leídas. Se leen con Generar o Actualizar en Información pública o Flujos.';
+      var last = s ? s.pages.reduce(function(a, x){ return x.status === 'done' && mmOwn(x.url) && x.fetched_at > a ? x.fetched_at : a; }, '') : '',
+          own = mmRows().length, parts = [last ? 'Última lectura: ' + VF_DATE.format(new Date(last)) : '', own ? rsCount(own, 'sección', 'secciones') : ''].filter(Boolean), meta = wgId('mmSrcMeta');
+      meta.hidden = !parts.length; meta.textContent = parts.join(' · ');
+      var jobs = s ? s.jobs : [];
+      jobs.forEach(function(j){
+        var li = mmSrcRow(j.status === 'done' ? VF_IC.ok : j.status === 'error' ? VF_IC.err : '', j.status === 'error' ? ' is-err' : '', mmJobText(j), j.created_at ? rsAgo(j.created_at, now) : '', 'mmjob', j.id);
+        li.firstChild.setAttribute('aria-label', mmJobText(j) + (j.created_at ? ', ' + rsAgo(j.created_at, now) : '') + '. Ver qué cambió');
         al.appendChild(li);
       });
-      wgId('mmAct').hidden = !acts.length;
+      wgId('mmAct').hidden = !jobs.length;
     }
 
     // Secciones: se piden al abrir la vista, SIN la columna text (el texto se pide al abrir una sección).
@@ -4085,12 +3600,12 @@
       try { var u = new URL(x.document_url); return u.hostname + (u.pathname === '/' ? '' : u.pathname); } catch(e){ return String(x.document_url || ''); }
     }
     function mmSecLoad(force){
-      if (mmSecs && !force){ scRender(); return rdRender(); }
-      if (mmSecReq) return;
+      if (mmSecs && !force){ scRender(); return; }
+      if (mmSecReq){ if (force) mmSecReq.again = true; return; }
       if (force){ mmSecs = null; sc.text = {}; }
       scRender();
-      function set(v){ mmSecReq = null; mmSecs = v; mmRender(); }
-      mmSecReq = scAll(function(a, b){ return SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url').order('document_url').order('position').order('id').range(a, b); })
+      function set(v){ var again = mmSecReq && mmSecReq.again; mmSecReq = null; mmSecs = v; if (again) return mmSecLoad(true); mmRender(); mmSrcRender(); }
+      mmSecReq = scAll(function(a, b){ return SB.from('sections').select('id,position,kind,is_hidden,heading_path,document_url,anchor').order('document_url').order('position').order('id').range(a, b); })
         .then(function(rows){ rows = scSort(rows); rows.forEach(function(x, i){ x.n = i + 1; }); set({ rows: rows }); }, function(){ set({ err: true, rows: [] }); });
     }
     function mmSBox(t){ var b = rsEl('div', 'mm-sbox'), i = rsEl('div'); i.appendChild(rsEl('p', '', t)); b.appendChild(i); return b; }
@@ -4112,38 +3627,15 @@
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
         e.preventDefault(); wuGoView(a.id === 'vfMmGo' ? 'memoria' : a.getAttribute('data-mmgo'));
       });
-      wgId('mmBlks').addEventListener('click', function(e){
-        var ed = e.target.closest('[data-mmedit]'); if (ed) return mmEditStart(+ed.getAttribute('data-mmedit'));
-        var b = e.target.closest('[data-mmblk]'); if (!b) return;
-        var k = b.getAttribute('data-mmblk'); mm.open[k] = !mm.open[k]; mmBlocks();
-        var all = wgId('mmBlks').querySelectorAll('[data-mmblk]');
-        for (var i = 0; i < all.length; i++) if (all[i].getAttribute('data-mmblk') === k) all[i].focus();
-      });
-      wgId('mmEdit').addEventListener('click', function(){ mmEditStart(-1); });
-      function cancel(){ mmSay(''); mmEditEnd(); }
-      wgId('mmCancel').addEventListener('click', cancel); wgId('mmBCancel').addEventListener('click', cancel);
-      wgId('mmSave').addEventListener('click', mmSave); wgId('mmBSave').addEventListener('click', mmSave);
-      wgId('mmTa').addEventListener('input', function(){ if (mm.edit){ mm.edit.text = this.value; mmRender(); } });
-      wgId('mmRegen').addEventListener('click', mmRegen);
-      wgId('mmCreate').addEventListener('click', function(){ mmTabSet('fuentes', true); rdStart(); });
-      wgId('mmDiffBtn').addEventListener('click', function(){ mm.diff = !mm.diff; if (mm.diff) mmDiffRender(); mmRender(); });
-      wgId('mmAccept').addEventListener('click', mmAccept);
-      wgId('mmDiscard').addEventListener('click', mmDiscardAsk);
-      wgId('mmDiscardGo').addEventListener('click', mmDiscardGo);
-      Array.prototype.forEach.call(mmDm.querySelectorAll('[data-mmclose]'), function(el){ el.addEventListener('click', mmDiscardClose); });
-      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') mmDiscardClose(); });
       wgId('mmNotesEdit').addEventListener('click', function(){ mm.notes = appState.memory.notes; wgId('mmNotesMsg').textContent = ''; mmNotesRender(); if (mmFine()) wgId('mmNotes').focus(); });
       wgId('mmNotesCancel').addEventListener('click', function(){ mm.notes = null; wgId('mmNotesMsg').textContent = ''; mmNotesRender(); wgId('mmNotesEdit').focus(); });
       wgId('mmNotesSave').addEventListener('click', mmNotesSave);
       wgId('mmNotes').addEventListener('input', function(){ mm.notes = this.value; mmNotesRender(); });
       wgId('mmNotesVM').addEventListener('click', function(){ mm.notesOpen = !mm.notesOpen; mmNotesRender(); });
-      wgId('rdGo').addEventListener('click', rdStart);
       document.querySelector('section[data-view="memoria"]').addEventListener('click', function(e){
-        var f = e.target.closest('[data-mmf]'), ix = e.target.closest('[data-mmidx]'), pg = e.target.closest('[data-mmpage]'), jb = e.target.closest('[data-mmjob]');
-        if (f) scGoGroup(f.getAttribute('data-mmf'));
+        var pg = e.target.closest('[data-mmpage]'), jb = e.target.closest('[data-mmjob]');
         if (pg) scGoPage(pg.getAttribute('data-mmpage'));
         if (jb) chOpen(jb.getAttribute('data-mmjob'));
-        if (ix){ var h = wgId(ix.getAttribute('data-mmidx')); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
       });
       wgId('mmNotesEx').addEventListener('click', function(e){
         var b = e.target.closest('[data-ins]'); if (!b || b.disabled) return;
@@ -4159,20 +3651,26 @@
     /* mm:end */
 
     /* sc:start — Memoria › zonas de recuadros (Información pública = grupo "public"; Flujos = grupo "internal") y General.
-       Un recuadro por sección con su número del catálogo (el mismo del servidor, GLOBAL: cada pestaña muestra los suyos con
-       huecos) y su tarjeta (para qué sirve y sus enlaces). Datos con la sesión (RLS), paginados de a 1000: section_cards y
-       section_links. Tarjetas con import-site (vfInvoke: siempre { ok, status, data }; red caída = status 0): cards_status
-       (con groups.public / groups.internal) · cards_start (con group, o section_ids) · cards_step · cards_cancel ·
-       card_edit / card_unedit (el texto de la tarjeta, purpose). El servidor guarda lo nuevo aparte y lo aplica todo junto al
-       terminar: cancelar o un error no cambian nada. Una sola corrida a la vez por widget: mientras corre en una pestaña, los
-       botones de la otra quedan deshabilitados con el aviso. Una sola llamada en vuelo (los pasos van uno tras otro; Cancelar
-       espera al paso en curso). Un paso que falla por red se reintenta 3 veces con 2 s de espera; 30 pasos seguidos sin avance
-       cortan la corrida. Las tarjetas editadas por el dueño (edited_at) no se pisan al Actualizar ni al Regenerar todas; solo
-       si se eligen con Seleccionar (y el aviso lo dice). Sin localStorage: todo sale de cards_status. Texto con textContent. */
-    var SC_PAGE = 1000, SC_RETRY = 3, SC_RETRY_MS = 2000, SC_STUCK = 30, SC_SEL_MAX = 200, SC_PMAX = 1500;
-    var SC_ERR = {   // después de cualquier error el servidor no cambió nada: el mensaje lo dice
+       Las tarjetas son la memoria. Un recuadro por sección con su número del catálogo (el mismo del servidor, GLOBAL: cada
+       pestaña muestra los suyos con huecos) y su tarjeta. Datos con la sesión (RLS), paginados de a 1000: section_cards y
+       section_links. Con import-site (vfInvoke: siempre { ok, status, data }; red caída = status 0):
+       - Generar / Actualizar: DOS fases seguidas con una sola barra y un solo Cancelar. Fase 1, leer el sitio (start → step en
+         bucle; start retoma una lectura viva); Cancelar acá solo frena lo que falta (cancel: lo ya leído queda). Si el servidor
+         no deja leer ahora (429 espera o limite_diario), se arma con la última lectura y se avisa. Fase 2, cards_start con el
+         group de la pestaña y cards_step en bucle; Cancelar acá es cards_cancel (no queda nada a medias). Al terminar bien,
+         memory_generate en silencio (sin force; ningún error se muestra).
+       - Regenerar todas (force + group) y Seleccionar → Regenerar (n) (section_ids) no leen el sitio.
+       - card_edit / card_unedit (texto de la tarjeta, purpose).
+       Un solo trabajo a la vez en todo el panel. Una sola llamada en vuelo. Un paso que falla por red se reintenta 3 veces con
+       2 s de espera; 30 pasos de tarjetas sin avance cortan la corrida. Las tarjetas editadas por el dueño (edited_at) no se
+       pisan al Actualizar ni al Regenerar todas; solo si se eligen con Seleccionar (y el aviso lo dice).
+       sessionStorage 'wu-mm-job' (solo esta pestaña del navegador) guarda en qué fase y pestaña va el trabajo, para retomarlo
+       al recargar: { p: 'read', z } o { p: 'cards', run, z, mem }. Las corridas de Seleccionar vuelven del servidor con
+       group null: sin ese dato se muestran en General. Texto siempre con textContent. */
+    var SC_PAGE = 1000, SC_RETRY = 3, SC_RETRY_MS = 2000, SC_STUCK = 30, SC_SEL_MAX = 200, SC_PMAX = 1500, SC_READ_MS = 600000, SC_SS = 'wu-mm-job';
+    var SC_ERR = {   // después de un error de tarjetas el servidor no cambió nada: el mensaje lo dice
       limite_diario: 'Se alcanzó el límite de generaciones de hoy. No se cambió nada. Se puede volver a intentar mañana.',
-      sitio_no_verificado: 'El sitio no está verificado. No se cambió nada.',
+      sitio_no_verificado: 'Tu sitio no está verificado. No se cambió nada.',
       sin_secciones: 'No hay secciones leídas del sitio. No se cambió nada.',
       sin_seleccion: 'Las secciones elegidas ya no existen. No se cambió nada.',
       section_ids_invalido: 'La selección no es válida. No se cambió nada.',
@@ -4180,7 +3678,11 @@
       ia_no_disponible: 'La IA no está disponible en este momento. No se cambió nada: las tarjetas quedaron como estaban.',
       no_se_pudo_guardar: 'No se pudieron guardar las tarjetas nuevas. No se cambió nada.',
       red: 'Se perdió la conexión con el servidor. No se cambió nada.',
-      otro: 'No se pudo terminar. No se cambió nada.'
+      otro: 'No se pudo terminar. No se cambió nada.',
+      // Fase 1 (lectura): lo ya leído queda guardado; no se armaron tarjetas.
+      lec_url: 'No pudimos leer esa dirección. No se armaron tarjetas. Revisala en Verificaciones.',
+      lec_red: 'Se perdió la conexión mientras se leía el sitio. Las páginas ya leídas quedaron guardadas; no se armaron tarjetas.',
+      lec_otro: 'No se pudo leer tu sitio. Las páginas ya leídas quedaron guardadas; no se armaron tarjetas. Probá de nuevo en un momento.'
     };
     var SC_EDERR = {   // card_edit / card_unedit
       texto_invalido: 'El texto no puede quedar vacío ni pasar de 1.500 caracteres. No se cambió nada.',
@@ -4190,6 +3692,10 @@
       otro: 'No se pudo guardar. No se cambió nada.'
     };
     var SC_ZN = { public: 'Información pública', internal: 'Flujos' };
+    var SC_HELP = {
+      public: 'Todo lo público de tu empresa y sitio, y dónde encontrarlo en el sitio.',
+      internal: 'Cómo funciona tu app (pantallas, pasos, menús, ventanas) y dónde está cada cosa, para que la IA sepa llegar a cada una.'
+    };
     var SC_ONE = { screen: 'Pantalla', steps: 'Flujo', menu: 'Menú', ui: 'Ventana', info: 'Página', faq: 'Preguntas', legal: 'Legal' };
     var SC_I = '<svg class="sc-tile__i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     var SC_IC = {
@@ -4204,15 +3710,21 @@
     var SC_PEN = '<svg class="sc-tile__ed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
     var SC_CHEV = '<svg class="sc-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
     var SC_BOX = '<span class="sc-box" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.3 2.3 4.7-4.7"/></svg></span>';
-    // st: último cards_status · data: tarjetas y enlaces por sección (v sube con cada edición) · run: resumen de la corrida ·
-    // runG: zona de la corrida ('public' | 'internal') · loop: hay bucle de pasos · call: hay una llamada en vuelo ·
-    // stop: se pidió cancelar · page: filtro de página (desde Fuentes) · ed: edición de la tarjeta abierta en el modal ·
-    // z: por zona, el error (código), el aviso, la selección (null o { id: true }) y los grupos plegables abiertos.
-    var sc = { st: null, stErr: '', data: null, req: null, again: false, text: {}, run: null, runId: null, runG: '', loop: false, call: false, stop: false,
+    // st: último cards_status · data: tarjetas y enlaces por sección (v sube con cada edición) · read: fase 1 en curso
+    // { z, jobId, found, done, stop, retry, until } · run: resumen de la corrida de tarjetas · runG: su zona ('' = no se sabe)
+    // · mem: al terminar bien, memory_generate en silencio · loop: hay bucle de pasos de tarjetas · call: hay una llamada en
+    // vuelo · stop: se pidió cancelar las tarjetas · page: filtro de página (desde Fuentes) · ed: edición de la tarjeta abierta
+    // · z: por zona (y x = sin zona conocida, se ve en General) el error, el aviso, la nota de la lectura salteada, la
+    // selección (null o { id: true }) y los grupos plegables abiertos.
+    var sc = { st: null, stErr: '', data: null, req: null, again: false, text: {}, read: null, run: null, runId: null, runG: '', mem: false, loop: false, call: false, stop: false,
       retry: 0, gen: 0, timer: null, page: '', gridKey: '', cur: null, back: [], mBack: null, ed: null,
-      z: { public: { err: '', msg: '', sel: null, open: { legal: false } }, internal: { err: '', msg: '', sel: null, open: { menus: false } } } };
+      z: { public: { err: '', msg: '', skip: '', sel: null, open: { legal: false } }, internal: { err: '', msg: '', skip: '', sel: null, open: { menus: false } }, x: { err: '', msg: '', skip: '', sel: null, open: {} } } };
     function scZ(){ return mm && mm.tab === 'flujos' ? 'internal' : 'public'; }
+    function scRZ(){ return sc.z[sc.runG] || sc.z.x; }   // zona del trabajo (o la de General si no se sabe)
+    function scBusy(){ return sc.loop || sc.call || !!sc.read; }
     function scNum(n){ n = Number(n); return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
+    function scSsGet(){ try { var v = JSON.parse(sessionStorage.getItem(SC_SS) || 'null'); return v && typeof v === 'object' ? v : null; } catch(e){ return null; } }
+    function scSsSet(v){ try { if (v) sessionStorage.setItem(SC_SS, JSON.stringify(v)); else sessionStorage.removeItem(SC_SS); } catch(e){} }
     // Mismo orden que el catálogo del servidor (buildCatalog en import-site/cards.ts): document_url y después position.
     // 'en-US' para comparar igual que el servidor (Deno), aunque el navegador esté en otro idioma.
     function scSort(rows){ return rows.slice().sort(function(a, b){ return String(a.document_url || '').localeCompare(String(b.document_url || ''), 'en-US') || (Number(a.position) || 0) - (Number(b.position) || 0); }); }
@@ -4224,8 +3736,13 @@
     }
     function scById(id){ if (!mmSecs || mmSecs.err) return null; for (var i = 0; i < mmSecs.rows.length; i++) if (mmSecs.rows[i].id === id) return mmSecs.rows[i]; return null; }
     function scCard(id){ return sc.data && !sc.data.err ? sc.data.cards[id] || null : null; }
+    // Para Widget › General: ¿hay alguna tarjeta? (null = sin dato).
+    function scHasCards(){
+      var g = sc && sc.st && sc.st.groups; if (!g) return null;
+      return ['public', 'internal'].some(function(k){ var c = scCounts(k); return c && c.any; });
+    }
 
-    // Tarjetas y enlaces (lectura). force: se vuelven a pedir (después de una corrida terminada).
+    // Tarjetas y enlaces (lectura). force: se vuelven a pedir (después de un trabajo terminado).
     function scLoad(force){
       if (sc.data && !sc.data.err && !force) return scRender();
       if (sc.req){ if (force) sc.again = true; return; }
@@ -4243,40 +3760,121 @@
         scRender(); if (sc.cur) scFill();
       });
     }
-    // Zona de una corrida: la que dice el servidor (run.group); una corrida de seleccionadas no trae grupo: la que la empezó
-    // o, al retomar, la pestaña abierta.
-    function scRunZone(run){ return run && (run.group === 'public' || run.group === 'internal') ? run.group : sc.runG || scZ(); }
-    // Estado de las tarjetas. resume: si hay una corrida viva, se retoma el bucle en su pestaña (al abrir el panel o la vista).
+    // Estado de las tarjetas. resume: retoma un trabajo vivo (al abrir el panel o la vista): una corrida de tarjetas en la zona
+    // de run.group (o la guardada en sessionStorage; si no hay, en General) o una lectura guardada en sessionStorage.
     function scStatus(resume){
-      if (sc.loop || sc.call || !window.__wuUser) return;
+      if (scBusy() || !window.__wuUser) return;
       sc.call = true; scRender();
       vfInvoke('import-site', { action: 'cards_status' }).then(function(r){
         sc.call = false;
         if (!r.ok){ sc.st = null; sc.stErr = (r.data || {}).error || (r.status === 0 ? 'red' : 'otro'); return scRender(); }
         sc.stErr = ''; sc.st = r.data || {};
-        var run = sc.st.run;
-        if (resume && run && run.status === 'running' && run.run_id){ sc.runG = scRunZone(run); sc.z[sc.runG].err = ''; sc.z[sc.runG].msg = ''; sc.run = run; return scLoop(run.run_id); }
-        scRender();
+        var run = sc.st.run, ss = scSsGet();
+        if (resume && run && run.status === 'running' && run.run_id){
+          var mine = ss && ss.p === 'cards' && ss.run === run.run_id ? ss : null;
+          sc.runG = run.group === 'public' || run.group === 'internal' ? run.group : mine && sc.z[mine.z] ? mine.z : '';
+          sc.mem = !!(mine && mine.mem); scRZ().err = ''; scRZ().msg = ''; sc.run = run;
+          return scLoop(run.run_id);
+        }
+        if (resume && ss && ss.p === 'read' && sc.z[ss.z]) return scReadResume(ss.z);
+        if (ss && ss.p === 'cards' && !(run && run.status === 'running')) scSsSet(null);
+        scRender(); wgRenderExtras();
       });
     }
+
+    // ---------- Fase 1: leer el sitio (solo Generar / Actualizar) ----------
+    function scGen(z){
+      if (scBusy()) return;
+      var Z = sc.z[z]; Z.err = ''; Z.msg = ''; Z.skip = ''; Z.sel = null; sc.z.x.err = sc.z.x.msg = '';
+      if (!vfVerified()){ Z.err = 'sitio_no_verificado'; return scRender(); }   // no se empieza: aviso con el enlace
+      sc.read = { z: z, jobId: null, found: 0, done: 0, stop: false, retry: 0, until: Date.now() + SC_READ_MS };
+      scSsSet({ p: 'read', z: z }); scRender();
+      scReadCall({ action: 'start' }, 0);
+    }
+    // Al recargar en medio de la lectura: si sigue viva se retoma (status del último trabajo); si ya terminó, sigue la fase 2.
+    function scReadResume(z){
+      sc.read = { z: z, jobId: null, found: 0, done: 0, stop: false, retry: 0, until: Date.now() + SC_READ_MS };
+      sc.call = true; scRender();
+      vfInvoke('import-site', { action: 'status' }).then(function(r){
+        sc.call = false; var d = r.data || {}, R = sc.read; if (!R) return;
+        if (r.ok && d.status === 'running' && d.job_id){ R.jobId = d.job_id; R.found = scNum(d.pages_found); R.done = scNum(d.pages_done); scRender(); return scReadCall({ action: 'step', job_id: d.job_id }, 0); }
+        if (r.ok && d.status === 'done') return scReadDone();
+        sc.read = null; scSsSet(null); scRender();   // se perdió: no se empieza nada solo
+      });
+    }
+    function scReadCall(body, tries){
+      var R = sc.read; if (!R) return;
+      if (R.stop) return scReadCancel();
+      sc.call = true; scRender();
+      vfInvoke('import-site', body).then(function(r){
+        sc.call = false; if (sc.read !== R) return;
+        var d = r.data || {};
+        if (!r.ok && r.status === 0 && tries < SC_RETRY){ R.retry = tries + 1; scRender(); sc.timer = setTimeout(function(){ if (sc.read === R) scReadCall(body, tries + 1); }, SC_RETRY_MS); return; }
+        R.retry = 0;
+        if (!r.ok){
+          // El servidor no deja leer ahora (se leyó hace poco o se llegó al límite de hoy): se arma con la última lectura.
+          if (r.status === 429 && (d.error === 'espera' || d.error === 'limite_diario')){
+            sc.z[R.z].skip = d.error === 'limite_diario' ? 'se alcanzó el límite de lecturas de hoy' : 'se leyó hace poco';
+            sc.read = null; scSsSet(null); return scStart({ z: R.z, mem: true });
+          }
+          return scReadFail(r);
+        }
+        if (d.job_id) R.jobId = d.job_id;
+        R.found = scNum(d.pages_found); R.done = scNum(d.pages_done);
+        if (d.status === 'done') return scReadDone();
+        if (R.stop) return scReadCancel();
+        if (d.status === 'running' && R.jobId && Date.now() < R.until){
+          scRender(); sc.timer = setTimeout(function(){ if (sc.read === R) scReadCall({ action: 'step', job_id: R.jobId }, 0); }, 400); return;
+        }
+        scReadFail(r);
+      });
+    }
+    function scReadAfter(){ mmSecs = null; sc.text = {}; mmSecLoad(true); scLoad(true); mmSrcLoad(); }   // la lectura cambió secciones y páginas
+    function scReadDone(){ var z = sc.read.z; sc.read = null; scReadAfter(); scStart({ z: z, mem: true }); }
+    function scReadFail(r){
+      var d = r.data || {}, Z = sc.z[sc.read.z];
+      sc.read = null; scSsSet(null);
+      Z.err = r.status === 403 || d.error === 'sitio_no_verificado' ? 'sitio_no_verificado' : r.status === 400 && (d.error === 'sin_url' || d.error === 'url_no_permitida') ? 'lec_url' : r.status === 0 ? 'lec_red' : 'lec_otro';
+      if (Z.err === 'sitio_no_verificado') vfRefresh();
+      scReadAfter(); scRender();
+    }
+    // Frenar la lectura: lo ya leído queda guardado (no se puede deshacer) y no se arman tarjetas.
+    function scReadCancel(){
+      var R = sc.read; if (!R) return;
+      clearTimeout(sc.timer);
+      function end(){ if (sc.read !== R) return; sc.read = null; scSsSet(null); sc.z[R.z].msg = 'Lectura frenada: las páginas ya leídas quedaron guardadas. No se armaron tarjetas.'; scReadAfter(); scStatus(false); }
+      if (!R.jobId) return end();
+      sc.call = true; scRender();
+      vfInvoke('import-site', { action: 'cancel', job_id: R.jobId }).then(function(){ sc.call = false; end(); });   // si falla, la lectura igual queda frenada: avanza solo con pasos
+    }
+
+    // ---------- Fase 2: tarjetas ----------
     function scCode(r){ var d = r.data || {}; return d.error && SC_ERR[d.error] ? d.error : r.status === 0 ? 'red' : 'otro'; }
-    function scFail(code){ var Z = sc.z[sc.runG || scZ()]; sc.loop = false; sc.stop = false; sc.retry = 0; Z.err = code; Z.msg = ''; scRender(); scStatus(false); }
-    // Generar / Actualizar (sin force), Regenerar todas (force) con el grupo de la zona; Regenerar (n) con section_ids.
+    function scFail(code){ var Z = scRZ(); sc.loop = false; sc.stop = false; sc.retry = 0; sc.mem = false; Z.err = code; Z.msg = ''; scSsSet(null); scRender(); scStatus(false); }
+    // Silencioso: mantiene al día el texto interno de respaldo que el chat todavía lee. Nada se muestra, ni los errores.
+    function scMemQuiet(){ vfInvoke('import-site', { action: 'memory_generate' }).then(function(){}, function(){}); }
+    // o: { z, force, ids, mem }. Generar / Actualizar llegan acá desde la fase 1 con mem; Regenerar todas (force) y
+    // Regenerar (n) (ids) empiezan acá directo.
     function scStart(o){
-      if (sc.loop || sc.call) return;
+      if (sc.loop || sc.call || sc.read) return;
       var body = { action: 'cards_start' }, Z = sc.z[o.z];
       if (o.force) body.force = true;
       if (o.ids) body.section_ids = o.ids; else body.group = o.z;
-      sc.runG = o.z; Z.err = ''; Z.msg = ''; sc.runId = null; sc.call = true; scRender();
+      sc.runG = o.z; sc.mem = !!o.mem; sc.z.x.err = sc.z.x.msg = ''; Z.err = ''; Z.msg = ''; if (!o.mem) Z.skip = ''; sc.runId = null; sc.call = true; scRender();
       vfInvoke('import-site', body).then(function(r){
         sc.call = false;
         if (!r.ok) return scFail(scCode(r));
         var d = r.data || {};
-        if (d.status === 'running' && d.run_id){ sc.run = d; return scLoop(d.run_id); }
-        if (d.up_to_date || d.status === 'done'){ Z.msg = 'Las tarjetas ya estaban al día.'; if (o.ids) Z.sel = null; return scStatus(false); }
+        if (d.status === 'running' && d.run_id){ sc.run = d; scSsSet({ p: 'cards', run: d.run_id, z: o.z, mem: sc.mem }); return scLoop(d.run_id); }
+        if (d.up_to_date || d.status === 'done'){
+          if (sc.mem){ sc.mem = false; scMemQuiet(); }
+          Z.msg = (o.mem ? 'Listo: se leyó el sitio y las tarjetas ya estaban al día.' : 'Las tarjetas ya estaban al día.') + scSkipNote(Z);
+          if (o.ids) Z.sel = null; return scStatus(false);
+        }
         scFail(scCode(r));
       });
     }
+    function scSkipNote(Z){ var s = Z.skip; Z.skip = ''; return s ? ' No se volvió a leer el sitio (' + s + '): se usó la última lectura.' : ''; }
     // Bucle de pasos: uno por vez, mientras la corrida esté en "running".
     function scLoop(id){
       if (sc.loop) return;
@@ -4301,32 +3899,37 @@
             if (still >= SC_STUCK) return scCancelNow(id, 'otro');   // trabada: se corta en el servidor, sin dejar nada
             scRender(); return next(0);
           }
-          if (x.status === 'cancelled' || x.status === 'canceled'){ sc.loop = false; sc.run = null; sc.z[sc.runG].msg = 'Cancelado: todo quedó como estaba.'; return scStatus(false); }
+          if (x.status === 'cancelled' || x.status === 'canceled'){ sc.loop = false; sc.run = null; sc.mem = false; scSsSet(null); scRZ().msg = 'Cancelado: las tarjetas quedaron como estaban.'; return scStatus(false); }
           scFail(x.error && SC_ERR[x.error] ? x.error : 'otro');
         });
       }
       next(0);
     }
     function scDone(x){
-      var deg = scNum(x.degraded), Z = sc.z[sc.runG];
-      sc.loop = false; sc.stop = false; sc.run = null; Z.sel = null; Z.err = '';
-      Z.msg = 'Listo: tarjetas actualizadas.' + (deg ? ' ' + (deg === 1 ? '1 sección quedó' : fmtN(deg) + ' secciones quedaron') + ' con una tarjeta básica (sin IA).' : '');
+      var deg = scNum(x.degraded), Z = scRZ(), mem = sc.mem;
+      sc.loop = false; sc.stop = false; sc.run = null; sc.mem = false; Z.sel = null; Z.err = ''; scSsSet(null);
+      if (mem) scMemQuiet();
+      Z.msg = (mem ? 'Listo: se leyó el sitio y se armaron las tarjetas.' : 'Listo: tarjetas actualizadas.') + (deg ? ' ' + (deg === 1 ? '1 sección quedó' : fmtN(deg) + ' secciones quedaron') + ' con una tarjeta básica (sin IA).' : '') + scSkipNote(Z);
       toast('Tarjetas actualizadas');
       scLoad(true); scStatus(false);
     }
-    // Cancelar: corta la corrida en el servidor; lo hecho aparte se tira y las tarjetas de antes quedan como estaban.
+    // Cancelar las tarjetas: corta la corrida en el servidor; lo hecho aparte se tira y las de antes quedan como estaban.
     // err: código a mostrar en vez de "Cancelado" (cuando la corta el panel por trabarse).
     function scCancelNow(id, err){
       clearTimeout(sc.timer); sc.gen++; sc.call = true; scRender();
       vfInvoke('import-site', { action: 'cards_cancel', run_id: id }).then(function(r){
-        var Z = sc.z[sc.runG], st = (r.data || {}).status;
+        var Z = scRZ(), st = (r.data || {}).status, mem = sc.mem;
         sc.call = false; sc.loop = false; sc.stop = false; sc.retry = 0;
-        if (r.ok && st === 'done'){ sc.run = null; Z.sel = null; Z.msg = 'La generación ya había terminado: las tarjetas se actualizaron.'; scLoad(true); return scStatus(false); }
-        if (r.ok){ sc.run = null; if (err) Z.err = err; else Z.msg = 'Cancelado: todo quedó como estaba.'; return scStatus(false); }
+        if (r.ok && st === 'done'){ sc.run = null; sc.mem = false; Z.sel = null; scSsSet(null); if (mem) scMemQuiet(); Z.msg = 'La generación ya había terminado: las tarjetas se actualizaron.'; scLoad(true); return scStatus(false); }
+        if (r.ok){ sc.run = null; sc.mem = false; scSsSet(null); if (err) Z.err = err; else Z.msg = 'Cancelado: las tarjetas quedaron como estaban.'; return scStatus(false); }
         toast('No se pudo cancelar. Probá de nuevo.'); scStatus(true);   // sigue viva: se retoma el bucle
       });
     }
-    function scCancel(){ if (!sc.loop || sc.stop) return; sc.stop = true; scRender(); if (!sc.call) scCancelNow(sc.runId); }
+    // Un solo Cancelar para las dos fases.
+    function scCancel(){
+      if (sc.read){ if (sc.read.stop) return; sc.read.stop = true; scRender(); if (!sc.call) scReadCancel(); return; }
+      if (!sc.loop || sc.stop) return; sc.stop = true; scRender(); if (!sc.call) scCancelNow(sc.runId);
+    }
 
     // Conteos de una zona (cards_status.groups[z]). null = sin dato (cargando, error o un servidor sin grupos).
     function scCounts(z){
@@ -4345,52 +3948,68 @@
       var w = scWhen(c); if (w) p.push('Última generación: ' + w);
       return p.join(' · ');
     }
-    // Línea de estado y botones de la zona abierta. Un solo negro: Generar / Actualizar / Reintentar, o Regenerar (n).
+    // Texto del trabajo en curso (zona, General) y su avance.
+    function scJobText(){
+      if (sc.read) return sc.read.stop ? 'Frenando la lectura…' : sc.read.retry ? 'Sin conexión. Reintentando (' + sc.read.retry + ' de ' + SC_RETRY + ')…' : 'Leyendo el sitio…';
+      if (sc.loop) return sc.stop ? 'Cancelando…' : sc.retry ? 'Sin conexión. Reintentando (' + sc.retry + ' de ' + SC_RETRY + ')…' : 'Armando tarjetas…';
+      return '';
+    }
+    function scJobNums(){
+      if (sc.read){ var R = sc.read; return R.found ? { done: Math.min(R.done, R.found), total: R.found, t: fmtN(Math.min(R.done, R.found)) + ' de ' + fmtN(R.found) + ' páginas' } : { done: 0, total: 0, t: '' }; }
+      if (sc.loop && sc.run){ var total = scNum(sc.run.total), done = Math.min(scNum(sc.run.done), total || Infinity); return { done: done, total: total, t: total ? fmtN(done) + ' de ' + fmtN(total) : '' }; }
+      return { done: 0, total: 0, t: '' };
+    }
+    function scErrLink(code){
+      var l = null;
+      if (code === 'sitio_no_verificado' || code === 'lec_url'){ l = rsEl('a', 'mm-link', code === 'lec_url' ? 'Ir a Verificaciones' : 'Verificar mi sitio'); l.href = '/app/verificaciones'; l.setAttribute('data-mmgo', 'verificaciones'); }
+      return l;
+    }
+    // Línea de estado, barra y botones de la zona abierta. Negro: Generar / Actualizar (si hay algo por hacer) o Regenerar (n).
     function scRender(){
       if (!mm || !sc || !wgId('scT')) return;
-      var z = scZ(), Z = sc.z[z], c = scCounts(z), busy = sc.loop || sc.call, mine = sc.loop && sc.runG === z, other = sc.loop && !mine, t;
-      wgId('scZT').textContent = z === 'internal' ? 'Secciones de la app' : 'Secciones del sitio';
-      wgId('scZD').textContent = z === 'internal' ? 'Pantallas, pasos, menús y ventanas de tu app. Tocá una para ver su tarjeta y su texto.' : 'Páginas públicas y textos legales de tu sitio. Tocá una para ver su tarjeta y su texto.';
-      if (mine) t = sc.stop ? 'Cancelando…' : sc.retry ? 'Sin conexión. Reintentando (' + sc.retry + ' de ' + SC_RETRY + ')…' : 'Generando tarjetas…';
+      var z = scZ(), Z = sc.z[z], c = scCounts(z), busy = scBusy(), job = !!(sc.read || sc.loop),
+          jz = sc.read ? sc.read.z : sc.runG, mine = job && jz === z, other = job && !mine, t;
+      wgId('scZD').textContent = SC_HELP[z];
+      if (mine) t = scJobText();
       else if (!c) t = sc.stErr || (sc.st && !sc.call) ? 'No pudimos cargar el estado de las tarjetas.' : 'Revisando las tarjetas…';
       else if (!c.sec) t = z === 'internal' ? 'No hay secciones de la app leídas de tu sitio.' : 'No hay secciones públicas leídas de tu sitio.';
       else t = scSummary(c);
       var tt = wgId('scT'); if (tt.textContent !== t) tt.textContent = t;   // solo si cambia (el lector no repite)
-      // Barra de avance "{done} de {total}" con Cancelar al lado (solo en la zona de la corrida).
-      var run = mine && sc.run, total = run ? scNum(run.total) : 0, done = run ? Math.min(scNum(run.done), total || Infinity) : 0;
+      // Barra de avance (páginas en la fase 1, tarjetas en la fase 2), un solo Cancelar y qué pasa al cancelar.
+      var nums = scJobNums();
       wgId('scRun').hidden = !mine;
-      var tr = wgId('scTrack'); tr.setAttribute('aria-valuemax', total || 1); tr.setAttribute('aria-valuenow', done); tr.setAttribute('aria-valuetext', total ? fmtN(done) + ' de ' + fmtN(total) : 'Empezando');
-      wgId('scFill').style.width = (total ? 100 * done / total : 0) + '%'; wgId('scN').textContent = total ? fmtN(done) + ' de ' + fmtN(total) : '';
-      wgId('scCancel').disabled = sc.stop; wgId('scCancel').textContent = sc.stop ? 'Cancelando…' : 'Cancelar';
-      // Aviso o error (con un enlace cuando hay algo que hacer en otra parte). Con una corrida en la otra pestaña, ese aviso.
-      var m = wgId('scMsg'), mt = other ? 'Hay una generación en curso en ' + SC_ZN[sc.runG] + '.' : mine ? '' : Z.err ? SC_ERR[Z.err] || SC_ERR.otro : Z.msg,
-          isErr = !other && !mine && !!Z.err, mk = JSON.stringify([mt, isErr ? Z.err : '']);
+      var tr = wgId('scTrack'); tr.setAttribute('aria-label', sc.read ? 'Páginas leídas' : 'Tarjetas armadas');
+      tr.setAttribute('aria-valuemax', nums.total || 1); tr.setAttribute('aria-valuenow', nums.done); tr.setAttribute('aria-valuetext', nums.t || 'Empezando');
+      wgId('scFill').style.width = (nums.total ? 100 * nums.done / nums.total : 0) + '%'; wgId('scN').textContent = nums.t;
+      var stopping = sc.read ? sc.read.stop : sc.stop, cb = wgId('scCancel');
+      cb.disabled = stopping; cb.textContent = stopping ? 'Cancelando…' : 'Cancelar';
+      var hint = wgId('scHint'), ht = !mine ? '' : sc.read ? 'Si cancelás ahora, las páginas ya leídas quedan guardadas (no se puede deshacer) y no se arman tarjetas.' : 'Si cancelás ahora, las tarjetas quedan como estaban.';
+      if (hint.textContent !== ht) hint.textContent = ht; hint.hidden = !ht;
+      if (ht) cb.setAttribute('aria-describedby', 'scHint'); else cb.removeAttribute('aria-describedby');
+      // Aviso o error (con un enlace cuando hay algo que hacer en otra parte). Con un trabajo en la otra pestaña, ese aviso.
+      var m = wgId('scMsg'), mt = other ? (jz ? 'Hay una generación en curso en ' + SC_ZN[jz] + '.' : 'Hay una generación de tarjetas en curso.') : mine ? '' : Z.err ? SC_ERR[Z.err] || SC_ERR.otro : Z.msg,
+          isErr = !other && !mine && !!Z.err, mk = JSON.stringify([mt, isErr ? Z.err : '', other ? jz || 'x' : '']);
       if (m.getAttribute('data-k') !== mk){
         m.setAttribute('data-k', mk); m.textContent = mt; m.classList.toggle('is-err', isErr);
-        var l = null;
-        if (isErr && Z.err === 'sitio_no_verificado'){ l = rsEl('a', 'mm-link', 'Verificar mi sitio'); l.href = '/app/verificaciones'; l.setAttribute('data-mmgo', 'verificaciones'); }
-        else if (isErr && Z.err === 'sin_secciones'){ l = rsEl('button', 'mm-link', 'Leer el sitio en Fuentes'); l.type = 'button'; l.setAttribute('data-mmtab', 'fuentes'); }
-        else if (other){ l = rsEl('button', 'mm-link', 'Ir a ' + SC_ZN[sc.runG]); l.type = 'button'; l.setAttribute('data-mmtab', sc.runG === 'internal' ? 'flujos' : 'info'); }
+        var l = isErr ? scErrLink(Z.err) : null;
+        if (isErr && Z.err === 'sin_secciones'){ l = null; m.appendChild(document.createTextNode(' Tocá Generar para leer tu sitio.')); }
+        if (other){ l = rsEl('button', 'mm-link', jz ? 'Ir a ' + SC_ZN[jz] : 'Ver en General'); l.type = 'button'; l.setAttribute('data-mmtab', jz === 'internal' ? 'flujos' : jz ? 'info' : 'general'); }
         if (l){ m.appendChild(document.createTextNode(' ')); m.appendChild(l); }
       }
       m.hidden = !mt;
-      // Botones (en la otra pestaña quedan a la vista pero deshabilitados)
+      // Botones (con un trabajo en la otra pestaña quedan a la vista pero deshabilitados)
       var go = wgId('scGo'), all = wgId('scAll'), sel = wgId('scSel'), sg = wgId('scSelGo'), sx = wgId('scSelX'), ready = !!(c && c.sec);
-      var selN = Z.sel ? Object.keys(Z.sel).length : 0, inSel = !!Z.sel && !mine;
-      var goAct = '', goLabel = '';
+      var selN = Z.sel ? Object.keys(Z.sel).length : 0, inSel = !!Z.sel && !mine, goAct = '', goLabel = '', goPrim = false;
       if (!mine && !inSel){
-        if (Z.err === 'red' && sc.runId && sc.runG === z){ goAct = 'resume'; goLabel = 'Reintentar'; }
-        else if (ready && !c.any){ goAct = 'gen'; goLabel = 'Generar'; }
-        else if (ready && c.todo){ goAct = 'gen'; goLabel = 'Actualizar'; }
-        else if (!c && (sc.stErr || sc.st) && !sc.call){ goAct = 'status'; goLabel = 'Probar de nuevo'; }
+        if (Z.err === 'red' && sc.runId && sc.runG === z){ goAct = 'resume'; goLabel = 'Reintentar'; goPrim = true; }
+        else if (c && !c.any){ goAct = 'gen'; goLabel = 'Generar'; goPrim = true; }          // también sin secciones: lee el sitio primero
+        else if (c){ goAct = 'gen'; goLabel = 'Actualizar'; goPrim = c.todo > 0; }
+        else if ((sc.stErr || sc.st) && !sc.call){ goAct = 'status'; goLabel = 'Probar de nuevo'; }
       }
-      // Un solo negro por vista: Guardar (editando) > Usar la nueva > Leer mi sitio y crear la Memoria > el de la zona > Editar.
-      var mem = appState.memory || {}, taken = !!(mm.edit && mm.edit.tab === mm.tab) || !!String(mem.draft || '').trim() || !wgId('mmEmptyGo').hidden;
-      go.hidden = !goAct; go.textContent = goLabel; go.setAttribute('data-act', goAct); go.classList.toggle('wa-btn-primary', !!goAct && goAct !== 'status' && !taken); go.disabled = busy;
+      go.hidden = !goAct; go.textContent = goLabel; go.setAttribute('data-act', goAct); go.classList.toggle('wa-btn-primary', goPrim); go.disabled = busy;
       all.hidden = mine || inSel || !ready || !c.any; all.disabled = busy;
       sel.hidden = mine || inSel || !ready; sel.disabled = busy || !c || !c.any;
-      sg.hidden = sx.hidden = !inSel; sg.textContent = 'Regenerar (' + fmtN(selN) + ')'; sg.disabled = busy || !selN; sg.classList.toggle('wa-btn-primary', !taken); sx.disabled = busy;
-      wgId('mmEdit').classList.toggle('wa-btn-primary', !taken && !go.classList.contains('wa-btn-primary') && !inSel);
+      sg.hidden = sx.hidden = !inSel; sg.textContent = 'Regenerar (' + fmtN(selN) + ')'; sg.disabled = busy || !selN; sg.classList.add('wa-btn-primary'); sx.disabled = busy;
       [go, all, sel, sg].forEach(function(b){ if (other) b.setAttribute('aria-describedby', 'scMsg'); else b.removeAttribute('aria-describedby'); });
       // Filtro de página (desde Fuentes › Páginas leídas)
       var pf = wgId('scPage'), pk = sc.page;
@@ -4401,7 +4020,7 @@
       pf.hidden = !pk;
       scGrid(); mgRender();
     }
-    // Recuadros de la zona abierta, por grupo. Se rehacen solo si cambia lo que muestran (no en cada paso de la corrida).
+    // Recuadros de la zona abierta, por grupo. Se rehacen solo si cambia lo que muestran (no en cada paso del trabajo).
     function scGrid(){
       var box = wgId('scGrid'), s = mmSecs, z = scZ(), Z = sc.z[z], inSel = !!Z.sel && !(sc.loop && sc.runG === z);
       var key = JSON.stringify([z, s ? (s.err ? 'e' : s.rows.length) : 'l', sc.data ? (sc.data.err ? 'e' : sc.data.n + '.' + sc.data.v) : 'l', sc.page, inSel, vfHost(vfW().siteUrl)]);
@@ -4411,10 +4030,8 @@
       var own = s.err ? [] : mmRows().filter(function(x){ return mmZoneOf(x) === z && (!sc.page || x.document_url === sc.page); });
       if (s.err || !own.length){
         var what = z === 'internal' ? 'de la app' : 'públicas',
-            b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : sc.page ? 'Esa página no tiene secciones ' + what + '.' : 'Tu sitio no tiene secciones ' + what + ' leídas.'), l = null;
-        if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.setAttribute('data-mmretry', ''); }
-        else if (!sc.page && vfVerified()){ l = rsEl('button', 'mm-link', 'Ir a Fuentes'); l.setAttribute('data-mmtab', 'fuentes'); }
-        if (l){ l.type = 'button'; b.firstChild.appendChild(l); }
+            b = mmSBox(s.err ? 'No pudimos cargar las secciones.' : sc.page ? 'Esa página no tiene secciones ' + what + '.' : 'Tu sitio no tiene secciones ' + what + ' leídas. Tocá Generar para leerlo y armar las tarjetas.'), l = null;
+        if (s.err){ l = rsEl('button', 'mm-link', 'Probar de nuevo'); l.type = 'button'; l.setAttribute('data-mmretry', ''); b.firstChild.appendChild(l); }
         box.appendChild(b); return;
       }
       MM_G.forEach(function(g){
@@ -4441,14 +4058,6 @@
       b.setAttribute('aria-label', '#' + x.n + ', ' + SC_ONE[k] + ': ' + mmSecTitle(x) + (has ? '' : ', sin tarjeta') + (ed ? ', tarjeta editada por vos' : ''));
       return b;
     }
-    function scGoGroup(g){
-      var d = MM_G.filter(function(x){ return x[0] === g; })[0]; if (!d) return;
-      if (!d[3]) sc.z[d[2]].open[g] = true;
-      sc.page = ''; sc.gridKey = ''; mmTabSet(d[2] === 'internal' ? 'flujos' : 'info', true);
-      var w = wgId('scG-' + g); if (!w) return;
-      if (w.tagName === 'DETAILS') w.open = true;
-      w.scrollIntoView({ block: 'start' }); var h = w.firstChild; if (h.tagName === 'H3') h.tabIndex = -1; h.focus({ preventScroll: true });
-    }
     // Desde Fuentes › Páginas leídas: la pestaña donde esa página tiene secciones (pública primero) y la zona a la vista.
     function scGoPage(u){
       var rows = mmRows().filter(function(x){ return x.document_url === u; }), pub = rows.some(function(x){ return mmZoneOf(x) === 'public'; });
@@ -4456,13 +4065,14 @@
       wgId('scZone').scrollIntoView({ block: 'start' });
     }
 
-    // General: Información pública y Flujos por separado (al día / desactualizadas / faltan / editadas y última generación),
-    // el texto de la Memoria y lo que falta (Hecho / Falta, como Widget › General).
+    // General: solo tarjetas (Información pública y Flujos por separado), sitio verificado y el último trabajo. Ningún texto
+    // de memoria. Un trabajo sin pestaña conocida (corrida de Seleccionar retomada sin dato) se ve y se cancela acá.
     function mgLine(z){
       var c = scCounts(z), t;
-      if (sc.loop && sc.runG === z){ var r = sc.run || {}; return 'Generando tarjetas' + (scNum(r.total) ? ': ' + fmtN(Math.min(scNum(r.done), scNum(r.total))) + ' de ' + fmtN(scNum(r.total)) : '') + '.'; }
+      if (sc.read && sc.read.z === z){ var n = scJobNums(); return scJobText() + (n.t ? ' ' + n.t + '.' : ''); }
+      if (sc.loop && sc.runG === z){ var k = scJobNums(); return scJobText() + (k.t ? ' ' + k.t + '.' : ''); }
       if (!c) return sc.stErr || (sc.st && !sc.call) ? 'No pudimos cargar el estado de las tarjetas.' : 'Revisando…';
-      if (!c.sec) return z === 'internal' ? 'Sin secciones de la app leídas.' : 'Sin secciones públicas: primero leé tu sitio en Fuentes.';
+      if (!c.sec) return z === 'internal' ? 'Sin secciones de la app leídas.' : 'Sin secciones públicas leídas.';
       if (!c.any) t = 'Faltan: ninguna de las ' + rsCount(c.sec, 'sección', 'secciones') + ' tiene tarjeta.';
       else if (c.todo) t = (c.stale ? 'Desactualizadas: ' : 'Faltan: ') + [c.stale ? fmtN(c.stale) + (c.stale === 1 ? ' cambió' : ' cambiaron') : '', c.missing ? fmtN(c.missing) + (c.missing === 1 ? ' no tiene tarjeta' : ' no tienen tarjeta') : ''].filter(Boolean).join(' y ') + ' (de ' + rsCount(c.sec, 'sección', 'secciones') + ').';
       else t = 'Al día: ' + rsCount(c.sec, 'sección', 'secciones') + '.';
@@ -4470,24 +4080,33 @@
       var w = scWhen(c); if (w) t += ' Última generación: ' + w + '.';
       return t;
     }
+    function mgJobLine(){
+      var X = sc.z.x;
+      if (sc.read || sc.loop){
+        var jz = sc.read ? sc.read.z : sc.runG, n = scJobNums();
+        return 'En curso' + (jz ? ' en ' + SC_ZN[jz] : ' (tarjetas elegidas a mano)') + ': ' + scJobText().replace(/^./, function(x){ return x.toLowerCase(); }) + (n.t ? ' ' + n.t + '.' : '');
+      }
+      if (X.err || X.msg) return X.err ? SC_ERR[X.err] || SC_ERR.otro : X.msg;
+      var j = mmSrc && !mmSrc.err ? mmSrc.jobs[0] : null;
+      if (!mmSrc) return 'Revisando…';
+      if (mmSrc.err) return 'No pudimos cargar el último trabajo.';
+      if (!j) return 'Sin lecturas del sitio.';
+      return mmJobText(j) + (j.created_at && !isNaN(new Date(j.created_at)) ? ' · ' + VF_DATE.format(new Date(j.created_at)) : '') + '.';
+    }
     function mgRender(){
-      var pi = wgId('mgPub'); if (!pi || !sc || !appState.memory) return;
-      var ii = wgId('mgInt'), a = mgLine('public'), b = mgLine('internal'), m = appState.memory;
+      var pi = wgId('mgPub'); if (!pi || !sc || !mm) return;
+      var ii = wgId('mgInt'), ji = wgId('mgJob'), a = mgLine('public'), b = mgLine('internal'), j = mgJobLine();
       if (pi.textContent !== a) pi.textContent = a;
       if (ii.textContent !== b) ii.textContent = b;
-      var cp = scCounts('public'), ci = scCounts('internal'), has = !!m.knowledge.trim(), draft = !!m.draft.trim();
-      wgId('mgInfo').textContent = !has ? 'Vacía: tu asistente no tiene un resumen de tu sitio.'
-        : (m.aiAt && !isNaN(new Date(m.aiAt)) ? 'Generada por IA el ' + VF_DATE.format(new Date(m.aiAt)) : 'Editada por vos') + ' · ' + fmtN(m.knowledge.length) + ' / ' + fmtN(MM_MAX) + ' caracteres' + (draft ? ' · Hay una versión nueva para revisar.' : '');
+      if (ji.textContent !== j) ji.textContent = j;
+      ji.classList.toggle('is-err', !sc.read && !sc.loop && !!sc.z.x.err);
+      // Cancelar en General solo para un trabajo sin pestaña conocida (en las zonas ya está su Cancelar).
+      var mc = wgId('mgCancel'), unk = sc.loop && !sc.runG;
+      mc.hidden = !unk; mc.disabled = sc.stop; mc.textContent = sc.stop ? 'Cancelando…' : 'Cancelar';
       // Qué falta, en orden: lo primero de "Falta" es lo que sigue. null = sin dato todavía (no se afirma nada).
-      function cards(c, name){ return [c && c.sec ? c.any && !c.todo : null, 'Tarjetas de ' + name + ' al día', (c && c.any ? 'Actualizar' : 'Generar') + ' las tarjetas de ' + name]; }
-      var read = mmSecs && !mmSecs.err ? mmRows().length > 0 : null, kp = cards(cp, 'Información pública'), ki = cards(ci, 'Flujos'), items = [
-        [vfVerified(), 'Sitio verificado', 'Verificar el sitio', 'go', 'verificaciones'],
-        [read, 'Sitio leído', 'Leer el sitio', 'tab', 'fuentes'],
-        [has, 'Texto de la Memoria creado', 'Crear el texto de la Memoria', 'tab', 'info'],
-        [kp[0], kp[1], kp[2], 'tab', 'info'],
-        [ki[0], ki[1], ki[2], 'tab', 'flujos'],
-        [draft ? false : null, '', 'Revisar la versión nueva de la Memoria', 'tab', 'info']
-      ];
+      var cp = scCounts('public'), ci = scCounts('internal');
+      function cards(c, name, tab){ return [c && c.sec ? c.any && !c.todo : c && !c.sec ? false : null, 'Tarjetas de ' + name + ' al día', (c && c.any ? 'Actualizar' : 'Generar') + ' las tarjetas de ' + name, 'tab', tab]; }
+      var items = [[vfVerified(), 'Sitio verificado', 'Verificar el sitio', 'go', 'verificaciones'], cards(cp, 'Información pública', 'info'), cards(ci, 'Flujos', 'flujos')];
       var box = wgId('mgTodo'), key = JSON.stringify(items.map(function(i){ return [i[0], i[2]]; }));
       if (box.getAttribute('data-k') === key) return; box.setAttribute('data-k', key); box.textContent = '';
       var done = rsEl('ul', 'wg-todo'), todo = rsEl('ul', 'wg-todo');
@@ -4591,6 +4210,8 @@
         var ra = rsEl('div', 'sc-edact'), go = scBtn(ed.busy ? 'Volviendo…' : 'Volver al original', 'revertgo', true), no = scBtn('Cancelar', 'cancel');
         go.disabled = no.disabled = !!ed.busy; ra.appendChild(no); ra.appendChild(go); s1.appendChild(ra);
       } else {
+        // Editada por el dueño: el chat la usa como indicación y gana sobre el texto de la sección (chat v24).
+        if (edited) s1.appendChild(rsEl('p', 'mm-note', 'El chat usa tu texto como indicación y tiene prioridad sobre el texto de la sección.'));
         var a = rsEl('div', 'sc-edact'), eb = scBtn('Editar', 'edit');
         eb.setAttribute('aria-label', 'Editar el texto de la tarjeta');
         if (sc.loop){ eb.disabled = true; eb.title = 'Hay una generación en curso.'; }
@@ -4657,6 +4278,11 @@
       else scCardPart(s1, x, card, links);
       body.appendChild(s1);
       if (sc.ed && sc.ed.id === x.id && sc.ed.mode === 'edit') scEdSync();
+      // Dónde está: mismo enlace que da el chat (sectionLink de chat/core.ts).
+      var wh = rsEl('section', 'sc-sec'), href = scWhere(x); wh.appendChild(rsEl('h3', 'sc-h3', 'Dónde está'));
+      if (href){ var wa = rsEl('a', 'sc-where', href); wa.href = href; wa.target = '_blank'; wa.rel = 'noopener noreferrer'; wh.appendChild(wa); }
+      else wh.appendChild(rsEl('p', 'sc-none', 'Dentro de la app (sin enlace propio)'));
+      body.appendChild(wh);
       // Texto exacto, una fila por línea (split por "\n", sin recortar; línea = índice + 1). No se edita.
       var s2 = rsEl('section', 'sc-sec'); s2.appendChild(rsEl('h3', 'sc-h3', 'Texto de la sección')); body.appendChild(s2);
       var txt = sc.text[x.id];
@@ -4683,7 +4309,13 @@
         li.appendChild(ln); li.appendChild(lt); ol.appendChild(li);
       });
       s2.appendChild(ol);
-      if (/^https?:\/\//i.test(x.document_url || '')){ var a = rsEl('a', 'sc-open', 'Abrir la página'); a.href = x.document_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; body.appendChild(a); }
+    }
+    // Enlace de una sección, igual que sectionLink del chat: sin enlace si es ui o menu, si está oculta o si no tiene dirección
+    // http(s); si no, la dirección del documento con #ancla, o la página si no tiene ancla.
+    function scWhere(x){
+      if (x.kind === 'ui' || x.kind === 'menu') return null;
+      if (x.is_hidden || !/^https?:\/\//i.test(String(x.document_url || ''))) return null;
+      return x.anchor ? String(x.document_url).split('#')[0] + '#' + x.anchor : String(x.document_url);
     }
     // Redibuja el modal sin perder el foco ni lo escrito en el campo de la tarjeta (cuando llega el texto de la sección).
     function scFillKeep(){
@@ -4705,8 +4337,9 @@
     (function(){
       wgId('scGo').addEventListener('click', function(){
         var a = this.getAttribute('data-act'), z = scZ();
-        if (a === 'gen') scStart({ z: z }); else if (a === 'resume'){ sc.z[z].err = ''; scStatus(true); } else if (a === 'status') scStatus(true);
+        if (a === 'gen') scGen(z); else if (a === 'resume'){ sc.z[z].err = ''; scStatus(true); } else if (a === 'status') scStatus(true);
       });
+      wgId('mgCancel').addEventListener('click', scCancel);
       wgId('scAll').addEventListener('click', function(){
         var z = scZ(), c = scCounts(z), n = c ? c.edited : 0;
         scAsk('¿Regenerar todas las tarjetas de ' + SC_ZN[z] + '?',
@@ -4941,7 +4574,7 @@
       else if (current === 'analiticas') renderAnalytics();
       else if (current === 'verificaciones') vfEnter();
       else if (current === 'memoria') mmEnter();
-      vfBadge(); mmBadge(); scStatus(true);   // Tarjetas: si hay una corrida viva, se retoma
+      vfBadge(); scStatus(true);   // Tarjetas: si hay una corrida viva, se retoma
     }
 
     // El valor 'resolved' de la base significa chat cerrado; se renombra a 'closed' en la Fase 3 (migración de Supabase, no ahora).
