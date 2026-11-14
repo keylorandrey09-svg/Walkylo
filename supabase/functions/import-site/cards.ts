@@ -15,8 +15,11 @@
 //      * IA, "relacionadas": elige de una lista cerrada (numerada); el código descarta todo lo que no existe.
 //    Un enlace a algo que no existe NUNCA se guarda.
 //  - Una tarjeta NO reemplaza al texto de la sección: orienta y ayuda a buscar. Los pasos y los datos salen del texto real.
-//  - Por tandas, retomable e incremental: no hay estado oculto; "pendiente" = sección sin tarjeta, o con la tarjeta hecha sobre
-//    un texto distinto (huella) o con otra versión del generador. Se puede cortar en cualquier momento y seguir después.
+//  - Por tandas e incremental: "pendiente" = sección sin tarjeta, o con la tarjeta hecha sobre un texto distinto (huella) o con otra
+//    versión del generador. También se puede pedir SOLO algunas secciones (scope) o TODAS (force).
+//  - TODO O NADA (c1+): lo que la IA va devolviendo se guarda APARTE (card_run_items). Las tarjetas y los enlaces de antes no se tocan
+//    hasta que termina la última tanda: ahí se reemplazan todos juntos, en una sola transacción (apply_card_run). Cancelar, un error
+//    o una corrida abandonada descartan lo guardado aparte: todo queda exactamente como estaba antes de empezar.
 import type { Out } from "./flow.ts";
 import { type AiResult, callAI } from "./summarize.ts";
 
@@ -36,6 +39,16 @@ export type CardSection = {
   id: string; widget_id: string; user_id: string; document_url: string; position: number; kind: string;
   is_hidden: boolean; heading_path: string; text: string; content_hash: string; lang: string | null; anchor: string | null;
 };
+// "internal" = lo de la app (pantallas, pasos, menús, ventanas y bloques ocultos); "public" = páginas visibles y textos legales.
+// Mismo criterio que memory.ts (isFlow / isAppish / isSiteText).
+export type CardGroup = "public" | "internal";
+export const CARD_GROUPS: CardGroup[] = ["public", "internal"];
+export function groupOf(s: Pick<CardSection, "kind" | "is_hidden">): CardGroup {
+  if (s.kind === "steps" || s.kind === "screen" || s.kind === "ui" || s.kind === "menu") return "internal";
+  if ((s.kind === "info" || s.kind === "faq") && s.is_hidden) return "internal";
+  return "public";
+}
+export const MAX_EDIT_CHARS = 1500;                 // largo máximo del texto de una tarjeta editada por el dueño
 export type CardRow = {
   section_id: string; widget_id: string; user_id: string; lang: string | null; purpose: string; keywords: string;
   source: "code" | "ai" | "mixed"; section_hash: string; version: string;
@@ -46,28 +59,36 @@ export type LinkRow = {
   kind: "menu" | "button" | "step" | "related"; label: string; source: "code" | "ai";
   line?: number | null; // línea (desde 1) del texto de la sección de origen donde nace el enlace; null si no se sabe
 };
-export type CardMeta = { section_id: string; section_hash: string; version: string; updated_at: string };
+export type CardMeta = { section_id: string; section_hash: string; version: string; updated_at: string; edited_at?: string | null };
 export type CardRun = {
   id: string; widget_id: string; user_id: string; status: string; force: boolean; version: string; total: number; done: number;
   degraded: number; steps: number; calls: number; tokens_in: number; tokens_out: number; effort: string | null;
   error: string | null; started_at: string; updated_at: string;
+  scope?: string[] | null; // si viene, la corrida rehace SOLO estas secciones
+  scope_group?: CardGroup | null; // si viene (y no hay scope), la corrida trabaja SOLO con las secciones de este grupo
 };
+// Lo que una tanda deja guardado aparte hasta que termina la corrida.
+export type StagedItem = { section_id: string; widget_id: string; user_id: string; card: CardRow; links: LinkRow[] };
 
 // PostgREST puede devolver los enteros grandes (bigint) como TEXTO: se convierten a número para no terminar sumando textos ("6000" + 1000 = "60001000").
 export function normalizeRun(r: Record<string, unknown>): CardRun {
   const n = (k: string) => Number(r[k] ?? 0) || 0;
-  return { ...(r as unknown as CardRun), total: n("total"), done: n("done"), degraded: n("degraded"), steps: n("steps"), calls: n("calls"), tokens_in: n("tokens_in"), tokens_out: n("tokens_out") };
+  return { ...(r as unknown as CardRun), scope: Array.isArray(r.scope) ? (r.scope as string[]) : null, scope_group: r.scope_group === "public" || r.scope_group === "internal" ? r.scope_group : null, total: n("total"), done: n("done"), degraded: n("degraded"), steps: n("steps"), calls: n("calls"), tokens_in: n("tokens_in"), tokens_out: n("tokens_out") };
 }
 
 export interface CardsStore {
   widgetBasic(userId: string): Promise<{ id: string; language: string | null } | null>;
   allSections(widgetId: string): Promise<CardSection[]>;
   cardMetas(widgetId: string): Promise<CardMeta[]>;
-  upsertCards(rows: CardRow[]): Promise<void>;
-  replaceAiLinks(fromSectionIds: string[], rows: LinkRow[]): Promise<void>; // borra los enlaces de IA que SALEN de esas secciones y pone los nuevos
+  stageItems(runId: string, items: StagedItem[]): Promise<void>;           // guarda aparte lo de una tanda (las tarjetas de siempre no se tocan)
+  stagedIds(runId: string): Promise<string[]>;                             // secciones de esta corrida que ya tienen su tarjeta nueva guardada aparte
+  discardStaged(runId: string): Promise<void>;                             // tira lo guardado aparte: todo queda como estaba
+  applyRun(runId: string): Promise<void>;                                  // reemplaza tarjetas y enlaces de IA de esas secciones, TODO JUNTO (una transacción)
   replaceCodeLinks(widgetId: string, rows: LinkRow[]): Promise<void>;     // los de código se recalculan completos (son deterministas)
   recentCardRuns(widgetId: string, sinceISO: string): Promise<CardRun[]>;  // más nuevos primero
-  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string }): Promise<CardRun>;
+  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string; scope?: string[] | null; scope_group?: CardGroup | null }): Promise<CardRun>;
+  editCard(widgetId: string, sectionId: string, purpose: string): Promise<boolean>;      // guarda el texto del dueño (conserva el original); false si no hay tarjeta
+  unEditCard(widgetId: string, sectionId: string): Promise<string | null>;               // vuelve al texto original; devuelve ese texto, o null si no había edición
   getCardRun(userId: string, id: string): Promise<CardRun | null>;
   updateCardRun(id: string, patch: Record<string, unknown>): Promise<void>;
   addUsage(userId: string, tIn: number, tOut: number): Promise<void>;
@@ -161,17 +182,27 @@ export function deriveLinks(secs: CardSection[]): LinkRow[] {
 }
 
 // ---------- qué falta hacer ----------
-export function pendingSections(
-  secs: CardSection[], metas: CardMeta[], o: { version: string; force?: boolean; since?: string },
-): CardSection[] {
+export function pendingSections(secs: CardSection[], metas: CardMeta[], o: { version: string }): CardSection[] {
   const m = new Map(metas.map((x) => [x.section_id, x]));
-  const since = o.since ? Date.parse(o.since) : NaN;
   return [...secs].sort(byDocPos).filter((s) => {
     const c = m.get(s.id);
-    if (!c) return true;
-    if (c.version !== o.version || c.section_hash !== s.content_hash) return true;
-    return !!o.force && !Number.isNaN(since) && Date.parse(c.updated_at) < since;
+    return !c || (!c.edited_at && (c.version !== o.version || c.section_hash !== s.content_hash)); // lo editado por el dueño no se rehace solo
   });
+}
+
+// Qué secciones tiene que rehacer UNA corrida (sin descontar las que ya tienen su tarjeta nueva guardada aparte):
+// las elegidas (scope), o todas (force), o las que faltan o están viejas.
+export function runTargets(
+  secs: CardSection[], metas: CardMeta[], run: { force: boolean; version: string; scope?: string[] | null; scope_group?: CardGroup | null },
+): CardSection[] {
+  // elegidas a propósito: se rehacen aunque estén editadas (el dueño lo pidió)
+  if (run.scope?.length) { const ids = new Set(run.scope); return [...secs].sort(byDocPos).filter((s) => ids.has(s.id)); }
+  const base = run.scope_group ? secs.filter((s) => groupOf(s) === run.scope_group) : secs;
+  if (run.force) {
+    const edited = new Set(metas.filter((m) => m.edited_at).map((m) => m.section_id)); // "Regenerar todas" respeta lo que el dueño editó
+    return [...base].sort(byDocPos).filter((s) => !edited.has(s.id));
+  }
+  return pendingSections(base, metas, { version: run.version });
 }
 
 // Reparte lo pendiente en tandas. NUNCA corta una sección: una sección más grande que el límite va sola y entera.
@@ -372,49 +403,86 @@ async function askCards(input: string): Promise<{ r: AiResult; effort: string }>
 }
 
 // ---------- estado para el panel ----------
-export function coverage(secs: CardSection[], metas: CardMeta[]): { sections: number; fresh: number; stale: number; missing: number } {
+export function coverage(secs: CardSection[], metas: CardMeta[]): { sections: number; fresh: number; stale: number; missing: number; edited: number } {
   const m = new Map(metas.map((x) => [x.section_id, x]));
-  let fresh = 0, stale = 0, missing = 0;
+  let fresh = 0, stale = 0, missing = 0, edited = 0;
   for (const s of secs) {
     const c = m.get(s.id);
-    if (!c) missing++; else if (c.version !== CARDS_VERSION || c.section_hash !== s.content_hash) stale++; else fresh++;
+    if (!c) missing++;
+    else if (c.edited_at) { fresh++; edited++; } // editada por el dueño: se respeta, cuenta como al día
+    else if (c.version !== CARDS_VERSION || c.section_hash !== s.content_hash) stale++;
+    else fresh++;
   }
-  return { sections: secs.length, fresh, stale, missing };
+  return { sections: secs.length, fresh, stale, missing, edited };
+}
+
+// Cobertura y última generación por grupo (público / interno), para las dos pestañas del panel.
+export function coverageByGroup(secs: CardSection[], metas: CardMeta[]): Record<CardGroup, ReturnType<typeof coverage> & { last_generated_at: string | null }> {
+  const one = (g: CardGroup) => {
+    const mine = secs.filter((s) => groupOf(s) === g);
+    return { ...coverage(mine, metas), last_generated_at: lastGeneratedAt(mine, metas) };
+  };
+  return { public: one("public"), internal: one("internal") };
+}
+
+// Fecha de la tarjeta más reciente de las secciones que existen hoy (las de secciones borradas no cuentan). null si no hay ninguna.
+export function lastGeneratedAt(secs: CardSection[], metas: CardMeta[]): string | null {
+  const ids = new Set(secs.map((s) => s.id));
+  let best: string | null = null, bestMs = -Infinity;
+  for (const m of metas) {
+    if (!ids.has(m.section_id)) continue;
+    const t = Date.parse(m.updated_at);
+    if (!Number.isNaN(t) && t > bestMs) { bestMs = t; best = m.updated_at; }
+  }
+  return best;
 }
 
 export function runSummary(r: CardRun): Record<string, unknown> {
   return {
     run_id: r.id, status: r.status, total: r.total, done: r.done, pending: Math.max(0, r.total - r.done), degraded: r.degraded,
-    steps: r.steps, effort: r.effort, error: r.error, version: r.version, force: r.force,
+    steps: r.steps, effort: r.effort, error: r.error, version: r.version, force: r.force, selected: r.scope?.length ?? 0, group: r.scope?.length ? null : (r.scope_group ?? null),
   };
 }
 
 // ---------- acciones ----------
 export async function startCards(
-  store: CardsStore, uid: string, w: { id: string }, opts: { force?: boolean } = {}, now = Date.now(),
+  store: CardsStore, uid: string, w: { id: string }, opts: { force?: boolean; sectionIds?: string[]; group?: CardGroup } = {}, now = Date.now(),
 ): Promise<Out> {
   const wb = await store.widgetBasic(uid);
   if (!wb || wb.id !== w.id) return out(404, { error: "sin_widget" });
   const secs = await store.allSections(w.id);
   if (!secs.length) return out(409, { error: "sin_secciones" });
 
+  // Solo algunas: se aceptan las que existen en este widget. Si no queda ninguna, es un pedido vacío.
+  let scope: string[] | null = null;
+  if (opts.sectionIds) {
+    const have = new Set(secs.map((s) => s.id));
+    scope = uniq(opts.sectionIds.filter((id) => have.has(id)));
+    if (!scope.length) return out(400, { error: "sin_seleccion" });
+  }
+
   const runs = await store.recentCardRuns(w.id, new Date(now - 86_400_000).toISOString());
   const live = runs.find((r) => r.status === "running" && now - Date.parse(r.updated_at) < RUN_STALE_MIN * 60_000);
   if (live) return out(200, { ...runSummary(live), resumed: true });
-  for (const r of runs) if (r.status === "running") await store.updateCardRun(r.id, { status: "cancelled", finished_at: new Date().toISOString() });
+  for (const r of runs) {
+    if (r.status === "running") await store.updateCardRun(r.id, { status: "cancelled", finished_at: new Date().toISOString() });
+    if (r.status !== "done") await store.discardStaged(r.id); // una abandonada, cancelada o con error no deja nada guardado aparte
+  }
   if (runs.length >= CARDS_ATTEMPTS_DAILY) return out(429, { error: "limite_diario" });
 
-  // los enlaces por código son deterministas y gratis: se recalculan siempre, aunque no haya nada para la IA
-  await store.replaceCodeLinks(w.id, deriveLinks(secs));
-
   const metas = await store.cardMetas(w.id);
-  if (!opts.force && !pendingSections(secs, metas, { version: CARDS_VERSION }).length) {
+  const group = scope ? null : (opts.group ?? null);
+  const force = !!opts.force && !scope;
+  const targets = runTargets(secs, metas, { force, version: CARDS_VERSION, scope, scope_group: group });
+  if (!targets.length) {
+    // nada para la IA (todo al día, o lo que queda está editado por el dueño); los enlaces por código (deterministas y gratis) se recalculan igual
+    await store.replaceCodeLinks(w.id, deriveLinks(secs));
     return out(200, { status: "done", up_to_date: true, ...coverage(secs, metas), total: 0, done: 0, pending: 0 });
   }
-  const run = await store.createCardRun({ widget_id: w.id, user_id: uid, force: !!opts.force, version: CARDS_VERSION });
-  const total = pendingSections(secs, metas, { version: CARDS_VERSION, force: !!opts.force, since: run.started_at }).length;
+  const run = await store.createCardRun({ widget_id: w.id, user_id: uid, force, version: CARDS_VERSION, scope, scope_group: group });
+  const total = targets.length;
   await store.updateCardRun(run.id, { total });
-  return out(200, { ...runSummary({ ...run, total }), resumed: false });
+  return out(200, { ...runSummary({ ...run, total, scope, scope_group: group }), resumed: false });
 }
 
 export async function stepCards(store: CardsStore, uid: string, w: { id: string }, runId: string): Promise<Out> {
@@ -426,13 +494,31 @@ export async function stepCards(store: CardsStore, uid: string, w: { id: string 
 
   const secs = await store.allSections(w.id);
   const metas = await store.cardMetas(w.id);
-  const pending = pendingSections(secs, metas, { version: run.version, force: run.force, since: run.started_at });
+  const staged = new Set(await store.stagedIds(run.id));
+  const pending = runTargets(secs, metas, run).filter((s) => !staged.has(s.id));
   const finish = async (patch: Record<string, unknown>) => {
     await store.updateCardRun(run.id, { ...patch, finished_at: new Date().toISOString(), updated_at: new Date().toISOString() });
     return out(200, runSummary({ ...run, ...patch } as CardRun));
   };
-  if (!pending.length) return await finish({ status: "done", done: run.total });
-  if (run.steps >= run.total + 5) return await finish({ status: "error", error: "demasiados_pasos" }); // resguardo contra bucles
+  // termina TODO JUNTO: recién acá las tarjetas y los enlaces de antes se reemplazan por los nuevos. Si falla, no cambia nada.
+  const commit = async (patch: Record<string, unknown>) => {
+    try {
+      await store.replaceCodeLinks(w.id, deriveLinks(secs));
+      await store.applyRun(run.id);
+    } catch (e) {
+      const m = String((e as Error).message ?? e).slice(0, 120);
+      console.error("cards_apply_error", m);
+      await store.discardStaged(run.id);
+      await finish({ ...patch, status: "error", error: "no_se_pudo_guardar" });
+      return out(500, { ...runSummary({ ...run, ...patch, status: "error", error: "no_se_pudo_guardar" } as CardRun), error: "no_se_pudo_guardar" });
+    }
+    return await finish({ ...patch, status: "done", done: run.total });
+  };
+  if (!pending.length) return await commit({});
+  if (run.steps >= run.total + 5) { // resguardo contra bucles
+    await store.discardStaged(run.id);
+    return await finish({ status: "error", error: "demasiados_pasos" });
+  }
 
   const catalog = buildCatalog(secs);
   let batch = makeBatches(pending)[0];
@@ -452,6 +538,7 @@ export async function stepCards(store: CardsStore, uid: string, w: { id: string 
   } catch (e) {
     const m = String((e as Error).message ?? e).slice(0, 120);
     console.error("cards_error", m);
+    await store.discardStaged(run.id); // un error no deja la corrida a medias: todo queda como estaba
     await finish({ status: "error", error: m, calls: run.calls + 1 });
     return out(502, { ...runSummary({ ...run, status: "error", error: m }), error: "ia_no_disponible", detalle: m.slice(0, 80) });
   }
@@ -459,7 +546,7 @@ export async function stepCards(store: CardsStore, uid: string, w: { id: string 
 
   const allowed = new Map(batch.map((s) => [catalog.numOf.get(s.id)!, rawLines(s.text).length]));
   const parsed = parseCards(r.text, allowed);
-  const rows: CardRow[] = [], links: LinkRow[] = [];
+  const items: StagedItem[] = [];
   let degraded = 0;
   for (const s of batch) {
     const p0 = parsed.get(catalog.numOf.get(s.id)!);
@@ -468,40 +555,70 @@ export async function stepCards(store: CardsStore, uid: string, w: { id: string 
     const inventado = p ? ungroundedQuotes(p.purpose, s) : [];
     if (inventado.length) console.warn("cards_ungrounded", JSON.stringify({ s: s.id, citas: inventado.slice(0, 3) }));
     if (p && !inventado.length) {
-      rows.push(aiCard(s, p, wb.language));
-      links.push(...inline!.links, ...validateRelated(s, p.related, catalog.idOf, catalog.numOf));
-    } else { rows.push(codeCard(s, wb.language)); degraded++; }
+      items.push({ section_id: s.id, widget_id: s.widget_id, user_id: s.user_id, card: aiCard(s, p, wb.language),
+        links: [...inline!.links, ...validateRelated(s, p.related, catalog.idOf, catalog.numOf)] });
+    } else { items.push({ section_id: s.id, widget_id: s.widget_id, user_id: s.user_id, card: codeCard(s, wb.language), links: [] }); degraded++; }
   }
-  await store.upsertCards(rows);
-  await store.replaceAiLinks(batch.map((s) => s.id), links);
+  await store.stageItems(run.id, items);
   await store.addUsage(uid, r.tIn, r.tOut);
+  // si alguien canceló mientras la IA pensaba, lo recién guardado aparte se tira y no se aplica nada
+  const cur = await store.getCardRun(uid, run.id);
+  if (!cur || cur.status !== "running") { await store.discardStaged(run.id); return out(200, runSummary(cur ?? { ...run, status: "cancelled" })); }
 
   const remaining = pending.length - batch.length;
   const done = Math.min(run.total, Math.max(run.done, run.total - remaining));
   const patch = {
     steps: run.steps + 1, calls: run.calls + 1, degraded: run.degraded + degraded, done, effort,
-    tokens_in: run.tokens_in + r.tIn, tokens_out: run.tokens_out + r.tOut,
-    status: remaining === 0 ? "done" : "running", updated_at: new Date().toISOString(),
+    tokens_in: run.tokens_in + r.tIn, tokens_out: run.tokens_out + r.tOut, updated_at: new Date().toISOString(),
   };
-  await store.updateCardRun(run.id, remaining === 0 ? { ...patch, finished_at: new Date().toISOString() } : patch);
   console.log("cards_step", JSON.stringify({ v: CARDS_VERSION, batch: batch.length, degraded, remaining, effort, in: r.tIn, out: r.tOut }));
-  return out(200, runSummary({ ...run, ...patch } as CardRun));
+  if (remaining > 0) {
+    await store.updateCardRun(run.id, { ...patch, status: "running" });
+    return out(200, runSummary({ ...run, ...patch, status: "running" } as CardRun));
+  }
+  await store.updateCardRun(run.id, patch);
+  return await commit(patch);
 }
 
 export async function cardsStatus(store: CardsStore, uid: string, w: { id: string }, runId?: string): Promise<Out> {
   const wb = await store.widgetBasic(uid);
   if (!wb || wb.id !== w.id) return out(404, { error: "sin_widget" });
   const secs = await store.allSections(w.id);
-  const cov = coverage(secs, await store.cardMetas(w.id));
+  const metas = await store.cardMetas(w.id);
+  const cov = { ...coverage(secs, metas), last_generated_at: lastGeneratedAt(secs, metas), groups: coverageByGroup(secs, metas) };
   let run: CardRun | null = null;
   if (runId) run = await store.getCardRun(uid, runId);
   else run = (await store.recentCardRuns(w.id, new Date(0).toISOString()))[0] ?? null;
   return out(200, { ...cov, ...(run && run.widget_id === w.id ? { run: runSummary(run) } : {}) });
 }
 
+// Cancelar: la corrida se corta y lo guardado aparte se tira. Las tarjetas y los enlaces de antes quedan EXACTAMENTE como estaban.
 export async function cancelCards(store: CardsStore, uid: string, w: { id: string }, runId: string): Promise<Out> {
   const run = await store.getCardRun(uid, runId);
   if (!run || run.widget_id !== w.id) return out(404, { error: "corrida_no_encontrada" });
   if (run.status === "running") await store.updateCardRun(run.id, { status: "cancelled", finished_at: new Date().toISOString() });
-  return out(200, { ok: true });
+  await store.discardStaged(run.id);
+  return out(200, { ok: true, status: run.status === "running" ? "cancelled" : run.status });
+}
+
+// Texto editado por el dueño: se guarda tal cual (con el original aparte) y NO se pisa al regenerar, salvo que el dueño elija esa sección a propósito.
+export async function editCardText(store: CardsStore, uid: string, w: { id: string }, sectionId: string, raw: unknown): Promise<Out> {
+  const wb = await store.widgetBasic(uid);
+  if (!wb || wb.id !== w.id) return out(404, { error: "sin_widget" });
+  const purpose = typeof raw === "string" ? raw.replace(/\r/g, "").replace(/[ \t]+/g, " ").replace(/ ?\n ?/g, "\n").replace(/\n{3,}/g, "\n\n").trim() : "";
+  if (!purpose || purpose.length > MAX_EDIT_CHARS) return out(400, { error: "texto_invalido" });
+  const metas = await store.cardMetas(w.id);
+  if (!metas.some((m) => m.section_id === sectionId)) return out(404, { error: "sin_tarjeta" });
+  if (!(await store.editCard(w.id, sectionId, purpose))) return out(404, { error: "sin_tarjeta" });
+  return out(200, { ok: true, purpose });
+}
+
+export async function unEditCardText(store: CardsStore, uid: string, w: { id: string }, sectionId: string): Promise<Out> {
+  const wb = await store.widgetBasic(uid);
+  if (!wb || wb.id !== w.id) return out(404, { error: "sin_widget" });
+  const metas = await store.cardMetas(w.id);
+  if (!metas.some((m) => m.section_id === sectionId)) return out(404, { error: "sin_tarjeta" });
+  const restored = await store.unEditCard(w.id, sectionId);
+  if (restored === null) return out(409, { error: "sin_edicion" });
+  return out(200, { ok: true, purpose: restored });
 }

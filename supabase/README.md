@@ -5,17 +5,20 @@ Este directorio es un RESPALDO de lo que vive en Supabase. La fuente de verdad s
 si algo cambia allá, hay que actualizar esta carpeta (y al revés).
 
 ## Contenido
-- `migrations/` — las 36 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
+- `migrations/` — las 38 migraciones aplicadas, en orden de versión (nombre = `<version>_<nombre>.sql`).
   Cada archivo es el SQL guardado en `supabase_migrations.schema_migrations` más un salto de línea final.
   Comprobación: `md5(array_to_string(statements, E';\n'))` coincide con el md5 del archivo sin ese último salto.
-  Excepción: las 2 últimas (`20261113063528` y `20261113065723`) NO llevan ese salto final, así su md5 coincide
-  tal cual con el registrado en Supabase (`f82f0de4…` y `46dc654b…`).
+  Excepción: las 4 últimas (`20261113063528`, `20261113065723`, `20261113222506` y `20261114182327`) NO llevan ese salto final, así su md5
+  coincide tal cual con el registrado en Supabase (`f82f0de4…` y `46dc654b…` las dos primeras).
 - `functions/chat/` — Edge Function del chat, v23 (verify_jwt = false: la usan visitantes anónimos):
   `index.ts` (conexión a la base y a OpenAI), `handler.ts` (lógica del pedido), `core.ts` (partes puras),
   más su prueba `chat_test.ts`.
 - `functions/delete-account/index.ts` — borrado de cuenta (verify_jwt = true).
-- `functions/import-site/` — lectura del sitio, Memoria y tarjetas c1, v14 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
-  `summarize.ts`, `sections.ts`, `memory.ts`, `cards.ts` (tarjetas y enlaces de cada sección, por pasos),
+- `functions/import-site/` — lectura del sitio, Memoria y tarjetas c1, v16 (verify_jwt = true): `index.ts`, `flow.ts`, `lib.ts`,
+  `summarize.ts`, `sections.ts`, `memory.ts`, `cards.ts` (tarjetas y enlaces de cada sección, por pasos; v15: todo-o-nada, se guardan aparte en `card_run_items`
+  y se aplican juntas con `apply_card_run`; `cards_start` acepta `section_ids` para regenerar solo esas; cancelar no deja nada a medias;
+  v16: tarjetas por grupo público / interno con `group` en `cards_start` y `groups` en `cards_status`, edición del dueño con `card_edit` / `card_unedit`
+  que ninguna generación pisa salvo elegida a propósito, y `changes.ts`, que registra en `site_job_changes` qué cambió en cada lectura),
   más sus pruebas (`sections_test.ts`, `flow_sections_test.ts`, `memory_test.ts`, `cards_test.ts`) y `fixtures/`.
 - `functions/verify-site/` — verificación del sitio, v1 (verify_jwt = true): `index.ts`, `verify.ts`, `lib.ts`.
 - `manual/cron_purge_old_notifications.sql` — tarea programada creada a mano (no es migración).
@@ -105,7 +108,7 @@ cd supabase/functions/chat
 deno test -A
 ```
 
-import-site (`sections_test.ts`, `flow_sections_test.ts`, `memory_test.ts` y `cards_test.ts`, 70 pruebas: 13 + 7 + 24 + 26):
+import-site (`sections_test.ts`, `flow_sections_test.ts`, `memory_test.ts` y `cards_test.ts`, 94 pruebas: 13 + 11 + 24 + 46):
 ```
 cd supabase/functions/import-site
 deno test -A
