@@ -3,6 +3,7 @@
 // Corre startJob/stepJob de verdad contra servidores locales (sin red real ni claves) y un almacén en memoria.
 import { cfg } from "./lib.ts";
 import { type Job, type PageRow, type SectionsArgs, startJob, type Store, stepJob } from "./flow.ts";
+import { type ChangeRow, diffSections, type SectionDiff } from "./changes.ts";
 
 cfg.allowLocal = true; // solo pruebas: permite 127.0.0.1
 
@@ -28,13 +29,22 @@ class Mem implements Store {
   history: SectionsArgs[] = [];
   failSections = false;
   seq = 0;
-  replaceSections?: (a: SectionsArgs) => Promise<void> = (a) => {
+  changes: ChangeRow[] = [];
+  failChange = false;
+  // igual que el almacén real: compara con lo que había guardado y devuelve qué cambió
+  replaceSections?: (a: SectionsArgs) => Promise<SectionDiff[] | void> = (a) => {
     if (this.failSections) return Promise.reject(new Error("boom"));
+    const prev = (this.secs.get(a.page_id)?.sections ?? []).map((x, i) => ({ position: i, heading_path: x.heading_path, text: x.text, content_hash: x.content_hash }));
+    const diff = diffSections(prev, a.sections);
     this.secs.set(a.page_id, a);
     this.history.push(a);
-    return Promise.resolve();
+    return Promise.resolve(diff);
   };
-  constructor(conSecciones = true) { if (!conSecciones) this.replaceSections = undefined; }
+  recordChange?: (r: ChangeRow) => Promise<void> = (r) => {
+    if (this.failChange) return Promise.reject(new Error("boom_cambio"));
+    this.changes.push(r); return Promise.resolve();
+  };
+  constructor(conSecciones = true) { if (!conSecciones) { this.replaceSections = undefined; this.recordChange = undefined; } }
   recentJobs(widgetId: string, since: string) { return Promise.resolve(this.jobs.filter((j) => j.widget_id === widgetId && j.created_at >= since).sort((a, b) => b.created_at.localeCompare(a.created_at))); }
   setJobStatus(id: string, status: string) { const j = this.jobs.find((x) => x.id === id); if (j) j.status = status; return Promise.resolve(); }
   createJob(row: { widget_id: string; user_id: string; start_url: string }) {
@@ -158,4 +168,86 @@ Deno.test("flujo: HTML roto no rompe la lectura", async () => {
     eq(r.status, "done", "termina");
     eq(store.pages[0].status, "done", "página done");
   } finally { await srv.close(); }
+});
+
+// ---------- qué cambió en cada lectura ----------
+function serveDyn(get: () => string) {
+  const ac = new AbortController();
+  const s = Deno.serve({ port: 0, hostname: "127.0.0.1", signal: ac.signal, onListen() {} }, (req) => {
+    const p = new URL(req.url).pathname;
+    if (p === "/") return new Response(get(), { headers: { "content-type": "text/html; charset=utf-8" } });
+    return new Response("no", { status: 404 });
+  });
+  return { url: `http://127.0.0.1:${(s.addr as Deno.NetAddr).port}/`, close: async () => { ac.abort(); await s.finished; } };
+}
+const para = (t: string) => `<p>${t} ${"Texto de relleno para que la sección sea lo bastante larga y no se una con la siguiente. ".repeat(4)}</p>`;
+const pagina = (precio: string, extra = "") =>
+  `<html><head><title>Inicio</title></head><body><main><h1>Producto</h1>${para("Hacemos cosas útiles para tu negocio.")}` +
+  `<h2>Precios</h2>${para("Plan Free gratis.")}<p>${precio}</p>${extra}<h2>Contacto</h2>${para("Escribinos para consultas.")}</main></body></html>`;
+
+Deno.test("cambios: en la primera lectura la página es 'new' y se anotan sus secciones; sin cambios no se anota nada", async () => {
+  let html = pagina("Plan Pro 19 dólares al mes.");
+  const srv = serveDyn(() => html);
+  try {
+    const store = new Mem();
+    await readAll(store, srv.url);
+    eq(store.changes.length, 1, "una página nueva"); eq(store.changes[0].change, "new", "es nueva");
+    eq(store.changes[0].url, srv.url, "con su dirección"); eq(store.changes[0].title, "Inicio", "con su título");
+    eq(store.changes[0].job_id, store.jobs[0].id, "de esta lectura"); eq(store.changes[0].user_id, "u1", "del dueño");
+    ok(store.changes[0].sections.length >= 2 && store.changes[0].sections.every((x) => x.change === "new" && x.added === undefined), "solo los títulos de las secciones, sin líneas");
+    await readAll(store, srv.url, {}, Date.now() + 2 * 3600_000);
+    eq(store.changes.length, 1, "sin cambios no se anota nada nuevo");
+  } finally { await srv.close(); }
+});
+
+Deno.test("cambios: una página cambiada anota QUÉ sección cambió y qué líneas se agregaron y quitaron (sin IA)", async () => {
+  let html = pagina("Plan Pro 19 dólares al mes.");
+  const srv = serveDyn(() => html);
+  try {
+    const store = new Mem();
+    await readAll(store, srv.url);
+    html = pagina("Plan Pro 25 dólares al mes.", "<p>Plan Equipo 99 dólares al mes.</p>");
+    const r = await readAll(store, srv.url, {}, Date.now() + 2 * 3600_000);
+    eq(r.pages_changed, 1, "una cambiada");
+    eq(store.changes.length, 2, "la nueva de antes + la cambiada"); const c = store.changes[1];
+    eq(c.change, "changed", "cambiada"); eq(c.job_id, store.jobs[1].id, "de la segunda lectura");
+    const precios = c.sections.filter((x) => x.change === "changed");
+    eq(precios.length, 1, "solo cambió UNA sección: " + JSON.stringify(c.sections));
+    ok(/Precios/.test(precios[0].title), "la de Precios");
+    ok(precios[0].added!.some((l) => /25 dólares/.test(l)) && precios[0].added!.some((l) => /Equipo 99/.test(l)), "líneas agregadas: " + JSON.stringify(precios[0].added));
+    ok(precios[0].removed!.some((l) => /19 dólares/.test(l)), "línea quitada: " + JSON.stringify(precios[0].removed));
+    ok(!c.sections.some((x) => /Contacto|Producto$/.test(x.title)), "lo que no cambió no aparece");
+  } finally { await srv.close(); }
+});
+
+Deno.test("cambios: si guardar el registro falla (o el almacén no lo tiene), la lectura sigue igual", async () => {
+  const srv = serveDyn(() => pagina("Plan Pro 19 dólares al mes."));
+  try {
+    const a = new Mem(); a.failChange = true;
+    eq((await readAll(a, srv.url)).status, "done", "termina aunque falle el registro"); eq(a.pages[0].status, "done", "página leída"); eq(a.changes.length, 0, "no se anotó");
+    const b = new Mem(); b.recordChange = undefined;
+    eq((await readAll(b, srv.url)).status, "done", "almacén sin registro de cambios funciona como siempre");
+    const c = new Mem(false); eq((await readAll(c, srv.url)).status, "done", "almacén viejo (sin secciones) también");
+  } finally { await srv.close(); }
+});
+
+Deno.test("diffSections: nuevas, cambiadas, quitadas; títulos repetidos se emparejan por orden; topes de líneas y secciones", () => {
+  const o = (t: string, text: string, i = 0) => ({ position: i, heading_path: t, text, content_hash: "h" + text });
+  const n = (t: string, text: string) => ({ heading_path: t, text, content_hash: "h" + text });
+  const d = diffSections([o("A", "uno\ndos"), o("B", "x", 1), o("C", "y", 2)], [n("A", "uno\ntres"), n("B", "x"), n("D", "nueva")]);
+  eq(JSON.stringify(d.map((x) => x.change + ":" + x.title)), JSON.stringify(["changed:A", "new:D", "removed:C"]), "tipos y orden");
+  eq(JSON.stringify(d[0].added), JSON.stringify(["tres"]), "agregada"); eq(JSON.stringify(d[0].removed), JSON.stringify(["dos"]), "quitada");
+  // un título repetido: la 1.ª con la 1.ª y la 2.ª con la 2.ª
+  const r = diffSections([o("Q", "a"), o("Q", "b", 1)], [n("Q", "a"), n("Q", "c")]);
+  eq(r.length, 1, "solo cambió la segunda"); eq(JSON.stringify(r[0].added), JSON.stringify(["c"]), "la segunda ahora dice c");
+  // repeticiones: si estaba una vez y ahora dos, sobra una
+  const rep = diffSections([o("R", "x")], [n("R", "x\nx")]); eq(JSON.stringify(rep[0].added), JSON.stringify(["x"]), "una repetida de más");
+  // topes
+  const largo = Array.from({ length: 20 }, (_, i) => "línea " + i).join("\n");
+  const t = diffSections([o("T", "base")], [n("T", "base\n" + largo)]);
+  eq(t[0].added!.length, 9, "8 líneas y el aviso"); ok(/… y 12 más/.test(t[0].added![8]), "aviso con cuántas faltan");
+  const un = diffSections([o("U", "z")], [n("U", "q".repeat(500))]); ok(un[0].added![0].length <= 200, "línea larga cortada");
+  const muchas = diffSections([], Array.from({ length: 50 }, (_, i) => n("S" + i, "t" + i))); eq(muchas.length, 30, "como máximo 30 secciones");
+  eq(diffSections([], []).length, 0, "vacío"); eq(diffSections([o("A", "a")], [n("A", "a")]).length, 0, "igual no da nada");
+  eq(diffSections([o("", "a")], [n("", "b")])[0].title, "(sin título)", "sin título");
 });

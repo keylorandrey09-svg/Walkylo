@@ -6,9 +6,10 @@ import {
   acceptMemoryDraft, discardMemoryDraft, generateMemory, type MemSection, type MemStore, type Run, type WidgetMem,
 } from "./memory.ts";
 import {
-  cancelCards, type CardMeta, type CardRun, type CardSection, type CardsStore, cardsStatus, type LinkRow, normalizeRun, type StagedItem, startCards,
-  stepCards,
+  cancelCards, type CardGroup, type CardMeta, type CardRun, type CardSection, type CardsStore, cardsStatus, editCardText, type LinkRow, normalizeRun,
+  type StagedItem, startCards, stepCards, unEditCardText,
 } from "./cards.ts";
+import { type ChangeRow, diffSections, type SectionDiff } from "./changes.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -84,14 +85,16 @@ const store: Store2 & MemStore & CardsStore = {
   },
   // Secciones de una página: se actualizan en el lugar (nunca queda la página sin secciones) y se borran las que sobran.
   async replaceSections(a) {
-    const old = (must(await sb.from("sections").select("position,content_hash").eq("page_id", a.page_id)
-      .order("position")) ?? []) as { position: number; content_hash: string }[];
+    const old = (must(await sb.from("sections").select("position,content_hash,heading_path,text").eq("page_id", a.page_id)
+      .order("position")) ?? []) as { position: number; content_hash: string; heading_path: string; text: string }[];
     const now = new Date().toISOString();
     const same = old.length === a.sections.length && old.every((o, i) => o.position === i && o.content_hash === a.sections[i].content_hash);
     if (same) {
       must(await sb.from("sections").update({ last_seen_at: now, fetched_at: now }).eq("page_id", a.page_id));
-      return;
+      return [] as SectionDiff[];
     }
+    let diff: SectionDiff[] = [];
+    try { diff = diffSections(old, a.sections); } catch (e) { console.error("diff_error", String((e as Error).message ?? e).slice(0, 80)); }
     const rows = a.sections.map((s, i) => ({
       widget_id: a.widget_id, user_id: a.user_id, page_id: a.page_id, source_kind: "site", document_url: a.url,
       document_title: a.title || null, heading_path: s.heading_path, kind: s.kind, is_hidden: s.is_hidden, lang: a.lang,
@@ -102,6 +105,10 @@ const store: Store2 & MemStore & CardsStore = {
       must(await sb.from("sections").upsert(rows.slice(i, i + 100), { onConflict: "widget_id,document_url,position" }));
     }
     must(await sb.from("sections").delete().eq("page_id", a.page_id).gte("position", rows.length));
+    return diff;
+  },
+  async recordChange(r: ChangeRow) {
+    must(await sb.from("site_job_changes").insert(r));
   },
   async widgetFull(userId) {
     return must(await sb.from("widgets").select("id,knowledge,knowledge_ai_at").eq("user_id", userId).maybeSingle()) as WidgetFull | null;
@@ -180,7 +187,7 @@ const store: Store2 & MemStore & CardsStore = {
   },
   async cardMetas(widgetId) {
     return await fetchAll<CardMeta>((a, b) =>
-      sb.from("section_cards").select("section_id,section_hash,version,updated_at").eq("widget_id", widgetId).order("section_id").range(a, b));
+      sb.from("section_cards").select("section_id,section_hash,version,updated_at,edited_at").eq("widget_id", widgetId).order("section_id").range(a, b));
   },
   // lo de cada tanda se guarda aparte; las tarjetas de siempre no se tocan hasta applyRun (todo junto, en una transacción)
   async stageItems(runId: string, items: StagedItem[]) {
@@ -200,6 +207,24 @@ const store: Store2 & MemStore & CardsStore = {
   async replaceCodeLinks(widgetId: string, rows: LinkRow[]) {
     must(await sb.from("section_links").delete().eq("widget_id", widgetId).eq("source", "code"));
     for (const c of chunks(rows, 100)) must(await sb.from("section_links").upsert(c, { onConflict: "from_section,to_section,kind,label" }));
+  },
+  async editCard(widgetId: string, sectionId: string, purpose: string) {
+    const cur = must(await sb.from("section_cards").select("purpose,purpose_ai,edited_at").eq("widget_id", widgetId).eq("section_id", sectionId)
+      .maybeSingle()) as { purpose: string; purpose_ai: string | null; edited_at: string | null } | null;
+    if (!cur) return false;
+    // el original se guarda solo la primera vez: editar de nuevo no lo pisa
+    const original = cur.edited_at && cur.purpose_ai !== null ? cur.purpose_ai : cur.purpose;
+    must(await sb.from("section_cards").update({ purpose, purpose_ai: original, edited_at: new Date().toISOString() })
+      .eq("widget_id", widgetId).eq("section_id", sectionId));
+    return true;
+  },
+  async unEditCard(widgetId: string, sectionId: string) {
+    const cur = must(await sb.from("section_cards").select("purpose_ai,edited_at").eq("widget_id", widgetId).eq("section_id", sectionId)
+      .maybeSingle()) as { purpose_ai: string | null; edited_at: string | null } | null;
+    if (!cur || !cur.edited_at || cur.purpose_ai === null) return null;
+    must(await sb.from("section_cards").update({ purpose: cur.purpose_ai, purpose_ai: null, edited_at: null })
+      .eq("widget_id", widgetId).eq("section_id", sectionId));
+    return cur.purpose_ai;
   },
   async recentCardRuns(widgetId, since) {
     return (must(await sb.from("card_runs").select("*").eq("widget_id", widgetId).gte("started_at", since)
@@ -227,7 +252,7 @@ Deno.serve(async (req) => {
     if (ue || !ud?.user) return json({ error: "token_invalido" }, 401);
     const uid = ud.user.id;
 
-    let b: { action?: string; job_id?: string; run_id?: string; mode?: string; force?: boolean; section_ids?: unknown } = {};
+    let b: { action?: string; job_id?: string; run_id?: string; mode?: string; force?: boolean; section_ids?: unknown; group?: unknown; section_id?: unknown; purpose?: unknown } = {};
     try { b = await req.json(); } catch { /* cuerpo vacío */ }
     const action = String(b.action ?? "");
     const jobId = typeof b.job_id === "string" ? b.job_id : "";
@@ -275,7 +300,13 @@ Deno.serve(async (req) => {
         }
         sectionIds = b.section_ids as string[];
       }
-      const r = await startCards(store, uid, w, { force: b.force === true, sectionIds });
+      // group: "public" | "internal": solo las secciones de ese grupo (sin section_ids). Si viene y no es uno de los dos, es un pedido mal hecho.
+      let group: CardGroup | undefined;
+      if (b.group !== undefined && b.group !== null) {
+        if (b.group !== "public" && b.group !== "internal") return json({ error: "grupo_invalido" }, 400);
+        group = b.group;
+      }
+      const r = await startCards(store, uid, w, { force: b.force === true, sectionIds, group });
       return json(r.body, r.status);
     }
     if (action === "cards_step") {
@@ -286,6 +317,16 @@ Deno.serve(async (req) => {
     }
     if (action === "cards_status") {
       const r = await cardsStatus(store, uid, w, runId || undefined);
+      return json(r.body, r.status);
+    }
+    if (action === "card_edit") {
+      if (typeof b.section_id !== "string" || !b.section_id) return json({ error: "falta_section_id" }, 400);
+      const r = await editCardText(store, uid, w, b.section_id, b.purpose);
+      return json(r.body, r.status);
+    }
+    if (action === "card_unedit") {
+      if (typeof b.section_id !== "string" || !b.section_id) return json({ error: "falta_section_id" }, 400);
+      const r = await unEditCardText(store, uid, w, b.section_id);
       return json(r.body, r.status);
     }
     if (action === "cards_cancel") {

@@ -5,6 +5,7 @@ import {
   type Rule, robotsAllowed, safeFetch, sha256,
 } from "./lib.ts";
 import { extractSections, type Section } from "./sections.ts";
+import type { ChangeRow, SectionDiff } from "./changes.ts";
 
 export const MAX_PAGES = 25;
 export const MAX_PAGES_PER_STEP = 5;
@@ -44,7 +45,10 @@ export interface Store {
   pageCounts(jobId: string): Promise<{ total: number; pending: number }>;
   updatePage(id: string, patch: Record<string, unknown>): Promise<void>;
   // Opcional (aditivo): guarda las secciones de una página. Si falta o falla, la lectura sigue igual.
-  replaceSections?(a: SectionsArgs): Promise<void>;
+  // Puede devolver qué secciones cambiaron respecto de la lectura anterior (para "Actividad reciente").
+  replaceSections?(a: SectionsArgs): Promise<SectionDiff[] | void>;
+  // Opcional (aditivo): guarda qué cambió en una página en esta lectura. Si falta o falla, la lectura sigue igual.
+  recordChange?(row: ChangeRow): Promise<void>;
 }
 
 export type Out = { status: number; body: Record<string, unknown> };
@@ -204,7 +208,8 @@ export async function stepJob(
       if (r.contentType && !r.contentType.includes("html")) throw new Error("no_es_html");
       const ex = extractPage(r.text);
       const hash = await sha256(ex.text + "\u0000" + ex.hidden_text);
-      if (!p.content_hash) inc.new++; else if (p.content_hash !== hash) inc.changed++; else inc.same++;
+      const change: "new" | "changed" | "same" = !p.content_hash ? "new" : p.content_hash !== hash ? "changed" : "same";
+      inc[change]++;
       // secciones con estructura (aditivo: un error aquí nunca rompe la lectura de la página)
       let secRows: SectionRow[] | null = null, secErr = "";
       if (store.replaceSections) {
@@ -225,10 +230,18 @@ export async function stepJob(
           ...(store.replaceSections ? { sections: secRows ? secRows.length : 0, ...(secErr ? { sections_error: secErr } : {}) } : {}),
         },
       });
+      let diff: SectionDiff[] = [];
       if (store.replaceSections && secRows) {
         try {
-          await store.replaceSections({ widget_id: job.widget_id, user_id: uid, page_id: p.id, url: p.url, title: ex.title, lang, sections: secRows });
+          const d = await store.replaceSections({ widget_id: job.widget_id, user_id: uid, page_id: p.id, url: p.url, title: ex.title, lang, sections: secRows });
+          if (Array.isArray(d)) diff = d;
         } catch (e) { console.error("sections_save_error", String((e as Error).message ?? e).slice(0, 120)); }
+      }
+      // qué cambió en esta lectura (solo páginas nuevas o cambiadas); aditivo: un error acá nunca rompe la lectura
+      if (store.recordChange && change !== "same") {
+        try {
+          await store.recordChange({ job_id: job.id, widget_id: job.widget_id, user_id: uid, url: p.url, title: ex.title || null, change, sections: diff });
+        } catch (e) { console.error("change_save_error", String((e as Error).message ?? e).slice(0, 120)); }
       }
       // descubrir páginas nuevas desde los enlaces (el menú cuenta)
       if (depth < MAX_DEPTH && knownKeys.size < MAX_PAGES) {

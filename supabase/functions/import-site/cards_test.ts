@@ -9,6 +9,7 @@ import {
   type LinkRow, makeBatches, MAX_RELATED, norm, normalizeRun, numberLines, parseCards, parseEvidence, pendingSections, rawLines, RUN_STALE_MIN, runTargets, sourceLink, startCards, type StagedItem,
   stepCards, titleOf, ungroundedQuotes, validateRelated,
   MAX_INLINE_LINKS, resolveInlineRefs,
+  coverageByGroup, editCardText, groupOf, MAX_EDIT_CHARS, unEditCardText,
 } from "./cards.ts";
 
 function eq(a: unknown, b: unknown, msg: string) { if (a !== b) throw new Error(`${msg}: esperado ${JSON.stringify(b)}, salió ${JSON.stringify(a)}`); }
@@ -29,7 +30,7 @@ const mk = (id: string, title: string, kind = "screen", text = "Texto de la secc
 // ---------- almacén en memoria ----------
 class Mem implements CardsStore {
   secs: CardSection[] = [];
-  cards = new Map<string, CardRow & { updated_at: string }>();
+  cards = new Map<string, CardRow & { updated_at: string; edited_at?: string | null; purpose_ai?: string | null }>();
   aiLinks: LinkRow[] = [];
   codeLinks: LinkRow[] = [];
   runs: CardRun[] = [];
@@ -41,7 +42,7 @@ class Mem implements CardsStore {
   now() { this.tick += 1000; return new Date(this.tick).toISOString(); }
   widgetBasic(uid: string) { return Promise.resolve(uid === "u1" ? { id: "w1", language: this.language } : null); }
   allSections() { return Promise.resolve(this.secs); }
-  cardMetas(): Promise<CardMeta[]> { return Promise.resolve([...this.cards.values()].map((c) => ({ section_id: c.section_id, section_hash: c.section_hash, version: c.version, updated_at: c.updated_at }))); }
+  cardMetas(): Promise<CardMeta[]> { return Promise.resolve([...this.cards.values()].map((c) => ({ section_id: c.section_id, section_hash: c.section_hash, version: c.version, updated_at: c.updated_at, edited_at: c.edited_at ?? null }))); }
   stageItems(runId: string, items: StagedItem[]) { const m = this.staged.get(runId) ?? new Map(); for (const it of items) m.set(it.section_id, it); this.staged.set(runId, m); return Promise.resolve(); }
   stagedIds(runId: string) { return Promise.resolve([...(this.staged.get(runId)?.keys() ?? [])]); }
   discardStaged(runId: string) { this.staged.delete(runId); return Promise.resolve(); }
@@ -50,8 +51,12 @@ class Mem implements CardsStore {
     if (this.failApply) return Promise.reject(new Error("db_apply"));
     const run = this.runs.find((r) => r.id === runId);
     if (!run || run.status !== "running") return Promise.reject(new Error("corrida_no_activa"));
-    const items = [...(this.staged.get(runId)?.values() ?? [])];
-    for (const it of items) this.cards.set(it.section_id, { ...it.card, updated_at: this.now() });
+    // igual que el SQL: una tarjeta editada por el dueño NO se pisa, salvo que esté entre las elegidas a propósito (scope)
+    const items = [...(this.staged.get(runId)?.values() ?? [])].filter((it) => {
+      const cur = this.cards.get(it.section_id);
+      return !cur?.edited_at || (run.scope?.includes(it.section_id) ?? false);
+    });
+    for (const it of items) this.cards.set(it.section_id, { ...it.card, updated_at: this.now(), edited_at: null, purpose_ai: null });
     const ids = items.map((i) => i.section_id);
     this.aiLinks = [...this.aiLinks.filter((l) => !ids.includes(l.from_section)), ...items.flatMap((i) => i.links)];
     this.staged.delete(runId);
@@ -59,12 +64,21 @@ class Mem implements CardsStore {
   }
   replaceCodeLinks(_w: string, rows: LinkRow[]) { this.codeLinks = rows; return Promise.resolve(); }
   recentCardRuns(_w: string, since: string) { return Promise.resolve(this.runs.filter((r) => Date.parse(r.started_at) >= Date.parse(since)).slice().reverse()); }
-  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string; scope?: string[] | null }) {
-    const r: CardRun = { id: "run" + (this.runs.length + 1), ...row, scope: row.scope ?? null, status: "running", total: 0, done: 0, degraded: 0, steps: 0, calls: 0, tokens_in: 0, tokens_out: 0, effort: null, error: null, started_at: this.now(), updated_at: this.now() };
+  createCardRun(row: { widget_id: string; user_id: string; force: boolean; version: string; scope?: string[] | null; scope_group?: "public" | "internal" | null }) {
+    const r: CardRun = { id: "run" + (this.runs.length + 1), ...row, scope: row.scope ?? null, scope_group: row.scope_group ?? null, status: "running", total: 0, done: 0, degraded: 0, steps: 0, calls: 0, tokens_in: 0, tokens_out: 0, effort: null, error: null, started_at: this.now(), updated_at: this.now() };
     this.runs.push(r); return Promise.resolve({ ...r });
   }
   getCardRun(uid: string, id: string) { const r = this.runs.find((x) => x.id === id && x.user_id === uid); return Promise.resolve(r ? { ...r } : null); }
   updateCardRun(id: string, patch: Record<string, unknown>) { Object.assign(this.runs.find((r) => r.id === id)!, patch); return Promise.resolve(); }
+  editCard(_w: string, sectionId: string, purpose: string) {
+    const c = this.cards.get(sectionId); if (!c) return Promise.resolve(false);
+    c.purpose_ai = c.edited_at && c.purpose_ai != null ? c.purpose_ai : c.purpose; c.purpose = purpose; c.edited_at = this.now();
+    return Promise.resolve(true);
+  }
+  unEditCard(_w: string, sectionId: string) {
+    const c = this.cards.get(sectionId); if (!c || !c.edited_at || c.purpose_ai == null) return Promise.resolve(null);
+    const o = c.purpose_ai; c.purpose = o; c.purpose_ai = null; c.edited_at = null; return Promise.resolve(o);
+  }
   addUsage(_u: string, i: number, o: number) { this.usage.in += i; this.usage.out += o; this.usage.writes++; return Promise.resolve(); }
   async stepAll(runId: string, max = 50) {
     let last: Record<string, unknown> = {};
@@ -608,4 +622,160 @@ Deno.test("la corrida usada para aplicar tiene que estar en curso (como la funci
   const r = await startCards(st, "u1", { id: "w1" }); await st.stepAll(String(r.body.run_id));
   let err = ""; try { await st.applyRun(String(r.body.run_id)); } catch (e) { err = (e as Error).message; }
   eq(err, "corrida_no_activa", "una corrida ya terminada no se puede volver a aplicar");
+});
+
+// ---------- grupos (público / interno), tarjetas editadas ----------
+const oculto = (x: CardSection): CardSection => ({ ...x, is_hidden: true });
+function mixto() {
+  // 2 públicas (página + legal), 4 internas (pantalla, pasos, ventana, bloque oculto)
+  const secs = [
+    mk("p1", "Precios", "info", "Planes y precios del producto con detalle suficiente.", "https://x.com/", 0),
+    mk("p2", "Privacidad", "legal", "Texto legal sobre datos personales con detalle suficiente.", "https://x.com/", 1),
+    mk("i1", "Configuración", "screen", "Pantalla de configuración con varias opciones disponibles.", "https://x.com/app", 0),
+    mk("i2", "Crear proyecto", "steps", "Paso 1: elegí un nombre. Paso 2: conectá la cuenta.", "https://x.com/app", 1),
+    mk("i3", "Soporte", "ui", "Ventana de soporte con un campo para escribir el mensaje.", "https://x.com/app", 2),
+    oculto(mk("i4", "Vista oculta", "info", "Bloque oculto de la app con texto de ejemplo suficiente.", "https://x.com/app", 3)),
+  ];
+  const st = new Mem(); st.secs = secs;
+  return { st, secs };
+}
+const tarjetas = (st: Mem) => [...st.cards.keys()].sort().join(",");
+
+Deno.test("grupos: lo de la app es 'internal'; páginas visibles y textos legales son 'public' (mismo criterio que la Memoria)", () => {
+  eq(groupOf({ kind: "screen", is_hidden: false }), "internal", "pantalla");
+  eq(groupOf({ kind: "steps", is_hidden: false }), "internal", "pasos");
+  eq(groupOf({ kind: "ui", is_hidden: false }), "internal", "ventana");
+  eq(groupOf({ kind: "menu", is_hidden: false }), "internal", "menú");
+  eq(groupOf({ kind: "info", is_hidden: true }), "internal", "bloque oculto");
+  eq(groupOf({ kind: "faq", is_hidden: true }), "internal", "preguntas ocultas");
+  eq(groupOf({ kind: "info", is_hidden: false }), "public", "página visible");
+  eq(groupOf({ kind: "faq", is_hidden: false }), "public", "preguntas visibles");
+  eq(groupOf({ kind: "legal", is_hidden: false }), "public", "legal");
+  eq(groupOf({ kind: "legal", is_hidden: true }), "public", "legal oculto sigue siendo del sitio");
+});
+
+Deno.test("grupos: solo se trabaja con las secciones del grupo pedido; el otro grupo no se toca", async () => {
+  const { st } = mixto(); const calls = fakeAI({ related: () => "ninguna" });
+  const r = await startCards(st, "u1", { id: "w1" }, { group: "public" });
+  eq(r.body.total, 2, "2 públicas"); eq(r.body.group, "public", "el resumen dice el grupo");
+  const fin = await st.stepAll(String(r.body.run_id)); eq(fin.status, "done", "terminó"); eq(fin.group, "public", "el grupo se mantiene");
+  eq(tarjetas(st), "p1,p2", "solo hay tarjetas de las públicas");
+  const desc = calls[0].input.split("SECCIONES A DESCRIBIR")[1]; eq((desc.match(/^### \[/gm) ?? []).length, 2, "solo 2 se describen");
+  // el catálogo sigue numerado con TODAS (las relacionadas pueden apuntar a cualquier sección)
+  ok(calls[0].input.split("SECCIONES A DESCRIBIR")[0].split("\n").filter((l) => /^\[\d+\]/.test(l)).length === 6, "catálogo completo");
+  const r2 = await startCards(st, "u1", { id: "w1" }, { group: "internal" });
+  eq(r2.body.total, 4, "4 internas"); await st.stepAll(String(r2.body.run_id));
+  eq(tarjetas(st), "i1,i2,i3,i4,p1,p2", "ahora hay de las dos");
+});
+
+Deno.test("grupos: si el grupo ya está al día no hace nada aunque el otro grupo esté pendiente; 'todas' respeta el grupo", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" }, { group: "public" })).body.run_id));
+  const runs = st.runs.length;
+  const r = await startCards(st, "u1", { id: "w1" }, { group: "public" });
+  eq(r.body.up_to_date, true, "público al día"); eq(st.runs.length, runs, "no se crea corrida"); eq(r.body.status, "done", "estado");
+  const todas = await startCards(st, "u1", { id: "w1" }, { force: true, group: "public" });
+  eq(todas.body.total, 2, "regenerar todas del grupo: solo las 2 públicas"); eq(todas.body.force, true, "es force");
+  await st.stepAll(String(todas.body.run_id));
+  eq(tarjetas(st), "p1,p2", "el grupo interno sigue sin tarjetas");
+  const sin = await startCards(st, "u1", { id: "w1" }, { group: "internal" }); eq(sin.body.total, 4, "el interno sigue pendiente completo");
+});
+
+Deno.test("grupos: elegir secciones a mano manda sobre el grupo", () => {
+  const { secs } = mixto();
+  eq(runTargets(secs, [], { force: false, version: CARDS_VERSION, scope: ["i1"], scope_group: "public" }).map((x) => x.id).join(), "i1", "scope gana");
+  eq(runTargets(secs, [], { force: false, version: CARDS_VERSION, scope_group: "internal" }).map((x) => x.id).join(), "i1,i2,i3,i4", "solo internas");
+});
+
+Deno.test("estado: cobertura total y por grupo, con 'editadas' y la última generación de cada grupo", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" }, { group: "public" })).body.run_id));
+  st.cards.get("p2")!.edited_at = st.now();
+  const e = await cardsStatus(st, "u1", { id: "w1" });
+  const g = e.body.groups as Record<string, Record<string, unknown>>;
+  eq(g.public.sections, 2, "públicas"); eq(g.public.fresh, 2, "editada cuenta como al día"); eq(g.public.edited, 1, "1 editada");
+  eq(g.internal.sections, 4, "internas"); eq(g.internal.missing, 4, "faltan todas las internas"); eq(g.internal.last_generated_at, null, "sin generación interna");
+  ok(typeof g.public.last_generated_at === "string", "hay fecha pública");
+  eq(e.body.fresh, 2, "total al día"); eq(e.body.missing, 4, "total faltan"); eq(e.body.edited, 1, "total editadas");
+  const d = coverageByGroup(st.secs, await st.cardMetas()); eq(d.internal.sections + d.public.sections, st.secs.length, "los grupos cubren todo");
+});
+
+Deno.test("editar: se guarda el texto del dueño, el original queda aparte y editar de nuevo no pisa ese original", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" })).body.run_id));
+  const original = st.cards.get("p1")!.purpose;
+  const r = await editCardText(st, "u1", { id: "w1" }, "p1", "  Mi texto \n\n\n\n con  espacios  "); eq(r.status, 200, "guardó");
+  eq(st.cards.get("p1")!.purpose, "Mi texto\n\ncon espacios", "texto limpio"); ok(st.cards.get("p1")!.edited_at, "marca de edición"); eq(st.cards.get("p1")!.purpose_ai, original, "el original quedó");
+  await editCardText(st, "u1", { id: "w1" }, "p1", "Mi segundo texto");
+  eq(st.cards.get("p1")!.purpose_ai, original, "editar de nuevo conserva el PRIMER original");
+  const u = await unEditCardText(st, "u1", { id: "w1" }, "p1"); eq(u.status, 200, "volvió"); eq(u.body.purpose, original, "devuelve el original");
+  eq(st.cards.get("p1")!.purpose, original, "texto original de vuelta"); eq(st.cards.get("p1")!.edited_at, null, "sin marca");
+  eq((await unEditCardText(st, "u1", { id: "w1" }, "p1")).body.error, "sin_edicion", "sin edición no hay nada que deshacer");
+});
+
+Deno.test("editar: pedidos inválidos (vacío, demasiado largo, sin tarjeta, otro usuario) no cambian nada", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" })).body.run_id));
+  const antes = JSON.stringify([...st.cards.entries()]);
+  eq((await editCardText(st, "u1", { id: "w1" }, "p1", "   ")).body.error, "texto_invalido", "vacío");
+  eq((await editCardText(st, "u1", { id: "w1" }, "p1", 123)).body.error, "texto_invalido", "no es texto");
+  eq((await editCardText(st, "u1", { id: "w1" }, "p1", "x".repeat(MAX_EDIT_CHARS + 1))).status, 400, "demasiado largo");
+  eq((await editCardText(st, "u1", { id: "w1" }, "no-existe", "hola")).body.error, "sin_tarjeta", "sección sin tarjeta");
+  eq((await editCardText(st, "otro", { id: "w1" }, "p1", "hola")).status, 404, "otro usuario");
+  eq((await unEditCardText(st, "otro", { id: "w1" }, "p1")).status, 404, "otro usuario al deshacer");
+  eq(JSON.stringify([...st.cards.entries()]), antes, "nada cambió");
+  eq((await editCardText(st, "u1", { id: "w1" }, "p1", "x".repeat(MAX_EDIT_CHARS))).status, 200, "justo en el límite sirve");
+});
+
+Deno.test("editadas: 'Regenerar todas' y 'Actualizar' NO las pisan; elegirlas a propósito sí las rehace y borra la marca", async () => {
+  const { st } = mixto(); const calls = fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" })).body.run_id));
+  await editCardText(st, "u1", { id: "w1" }, "p1", "Texto del dueño"); await editCardText(st, "u1", { id: "w1" }, "i1", "Otro texto del dueño");
+  const todas = await startCards(st, "u1", { id: "w1" }, { force: true });
+  eq(todas.body.total, 4, "6 menos las 2 editadas"); const n0 = calls.length;
+  const fin = await st.stepAll(String(todas.body.run_id)); eq(fin.status, "done", "terminó");
+  ok(calls.length > n0, "la IA trabajó");
+  const desc = calls.slice(n0).map((c) => c.input.split("SECCIONES A DESCRIBIR")[1]).join("\n");
+  eq((desc.match(/^### \[/gm) ?? []).length, 4, "la IA describió solo 4 (las editadas no se mandan)");
+  eq(st.cards.get("p1")!.purpose, "Texto del dueño", "p1 intacta"); eq(st.cards.get("i1")!.purpose, "Otro texto del dueño", "i1 intacta");
+  // aunque el texto de la sección cambie, la editada no se vuelve a hacer sola ni cuenta como pendiente
+  st.secs[0] = { ...st.secs[0], text: st.secs[0].text + " Cambió.", content_hash: "nuevo" };
+  const act = await startCards(st, "u1", { id: "w1" }); eq(act.body.up_to_date, true, "Actualizar: nada pendiente (la editada se respeta)");
+  const elegida = await startCards(st, "u1", { id: "w1" }, { sectionIds: ["p1"] }); eq(elegida.body.total, 1, "elegida a propósito");
+  await st.stepAll(String(elegida.body.run_id));
+  ok(st.cards.get("p1")!.purpose !== "Texto del dueño", "se rehízo"); eq(st.cards.get("p1")!.edited_at, null, "sin marca de edición"); eq(st.cards.get("p1")!.purpose_ai, null, "sin original guardado");
+  eq(st.cards.get("i1")!.purpose, "Otro texto del dueño", "la otra editada sigue igual");
+});
+
+Deno.test("editadas: si el dueño edita mientras corre una regeneración (con varias tandas), lo editado gana al aplicar", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  for (let i = 0; i < 10; i++) st.secs.push(mk("x" + i, "Extra " + i, "screen", "Pantalla extra número " + i + " con texto suficiente para describir.", "https://x.com/z", i));
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" })).body.run_id));
+  const r = await startCards(st, "u1", { id: "w1" }, { force: true }); const id = String(r.body.run_id);
+  const paso = await stepCards(st, "u1", { id: "w1" }, id);
+  eq(paso.body.status, "running", "quedan tandas: la corrida sigue en curso");
+  ok((st.staged.get(id)?.has("p1")) ?? false, "p1 ya está guardada aparte (nueva) esperando el final");
+  await editCardText(st, "u1", { id: "w1" }, "p1", "Lo escribió el dueño en medio");
+  const fin = await st.stepAll(id); eq(fin.status, "done", "terminó");
+  eq(st.cards.get("p1")!.purpose, "Lo escribió el dueño en medio", "el texto del dueño se conserva");
+  ok(st.cards.get("p1")!.edited_at, "y sigue marcada como editada");
+});
+
+Deno.test("las acciones de grupo no cambian lo anterior: sin 'group' trabaja con todo, como antes", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  const r = await startCards(st, "u1", { id: "w1" }); eq(r.body.total, 6, "todo"); eq(r.body.group, null, "sin grupo");
+  const e = normalizeRun({ id: "r", widget_id: "w1", user_id: "u1", status: "running", scope_group: "otra-cosa" }); eq(e.scope_group, null, "un grupo desconocido se ignora");
+  eq(normalizeRun({ id: "r", scope_group: "public" }).scope_group, "public", "un grupo válido se conserva");
+});
+
+Deno.test("elegir secciones a mano no guarda grupo en la corrida (aunque se mande), y una tarjeta que desaparece justo al editar da 'sin_tarjeta'", async () => {
+  const { st } = mixto(); fakeAI({ related: () => "ninguna" });
+  await st.stepAll(String((await startCards(st, "u1", { id: "w1" })).body.run_id));
+  const r = await startCards(st, "u1", { id: "w1" }, { sectionIds: ["p1"], group: "internal" });
+  eq(r.body.total, 1, "solo la elegida"); eq(r.body.group, null, "el resumen no trae grupo");
+  eq(st.runs[st.runs.length - 1].scope_group, null, "la corrida guardada tampoco");
+  const antes = JSON.stringify([...st.cards.entries()]);
+  st.editCard = () => Promise.resolve(false); // la tarjeta desapareció entre mirar y guardar
+  const e = await editCardText(st, "u1", { id: "w1" }, "p1", "hola"); eq(e.status, 404, "404"); eq(e.body.error, "sin_tarjeta", "motivo");
+  eq(JSON.stringify([...st.cards.entries()]), antes, "no cambió nada");
 });
